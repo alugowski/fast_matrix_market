@@ -30,7 +30,7 @@ std::string chunk_and_recombine(const std::string& s, int chunk_size) {
     return recombined;
 }
 
-class ChunkingSuite : public testing::TestWithParam<int> {
+class InvalidSuite : public testing::TestWithParam<int> {
 public:
     struct PrintToStringParamName
     {
@@ -42,11 +42,11 @@ public:
     };
 };
 
-TEST_P(ChunkingSuite, Small) {
+TEST_P(InvalidSuite, Small) {
     EXPECT_EQ(one_line_no_newline, chunk_and_recombine(one_line_no_newline, GetParam()));
     EXPECT_EQ(one_line_newline, chunk_and_recombine(one_line_newline, GetParam()));
     EXPECT_EQ(short_s, chunk_and_recombine(short_s, GetParam()));
 }
 
-INSTANTIATE_TEST_SUITE_P(Chunking, ChunkingSuite, testing::Range(0, 10),
-                         ChunkingSuite::PrintToStringParamName());
+INSTANTIATE_TEST_SUITE_P(Chunking, InvalidSuite, testing::Range(0, 10),
+                         InvalidSuite::PrintToStringParamName());
