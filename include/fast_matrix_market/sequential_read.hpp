@@ -19,7 +19,7 @@ namespace fast_matrix_market {
     struct pattern_placeholder_type {};
 
     // Negation needed to support symmetry expansion. Skew-symmetric symmetry negates values.
-    pattern_placeholder_type operator-(const pattern_placeholder_type& o) { return o; }
+    inline pattern_placeholder_type operator-(const pattern_placeholder_type& o) { return o; }
 
 
     /**
@@ -112,7 +112,7 @@ namespace fast_matrix_market {
      *
      * fast_float does not support long double.
      */
-    const char* read_float(const char* pos, [[maybe_unused]] const char* end, long double& out) {
+    inline const char* read_float(const char* pos, [[maybe_unused]] const char* end, long double& out) {
         errno = 0;
 
         char* value_end;
@@ -152,7 +152,7 @@ namespace fast_matrix_market {
     /**
      * Pattern values are no-ops.
      */
-    const char* read_value(const char* pos, [[maybe_unused]] const char* end, [[maybe_unused]] pattern_placeholder_type& out) {
+    inline const char* read_value(const char* pos, [[maybe_unused]] const char* end, [[maybe_unused]] pattern_placeholder_type& out) {
         return pos;
     }
 
@@ -161,15 +161,15 @@ namespace fast_matrix_market {
         return read_int(pos, end, out);
     }
 
-    const char* read_value(const char* pos, const char* end, float& out) {
+    inline const char* read_value(const char* pos, const char* end, float& out) {
         return read_float(pos, end, out);
     }
 
-    const char* read_value(const char* pos, const char* end, double& out) {
+    inline const char* read_value(const char* pos, const char* end, double& out) {
         return read_float(pos, end, out);
     }
 
-    const char* read_value(const char* pos, const char* end, long double& out) {
+    inline const char* read_value(const char* pos, const char* end, long double& out) {
         return read_float(pos, end, out);
     }
 
@@ -313,7 +313,7 @@ namespace fast_matrix_market {
         return line_num;
     }
 
-    std::string get_next_chunk(std::istream& instream, const read_options& options) {
+    inline std::string get_next_chunk(std::istream& instream, const read_options& options) {
         constexpr size_t chunk_extra = 4096; // extra chunk bytes to leave room for rest of line
 
         // allocate chunk

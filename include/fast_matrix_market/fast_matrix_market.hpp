@@ -290,7 +290,7 @@ inline int64_t read_header(std::istream& instream, matrix_market_header& header)
     return lines_read;
 }
 
-bool write_header(std::ostream& os, matrix_market_header& header) {
+inline bool write_header(std::ostream& os, matrix_market_header& header) {
     // Write the banner
     os << kMatrixMarketBanner << kSpace;
     os << object_map.at(header.object) << kSpace;

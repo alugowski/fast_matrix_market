@@ -10,15 +10,15 @@
 #include "fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
-    field_type get_field_type(float ignored) {
+    inline field_type get_field_type(float ignored) {
         return real;
     }
 
-    field_type get_field_type(double ignored) {
+    inline field_type get_field_type(double ignored) {
         return real;
     }
 
-    field_type get_field_type(long double ignored) {
+    inline field_type get_field_type(long double ignored) {
         return real;
     }
 
@@ -32,15 +32,15 @@ namespace fast_matrix_market {
         return complex;
     }
 
-    std::string value_to_string(const std::complex<float>& value) {
+    inline std::string value_to_string(const std::complex<float>& value) {
         return std::to_string(value.real()) + " " + std::to_string(value.imag());
     }
 
-    std::string value_to_string(const std::complex<double>& value) {
+    inline std::string value_to_string(const std::complex<double>& value) {
         return std::to_string(value.real()) + " " + std::to_string(value.imag());
     }
 
-    std::string value_to_string(const std::complex<long double>& value) {
+    inline std::string value_to_string(const std::complex<long double>& value) {
         return std::to_string(value.real()) + " " + std::to_string(value.imag());
     }
 
