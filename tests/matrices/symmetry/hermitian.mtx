@@ -1,0 +1,3 @@
+%%MatrixMarket matrix coordinate complex hermitian
+% no support for complex datatype, hence no support for hermitian matrices
+4 4 0
