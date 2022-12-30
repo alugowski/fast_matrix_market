@@ -337,6 +337,9 @@ namespace fast_matrix_market {
         // Read rest of line and append to the chunk.
         std::string suffix;
         std::getline(instream, suffix);
+        if (instream.good()) {
+            suffix += "\n";
+        }
 
         if (chunk_length + suffix.size() > chunk.size()) {
             // rest of line didn't fit in the extra space, must copy

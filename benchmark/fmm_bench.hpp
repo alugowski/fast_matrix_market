@@ -45,4 +45,4 @@ triplet_matrix<IT, VT> construct_triplet(std::size_t byte_target) {
 }
 
 constexpr int64_t kInMemoryByteTargetRead = 500 * 2 << 20;
-constexpr int64_t kInMemoryByteTargetWrite = 100 * 2 << 10;
+constexpr int64_t kInMemoryByteTargetWrite = 100 * 2 << 20;
