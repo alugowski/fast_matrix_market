@@ -328,6 +328,8 @@ inline bool write_header(std::ostream& os, matrix_market_header& header) {
 
 #include "sequential_read.hpp"
 #include "sequential_write.hpp"
+#include "parse_handlers.hpp"
+#include "formatters.hpp"
 #include "interface_triplet.hpp"
 #include "interface_array.hpp"
 

@@ -10,24 +10,6 @@
 #include "fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
-
-    template <typename VT>
-    class row_major_parse_handler {
-    public:
-        using coordinate_type = int64_t;
-        using value_type = VT;
-
-        explicit row_major_parse_handler(std::vector<VT> &values, int64_t ncols) : values(values), ncols(ncols) {}
-
-        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            values[col * ncols + row] = value;
-        }
-
-    protected:
-        std::vector<VT>& values;
-        int64_t ncols;
-    };
-
     template <typename VT>
     void read_matrix_market_array(std::istream &instream,
                                   matrix_market_header& header,
@@ -40,37 +22,6 @@ namespace fast_matrix_market {
         auto handler = row_major_parse_handler(row_major_values, header.ncols);
         read_matrix_market_body(instream, header, handler, 1, options);
     }
-
-    template<typename VT>
-    class row_major_array_formatter {
-    public:
-        explicit row_major_array_formatter(const std::vector<VT> &values, int64_t ncols) : values(values), ncols(ncols), nrows(values.size() / ncols) {}
-
-        std::string next_chunk(const write_options& options) {
-            std::string chunk;
-
-            if (cur_column >= ncols) {
-                return chunk;
-            }
-
-            // chunk by column
-            chunk.reserve(ncols*15);
-
-            for (int64_t i = 0; i < nrows; ++i) {
-                chunk += value_to_string(values[(i * ncols) + cur_column]);
-                chunk += kNewline;
-            }
-            ++cur_column;
-
-            return chunk;
-        }
-
-    protected:
-        const std::vector<VT>& values;
-        int64_t nrows, ncols;
-        int64_t cur_column = 0;
-    };
-
 
     template <typename VT>
     void write_matrix_market_array(std::ostream &os,

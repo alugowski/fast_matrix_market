@@ -54,12 +54,8 @@ namespace fast_matrix_market {
     void write_body(std::ostream& os, const matrix_market_header& header,
                     FORMATTER& formatter, const write_options& options = {}) {
 
-        while (true) {
-            std::string chunk(formatter.next_chunk(options));
-
-            if (chunk.empty()) {
-                break;
-            }
+        while (formatter.has_next()) {
+            std::string chunk = formatter.next_chunk(options).get();
 
             os.write(chunk.c_str(), (std::streamsize)chunk.size());
         }

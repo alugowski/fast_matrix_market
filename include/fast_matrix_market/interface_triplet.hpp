@@ -10,28 +10,6 @@
 #include "fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
-    template<typename IT, typename VT>
-    class triplet_parse_handler {
-    public:
-        using coordinate_type = IT;
-        using value_type = VT;
-
-        explicit triplet_parse_handler(std::vector<coordinate_type> &rows,
-                                       std::vector<coordinate_type> &cols,
-                                       std::vector<value_type> &values) : rows(rows), cols(cols), values(values) {}
-
-        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            rows.emplace_back(row);
-            cols.emplace_back(col);
-            values.emplace_back(value);
-        }
-
-    protected:
-        std::vector<coordinate_type>& rows;
-        std::vector<coordinate_type>& cols;
-        std::vector<value_type>& values;
-    };
-
     template <typename IT, typename VT>
     void read_matrix_market_triplet(std::istream &instream,
                                     matrix_market_header& header,
@@ -46,43 +24,6 @@ namespace fast_matrix_market {
         auto handler = triplet_parse_handler(rows, cols, values);
         read_matrix_market_body(instream, header, handler, 1, options);
     }
-
-    template<typename IT, typename VT>
-    class triplet_formatter {
-    public:
-        explicit triplet_formatter(const std::vector<IT> &rows,
-                                   const std::vector<IT> &cols,
-                                   const std::vector<VT> &values) : rows(rows), cols(cols), values(values) {}
-
-        std::string next_chunk(const write_options& options) {
-            std::string chunk;
-            chunk.reserve(options.chunk_size_values*25);
-
-            int64_t end_i = chunk_offset + options.chunk_size_values;
-            if (end_i > rows.size()) {
-                end_i = rows.size();
-            }
-            for (int64_t i = chunk_offset; i < end_i; ++i) {
-                chunk += std::to_string(rows[i] + 1);
-                chunk += kSpace;
-                chunk += std::to_string(cols[i] + 1);
-                chunk += kSpace;
-                chunk += value_to_string(values[i]);
-                chunk += kNewline;
-            }
-            chunk_offset = end_i;
-
-            return chunk;
-        }
-
-    protected:
-        const std::vector<IT>& rows;
-        const std::vector<IT>& cols;
-        const std::vector<VT>& values;
-
-        size_t chunk_offset = 0;
-    };
-
 
     template <typename IT, typename VT>
     void write_matrix_market_triplet(std::ostream &os,
@@ -99,7 +40,9 @@ namespace fast_matrix_market {
 
         write_header(os, header);
 
-        auto formatter = triplet_formatter(rows, cols, values);
+        auto formatter = triplet_formatter(rows.begin(), rows.end(),
+                                           cols.begin(), cols.end(),
+                                           values.begin(), values.end());
         write_body(os, header, formatter, options);
     }
 }
