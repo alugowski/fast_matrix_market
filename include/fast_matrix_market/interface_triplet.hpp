@@ -44,7 +44,7 @@ namespace fast_matrix_market {
         values.reserve(header.nnz);
 
         auto handler = triplet_parse_handler(rows, cols, values);
-        read_matrix_market_body_with_pattern(instream, header, handler, 1, options);
+        read_matrix_market_body(instream, header, handler, 1, options);
     }
 
     template<typename IT, typename VT>

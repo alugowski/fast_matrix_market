@@ -415,6 +415,9 @@ namespace fast_matrix_market {
         }
     }
 
+    /**
+     * Read the body with no automatic adaptations.
+     */
     template <typename HANDLER>
     void read_matrix_market_body_no_complex(std::istream& instream, matrix_market_header& header,
                                             HANDLER& handler, const read_options& options = {}) {
@@ -434,9 +437,12 @@ namespace fast_matrix_market {
         }
     }
 
+    /**
+     * Read the body by adapting real files to complex HANDLER.
+     */
     template <typename HANDLER, typename std::enable_if<is_complex<typename HANDLER::value_type>::value, int>::type = 0>
-    void read_matrix_market_body(std::istream& instream, matrix_market_header& header,
-                                 HANDLER& handler, const read_options& options = {}) {
+    void read_matrix_market_body_no_pattern(std::istream& instream, matrix_market_header& header,
+                                            HANDLER& handler, const read_options& options = {}) {
         if (header.field == complex) {
             read_matrix_market_body_no_complex(instream, header, handler, options);
         } else {
@@ -447,9 +453,12 @@ namespace fast_matrix_market {
         }
     }
 
+    /**
+     * Read the body by adapting real files to complex HANDLER.
+     */
     template <typename HANDLER, typename std::enable_if<!is_complex<typename HANDLER::value_type>::value, int>::type = 0>
-    void read_matrix_market_body(std::istream& instream, matrix_market_header& header,
-                                 HANDLER& handler, const read_options& options = {}) {
+    void read_matrix_market_body_no_pattern(std::istream& instream, matrix_market_header& header,
+                                            HANDLER& handler, const read_options& options = {}) {
         if (header.field != complex) {
             read_matrix_market_body_no_complex(instream, header, handler, options);
         } else {
@@ -458,16 +467,23 @@ namespace fast_matrix_market {
         }
     }
 
+    /**
+     * Main body reader entry point.
+     *
+     * This will handle the following adaptations automatically:
+     *  - If the file is a pattern file, the pattern_value will be substituted for each element
+     *  - If the HANDLER expects std::complex values but the file is not complex then imag=0 is provided for each value.
+     */
     template <typename HANDLER>
-    void read_matrix_market_body_with_pattern(std::istream& instream, matrix_market_header& header,
-                                              HANDLER& handler,
-                                              typename HANDLER::value_type pattern_value,
-                                              const read_options& options = {}) {
+    void read_matrix_market_body(std::istream& instream, matrix_market_header& header,
+                                 HANDLER& handler,
+                                 typename HANDLER::value_type pattern_value,
+                                 const read_options& options = {}) {
         if (header.field == pattern) {
             auto fwd_handler = pattern_parse_adapter<HANDLER>(handler, pattern_value);
-            read_matrix_market_body(instream, header, fwd_handler, options);
+            read_matrix_market_body_no_pattern(instream, header, fwd_handler, options);
         } else {
-            read_matrix_market_body(instream, header, handler, options);
+            read_matrix_market_body_no_pattern(instream, header, handler, options);
         }
     }
 }
