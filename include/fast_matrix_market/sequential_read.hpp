@@ -6,7 +6,10 @@
 #include <charconv>
 #include <complex>
 #include <type_traits>
+
+#ifdef FROM_CHARS_DOUBLE_NOT_SUPPORTED
 #include <fast_float/fast_float.h>
+#endif
 
 #include "fast_matrix_market.hpp"
 

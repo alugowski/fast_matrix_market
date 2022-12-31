@@ -6,7 +6,6 @@
 #include <charconv>
 #include <complex>
 #include <type_traits>
-#include <fast_float/fast_float.h>
 
 #include "fast_matrix_market.hpp"
 
