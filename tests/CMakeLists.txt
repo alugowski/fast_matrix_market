@@ -16,6 +16,10 @@ target_link_libraries(chunking_test GTest::gtest_main fast_matrix_market::fast_m
 add_executable(invalid_test invalid_test.cpp)
 target_link_libraries(invalid_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
 
+add_executable(cxsparse_test cxsparse_test.cpp fake_cxsparse/cs.hpp)
+target_link_libraries(cxsparse_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+
 include(GoogleTest)
 gtest_discover_tests(chunking_test)
 gtest_discover_tests(invalid_test)
+gtest_discover_tests(cxsparse_test)

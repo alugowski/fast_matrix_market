@@ -3,8 +3,8 @@ project(fast_matrix_market VERSION 1.0.0 LANGUAGES CXX)
 SET(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O3")
-set(CMAKE_CXX_FLAGS_RELEASE "-g -O3")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_RELEASE "-g -O0")
 
 # Main
 add_library(fast_matrix_market INTERFACE include/fast_matrix_market/fast_matrix_market.hpp include/fast_matrix_market/sequential_read.hpp include/fast_matrix_market/interface_triplet.hpp)
