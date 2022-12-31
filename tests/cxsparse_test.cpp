@@ -7,7 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <fast_matrix_market/fast_matrix_market.hpp>
 #include <fast_matrix_market/extras/CXSparse.hpp>
 #include "fake_cxsparse/cs.hpp"
 
@@ -24,7 +23,6 @@ cs_dl *read_mtx(const std::string& path) {
 
     std::ifstream f(path);
 
-    fast_matrix_market::matrix_market_header header;
     fast_matrix_market::read_matrix_market_cxsparse(f, &A, cs_dl_spalloc, cs_dl_entry, cs_dl_spfree);
 
     // ignore the memory leak
@@ -45,7 +43,6 @@ TEST(CXSparse, ReadPattern) {
 std::string write_mtx(cs_dl *A) {
     std::ostringstream oss;
 
-    fast_matrix_market::matrix_market_header header(A->m, A->n);
     fast_matrix_market::write_matrix_market_cxsparse(oss, A);
 
     return oss.str();

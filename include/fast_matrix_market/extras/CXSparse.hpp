@@ -21,7 +21,7 @@ namespace fast_matrix_market {
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
             if (!entry(cs, row, col, value)) {
                 spfree(cs);
-                throw fmm_error("Error setting entry at position");
+                throw fmm_error("Error setting entry");
             }
         }
 
@@ -56,6 +56,7 @@ namespace fast_matrix_market {
                 typename std::remove_pointer<decltype((*cs)->x)>::type, // CS struct's value type
                 CS, ENTRY, FREE> (*cs, entry, spfree);
 
+        // cxsparse_parse_handler handles pattern files via cs_entry()
         read_matrix_market_body(instream, header, handler, 1, options);
     }
 
