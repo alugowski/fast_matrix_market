@@ -83,12 +83,16 @@ namespace fast_matrix_market {
 
         if (cs->nz == -1) {
             // compressed
-            throw not_implemented("Need CSC formatter");
+            auto formatter = csc_formatter(cs->p, cs->p + cs->n, // explicitly no +1
+                                           cs->i, cs->i + cs->nzmax,
+                                           cs->x, header.field == pattern ? nullptr : cs->x + cs->nzmax,
+                                           false);
+            write_body(os, header, formatter, options);
         } else {
             // triplet
-            auto formatter = triplet_formatter(cs->i, cs->i + cs->nzmax,
-                                               cs->p, cs->p + cs->nzmax,
-                                               cs->x, header.field == pattern ? nullptr : cs->x + cs->nzmax);
+            auto formatter = triplet_formatter(cs->i, cs->i + cs->nz,
+                                               cs->p, cs->p + cs->nz,
+                                               cs->x, header.field == pattern ? nullptr : cs->x + cs->nz);
             write_body(os, header, formatter, options);
         }
     }

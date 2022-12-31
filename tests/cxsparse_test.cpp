@@ -61,3 +61,24 @@ TEST(CXSparse, WritePattern) {
     EXPECT_EQ(5, count_lines(write_mtx(read_mtx(kTestMatrixDir + "/eye3_pattern.mtx"))));
     EXPECT_NE(-1, write_mtx(read_mtx(kTestMatrixDir + "/eye3_pattern.mtx")).find("pattern"));
 }
+
+
+class CSCTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        triplet = read_mtx(kTestMatrixDir + "/eye3.mtx");
+        csc = cs_dl_compress(triplet);
+    }
+
+    cs_dl* triplet = nullptr;
+    cs_dl* csc = nullptr;
+};
+
+TEST_F(CSCTest, ReadSmall) {
+    EXPECT_EQ(-1, csc->nz);
+    EXPECT_EQ(3, csc->nzmax);
+}
+
+TEST_F(CSCTest, WriteSmall) {
+    EXPECT_EQ(write_mtx(triplet), write_mtx(csc));
+}

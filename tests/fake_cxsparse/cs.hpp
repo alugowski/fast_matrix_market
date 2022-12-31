@@ -1,17 +1,18 @@
 // The full CXSparse comes with SuiteSparse which is a giant package.
 // Avoid fetching all that by badly hacking just enough pieces to test the loader.
 //
-// CXSparse is written in C. They support different types by duplicating structures and methods
-// and using a different prefix on the structure. The `dl` in `cs_dl` means "double, long" so double value type
+// CXSparse is written in C. They support different index and value types by duplicating structures and methods
+// and using a suffix on the structure name. The `dl` in `cs_dl` means "double, long" so double value type
 // and int64_t index type. 'c' means complex<double>, 'i' means int32_t. To avoid duplicating source code, CXSparse
 // uses macros to expand each implementation into each supported type combination.
 //
-// Here we just support CXSparse matrix type.
-// The index and value types are automatically discovered using the C++ type system, so the other types should work
+// Here we just support one CXSparse matrix type.
+// The index and value types are automatically discovered using the C++ type system, so the other types will work
 // as well.
 //
 // SuiteSparse: https://people.engr.tamu.edu/davis/suitesparse.html
 // CXSparse: https://github.com/DrTimothyAldenDavis/SuiteSparse/tree/stable/CXSparse
+//
 // CXSparse, Copyright (c) 2006-2022, Timothy A. Davis.
 // CXSparse is released under a LGPL-2.1+ license.
 
@@ -70,24 +71,40 @@ inline int64_t cs_dl_entry (cs_dl *T, int64_t i, int64_t j, double x) {
 
 #define CS_TRIPLET(A) (A && (A->nz >= 0))
 
-//cs_dl *cs_compress (const cs_dl *T)
-//{
-//    csi m, n, nz, p, k, *Cp, *Ci, *w, *Ti, *Tj ;
-//    double *Cx, *Tx ;
-//    cs_dl *C ;
-//    if (!CS_TRIPLET (T)) return nullptr ;                /* check inputs */
-//
-//    m = T->m ; n = T->n ; Ti = T->i ; Tj = T->p ; Tx = T->x ; nz = T->nz ;
-//    C = cs_spalloc (m, n, nz, Tx != NULL, 0) ;          /* allocate result */
-//    w = calloc (n, sizeof (csi)) ;                   /* get workspace */
-//    if (!C || !w) return (cs_done (C, w, NULL, 0)) ;    /* out of memory */
-//    Cp = C->p ; Ci = C->i ; Cx = C->x ;
-//    for (k = 0 ; k < nz ; k++) w [Tj [k]]++ ;           /* column counts */
-//    cs_cumsum (Cp, w, n) ;                              /* column pointers */
-//    for (k = 0 ; k < nz ; k++)
-//    {
-//    Ci [p = w [Tj [k]]++] = Ti [k] ;    /* A(i,j) is the pth entry in C */
-//    if (Cx) Cx [p] = Tx [k] ;
-//    }
-//    return (cs_done (C, w, NULL, 1)) ;      /* success; free w and return C */
-//}
+csi cs_cumsum (csi *p, csi *c, csi n)
+{
+    csi i, nz = 0 ;
+    if (!p || !c) return (-1) ;     /* check inputs */
+    for (i = 0 ; i < n ; i++)
+    {
+        p [i] = nz ;
+        nz += c [i] ;
+        c [i] = p [i] ;             /* also copy p[0..n-1] back into c[0..n-1]*/
+    }
+    p [n] = nz ;
+    return (nz) ;                  /* return sum (c [0..n-1]) */
+}
+
+cs_dl *cs_dl_compress (const cs_dl *T)
+{
+    csi m, n, nz, p, k, *Cp, *Ci, *w, *Ti, *Tj ;
+    double *Cx, *Tx ;
+    cs_dl *C ;
+    if (!CS_TRIPLET (T)) return nullptr ;                /* check inputs */
+
+    m = T->m ; n = T->n ; Ti = T->i ; Tj = T->p ; Tx = T->x ; nz = T->nz ;
+    C = cs_dl_spalloc (m, n, nz, Tx != nullptr, 0) ;          /* allocate result */
+    w = (csi*)calloc (n, sizeof (csi)) ;                   /* get workspace */
+    if (!C || !w) return nullptr ;    /* out of memory */
+    Cp = C->p ; Ci = C->i ; Cx = C->x ;
+    for (k = 0 ; k < nz ; k++) w [Tj [k]]++ ;           /* column counts */
+    cs_cumsum (Cp, w, n) ;                              /* column pointers */
+    for (k = 0 ; k < nz ; k++)
+    {
+    Ci [p = w [Tj [k]]++] = Ti [k] ;    /* A(i,j) is the pth entry in C */
+    if (Cx) Cx [p] = Tx [k] ;
+    }
+
+    free(w);
+    return C;      /* success; free w and return C */
+}
