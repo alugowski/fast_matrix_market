@@ -1,3 +1,5 @@
 %%MatrixMarket vector coordinate real general
-% no support for vectors
-4 0
+4 3
+1 101
+2 202
+4 404

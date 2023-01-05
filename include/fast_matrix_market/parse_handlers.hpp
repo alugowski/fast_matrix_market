@@ -11,6 +11,44 @@
 
 namespace fast_matrix_market {
     /**
+     * Tuple handler. A single vector of (row, column, value) tuples.
+     */
+    template<typename TUPLE, typename IT, typename VT>
+    class tuple_parse_handler {
+    public:
+        using coordinate_type = IT;
+        using value_type = VT;
+
+        explicit tuple_parse_handler(std::vector<TUPLE> &tuples) : tuples(tuples) {}
+
+        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
+            tuples.emplace_back(row, col, value);
+        }
+
+    protected:
+        std::vector<TUPLE> &tuples;
+    };
+
+    /**
+     * Works with any type where `mat(row, column) = value` works.
+     */
+    template<typename MAT, typename IT, typename VT>
+    class setting_2d_parse_handler {
+    public:
+        using coordinate_type = IT;
+        using value_type = VT;
+
+        explicit setting_2d_parse_handler(MAT &mat) : mat(mat) {}
+
+        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
+            mat(row, col) = value;
+        }
+
+    protected:
+        MAT &mat;
+    };
+
+    /**
      * Triplet handler. Separate row, column, value vectors.
      */
     template<typename IT, typename VT>
