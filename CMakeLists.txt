@@ -31,8 +31,19 @@ if (NOT float_from_chars_supported)
     target_link_libraries(fast_matrix_market INTERFACE fast_float)
 endif()
 
-# Test for available std::to_chars.
+# Test for available versions of std::to_chars.
 include(cmake/to_chars_tests.cmake)
+
+# Get Dragonbox if floating-point std::to_chars are not available.
+if (NOT to_chars_double_supported)
+    message("Fetching Dragonbox.")
+
+    include(cmake/Dragonbox.cmake)
+
+    add_definitions(-DDRAGONBOX_AVAILABLE)
+
+    target_link_libraries(fast_matrix_market INTERFACE dragonbox::dragonbox_to_chars)
+endif()
 
 # test driver
 add_executable(driver include/fast_matrix_market/driver.cpp)

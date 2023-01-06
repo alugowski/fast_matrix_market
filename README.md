@@ -1,6 +1,6 @@
 
 ## Fast
-fast, using `fast_float` to parse floats.
+fast, using `fast_float` to parse floats, and `Dragonbox` for writing floats.
 
 parallel
 
@@ -30,6 +30,7 @@ Matrix Market format spec says, for any symmetries other than general, only entr
 
 Header-only. Use CMake to fetch the library, copy and use `add_subdirectory`, or just copy into your project's `include` directory.
 Note: If you make a copy, be sure to also include the [`fast_float`](https://github.com/fastfloat/fast_float) library. You can omit it if you know your compiler implements `std::from_chars<double>` (e.g. GCC 12+).
+Same with [`Dragonbox`](https://github.com/jk-jeon/dragonbox).
 
 ## Flexible
 

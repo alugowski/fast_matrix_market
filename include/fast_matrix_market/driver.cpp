@@ -20,7 +20,7 @@ int main() {
 
     std::vector<int64_t> rows = {1, 2, 3, 3};
     std::vector<int64_t> cols = {0, 1, 2, 3};
-    std::vector<std::complex<float>> values = {std::complex<float>(1.0, 1.0), 1, 1, 1};
+    std::vector<std::complex<double>> values = {std::complex<double>(1.0, 1.0), 1, 1, 1};
     header.symmetry = fast_matrix_market::hermitian;
 
     std::string mm;

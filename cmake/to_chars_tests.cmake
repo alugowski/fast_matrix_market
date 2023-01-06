@@ -31,7 +31,7 @@ int main(void) {
 if (to_chars_double_supported)
     add_definitions(-DTO_CHARS_DOUBLE_SUPPORTED)
 else()
-    message("std::to_chars<double> not detected. Using std::to_string (write parallelism will suffer).")
+    message("std::to_chars<double> not detected. Using Dragonbox.")
 endif()
 
 # Check for long double support

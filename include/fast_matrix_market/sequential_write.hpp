@@ -7,6 +7,10 @@
 #include <complex>
 #include <type_traits>
 
+#ifdef DRAGONBOX_AVAILABLE
+#include <dragonbox/dragonbox_to_chars.h>
+#endif
+
 #include "fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
@@ -53,7 +57,7 @@ namespace fast_matrix_market {
     }
 #else
     /**
-     * Convert integral types to string. Fallback due to locale dependence (and hence thread serialization).
+     * Convert integral types to string. This is the fallback due to locale dependence (and hence thread serialization).
      */
     template <typename T>
     std::string int_to_string(const T& value) {
@@ -65,6 +69,69 @@ namespace fast_matrix_market {
     std::string value_to_string(const T& value) {
         return std::to_string(value);
     }
+
+    inline std::string value_to_string(const int32_t & value) {
+        return int_to_string(value);
+    }
+
+    inline std::string value_to_string(const int64_t & value) {
+        return int_to_string(value);
+    }
+
+#ifdef TO_CHARS_DOUBLE_SUPPORTED
+    inline std::string value_to_string(const float& value) {
+        std::string ret(15, ' ');
+        std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
+        if (result.ec == std::errc()) {
+            ret.resize(result.ptr - ret.data());
+            return ret;
+        } else {
+            return std::to_string(value);
+        }
+    }
+
+    inline std::string value_to_string(const double& value) {
+        std::string ret(25, ' ');
+        std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
+        if (result.ec == std::errc()) {
+            ret.resize(result.ptr - ret.data());
+            return ret;
+        } else {
+            return std::to_string(value);
+        }
+    }
+#else
+#ifdef DRAGONBOX_AVAILABLE
+    inline std::string value_to_string(const float& value) {
+        std::string buffer(jkj::dragonbox::max_output_string_length<jkj::dragonbox::ieee754_binary32> + 1, ' ');
+
+        char *end_ptr = jkj::dragonbox::to_chars(value, buffer.data());
+        buffer.resize(end_ptr - buffer.data());
+        return buffer;
+    }
+
+    inline std::string value_to_string(const double& value) {
+        std::string buffer(jkj::dragonbox::max_output_string_length<jkj::dragonbox::ieee754_binary64> + 1, ' ');
+
+        char *end_ptr = jkj::dragonbox::to_chars(value, buffer.data());
+        buffer.resize(end_ptr - buffer.data());
+        return buffer;
+    }
+#endif
+#endif
+
+#ifdef TO_CHARS_LONG_DOUBLE_SUPPORTED
+    inline std::string value_to_string(const long double& value) {
+        std::string ret(35, ' ');
+        std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
+        if (result.ec == std::errc()) {
+            ret.resize(result.ptr - ret.data());
+            return ret;
+        } else {
+            return std::to_string(value);
+        }
+    }
+#endif
 
     inline std::string value_to_string(const std::complex<float>& value) {
         return value_to_string(value.real()) + " " + value_to_string(value.imag());
