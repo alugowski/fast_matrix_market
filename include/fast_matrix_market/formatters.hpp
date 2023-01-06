@@ -46,9 +46,9 @@ namespace fast_matrix_market {
                 chunk.reserve((row_end - row_iter)*25);
 
                 for (; row_iter != row_end; ++row_iter, ++col_iter) {
-                    chunk += std::to_string(*row_iter + 1);
+                    chunk += int_to_string(*row_iter + 1);
                     chunk += kSpace;
-                    chunk += std::to_string(*col_iter + 1);
+                    chunk += int_to_string(*col_iter + 1);
                     if (val_iter != val_end) {
                         chunk += kSpace;
                         chunk += value_to_string(*val_iter);
@@ -130,14 +130,14 @@ namespace fast_matrix_market {
                 // iterate over assigned columns
                 for (; ptr_iter != ptr_end; ++ptr_iter) {
                     auto column_number = (int64_t)(ptr_iter - ptr_begin);
-                    std::string col = std::to_string(column_number + 1);
+                    std::string col = int_to_string(column_number + 1);
 
                     // iterate over rows in column
                     IND_ITER row_end = ind_begin + *(ptr_iter+1);
                     IND_ITER row_iter = ind_begin + *ptr_iter;
                     VAL_ITER val_iter = val_begin + *ptr_iter;
                     for (; row_iter != row_end; ++row_iter, ++val_iter) {
-                        auto row = std::to_string(*row_iter + 1);
+                        auto row = int_to_string(*row_iter + 1);
 
                         if (transpose) {
                             chunk += col;

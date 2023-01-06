@@ -96,9 +96,9 @@ namespace fast_matrix_market {
 
                     for (typename SparseMatrixType::InnerIterator it(mat, outer_iter); it; ++it)
                     {
-                        chunk += std::to_string(it.row() + 1);
+                        chunk += int_to_string(it.row() + 1);
                         chunk += kSpace;
-                        chunk += std::to_string(it.col() + 1);
+                        chunk += int_to_string(it.col() + 1);
                         chunk += kSpace;
                         chunk += value_to_string(it.value());
                         chunk += kNewline;

@@ -31,6 +31,9 @@ if (NOT float_from_chars_supported)
     target_link_libraries(fast_matrix_market INTERFACE fast_float)
 endif()
 
+# Test for available std::to_chars.
+include(cmake/to_chars_tests.cmake)
+
 # test driver
 add_executable(driver include/fast_matrix_market/driver.cpp)
 target_link_libraries(driver PUBLIC fast_matrix_market::fast_matrix_market)
