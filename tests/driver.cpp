@@ -9,7 +9,7 @@
 
 #include <iostream>
 #include <vector>
-#include "fast_matrix_market.hpp"
+#include "fast_matrix_market/fast_matrix_market.hpp"
 
 int main() {
     fast_matrix_market::matrix_market_header header;

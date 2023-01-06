@@ -45,10 +45,6 @@ if (NOT to_chars_double_supported)
     target_link_libraries(fast_matrix_market INTERFACE dragonbox::dragonbox_to_chars)
 endif()
 
-# test driver
-add_executable(driver include/fast_matrix_market/driver.cpp)
-target_link_libraries(driver PUBLIC fast_matrix_market::fast_matrix_market)
-
 # enable OpenMP
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
