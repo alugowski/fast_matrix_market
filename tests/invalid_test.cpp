@@ -4,13 +4,10 @@
 #include <filesystem>
 #include <fstream>
 
-#include <gtest/gtest.h>
-
-#include <fast_matrix_market/fast_matrix_market.hpp>
+#include "fmm_tests.hpp"
 
 using std::filesystem::directory_iterator;
 
-static const std::string kTestMatrixDir = TEST_MATRIX_DIR;  // configured in CMake
 static const std::string kInvalidMatrixDir = kTestMatrixDir + "invalid/";
 
 std::vector<std::string> get_invalid_matrix_files() {

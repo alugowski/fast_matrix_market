@@ -3,9 +3,7 @@
 
 #include <sstream>
 
-#include <gtest/gtest.h>
-
-#include <fast_matrix_market/fast_matrix_market.hpp>
+#include "fmm_tests.hpp"
 
 std::string one_line_no_newline = "1 2 3";
 

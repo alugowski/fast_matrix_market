@@ -35,7 +35,7 @@ namespace fast_matrix_market {
         header.nnz = values.size();
 
         header.object = matrix;
-        header.field = get_field_type(VT());
+        header.field = get_field_type::value<VT>();
         header.format = coordinate;
 
         write_header(os, header);
@@ -43,6 +43,6 @@ namespace fast_matrix_market {
         auto formatter = triplet_formatter(rows.begin(), rows.end(),
                                            cols.begin(), cols.end(),
                                            values.begin(), values.end());
-        write_body(os, header, formatter, options);
+        write_body(os, formatter, options);
     }
 }

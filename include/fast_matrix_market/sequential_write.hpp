@@ -10,27 +10,22 @@
 #include "fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
-    inline field_type get_field_type(float ignored) {
-        return real;
-    }
+    struct get_field_type {
+        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+        static field_type value() {
+            return integer;
+        }
 
-    inline field_type get_field_type(double ignored) {
-        return real;
-    }
+        template <typename T, typename std::enable_if<std::is_floating_point<T>::value, int>::type = 0>
+        static field_type value() {
+            return real;
+        }
 
-    inline field_type get_field_type(long double ignored) {
-        return real;
-    }
-
-    template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
-    field_type get_field_type(T ignored) {
-        return integer;
-    }
-
-    template <typename T, typename std::enable_if<is_complex<T>::value, int>::type = 0>
-    field_type get_field_type(T ignored) {
-        return complex;
-    }
+        template <typename T, typename std::enable_if<is_complex<T>::value, int>::type = 0>
+        static field_type value() {
+            return complex;
+        }
+    };
 
     inline std::string value_to_string(const std::complex<float>& value) {
         return std::to_string(value.real()) + " " + std::to_string(value.imag());
@@ -51,7 +46,7 @@ namespace fast_matrix_market {
 
 
     template <typename FORMATTER>
-    void write_body(std::ostream& os, const matrix_market_header& header,
+    void write_body(std::ostream& os,
                     FORMATTER& formatter, const write_options& options = {}) {
 
         while (formatter.has_next()) {

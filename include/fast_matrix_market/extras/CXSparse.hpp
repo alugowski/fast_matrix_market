@@ -76,7 +76,7 @@ namespace fast_matrix_market {
         if (cs->x == nullptr) {
             header.field = pattern;
         } else {
-            header.field = get_field_type(*(cs->x));
+            header.field = get_field_type::value<typename std::remove_reference<decltype(*(cs->x))>::type>();
         }
         header.format = coordinate;
 
@@ -88,13 +88,13 @@ namespace fast_matrix_market {
                                            cs->i, cs->i + cs->nzmax,
                                            cs->x, header.field == pattern ? nullptr : cs->x + cs->nzmax,
                                            false);
-            write_body(os, header, formatter, options);
+            write_body(os, formatter, options);
         } else {
             // triplet
             auto formatter = triplet_formatter(cs->i, cs->i + cs->nz,
                                                cs->p, cs->p + cs->nz,
                                                cs->x, header.field == pattern ? nullptr : cs->x + cs->nz);
-            write_body(os, header, formatter, options);
+            write_body(os, formatter, options);
         }
     }
 }

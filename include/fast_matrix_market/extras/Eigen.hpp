@@ -8,7 +8,13 @@
 #include <type_traits>
 
 #include "fast_matrix_market/fast_matrix_market.hpp"
+
+// Disable some pedantic warnings from Eigen headers.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #include <Eigen/Sparse>
+#pragma clang diagnostic pop
+
 
 namespace fast_matrix_market {
 
@@ -188,21 +194,19 @@ namespace fast_matrix_market {
     void write_matrix_market_eigen(std::ostream &os,
                                    SparseType& mat,
                                    const write_options& options = {}) {
-        typedef typename SparseType::Scalar Scalar;
-
         matrix_market_header header;
         header.nrows = mat.rows();
         header.ncols = mat.cols();
         header.nnz = mat.nonZeros();
 
         header.object = matrix;
-        header.field = get_field_type(Scalar());
+        header.field = get_field_type::value<typename SparseType::Scalar>();
         header.format = coordinate;
 
         write_header(os, header);
 
         auto formatter = sparse_Eigen_formatter(mat);
-        write_body(os, header, formatter, options);
+        write_body(os, formatter, options);
     }
 
     /**
@@ -212,20 +216,18 @@ namespace fast_matrix_market {
     void write_matrix_market_eigen_dense(std::ostream &os,
                                          DenseType& mat,
                                          const write_options& options = {}) {
-        typedef typename DenseType::Scalar Scalar;
-
         matrix_market_header header;
         header.nrows = mat.rows();
         header.ncols = mat.cols();
         header.nnz = mat.rows() * mat.cols();
 
         header.object = matrix;
-        header.field = get_field_type(Scalar());
+        header.field = get_field_type::value<typename DenseType::Scalar>();
         header.format = array;
 
         write_header(os, header);
 
         auto formatter = dense_Eigen_formatter(mat);
-        write_body(os, header, formatter, options);
+        write_body(os, formatter, options);
     }
 }

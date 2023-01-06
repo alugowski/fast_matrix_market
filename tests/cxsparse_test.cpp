@@ -5,14 +5,12 @@
 #include <fstream>
 #include <sstream>
 
-#include <gtest/gtest.h>
+#include "fmm_tests.hpp"
 
 #include <fast_matrix_market/extras/CXSparse.hpp>
 #include "fake_cxsparse/cs.hpp"
 
 using std::filesystem::directory_iterator;
-
-static const std::string kTestMatrixDir = TEST_MATRIX_DIR;  // configured in CMake
 
 int count_lines(std::string s) {
     return (int)std::count(s.begin(), s.end(), '\n');

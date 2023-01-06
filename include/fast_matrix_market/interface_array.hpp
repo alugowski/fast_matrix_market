@@ -28,20 +28,20 @@ namespace fast_matrix_market {
                                    matrix_market_header header,
                                    const std::vector<VT>& row_major_array,
                                    const write_options& options = {}) {
-        if (header.nrows * header.ncols != row_major_array.size()) {
+        if (header.nrows * header.ncols != (int64_t)row_major_array.size()) {
             throw invalid_argument("Array length does not match matrix dimensions.");
         }
 
         header.nnz = row_major_array.size();
 
         header.object = matrix;
-        header.field = get_field_type(VT());
+        header.field = get_field_type::value<VT>();
         header.format = array;
         header.symmetry = general;
 
         write_header(os, header);
 
         auto formatter = row_major_array_formatter(row_major_array, header.ncols);
-        write_body(os, header, formatter, options);
+        write_body(os, formatter, options);
     }
 }

@@ -53,7 +53,7 @@ static void triplet_read(benchmark::State& state) {
         triplet.vals.resize(0);
 
         std::istringstream iss(mm);
-        fast_matrix_market::read_matrix_market_triplet(iss, header, triplet.rows, triplet.cols, triplet.vals);
+        fast_matrix_market::read_matrix_market_triplet(iss, header, triplet.rows, triplet.cols, triplet.vals, options);
         num_bytes += mm.size();
     }
 

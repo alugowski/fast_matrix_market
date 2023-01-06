@@ -85,7 +85,7 @@ namespace fast_matrix_market {
         explicit triplet_pattern_parse_handler(std::vector<coordinate_type> &rows,
                                                std::vector<coordinate_type> &cols) : rows(rows), cols(cols) {}
 
-        void handle(const coordinate_type row, const coordinate_type col, const value_type ignored) {
+        void handle(const coordinate_type row, const coordinate_type col, [[maybe_unused]] const value_type ignored) {
             rows.emplace_back(row);
             cols.emplace_back(col);
         }
@@ -107,7 +107,7 @@ namespace fast_matrix_market {
         explicit doublet_parse_handler(std::vector<coordinate_type> &index,
                                        std::vector<value_type> &values) : index(index), values(values) {}
 
-        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
+        void handle(const coordinate_type row, [[maybe_unused]] const coordinate_type col, const value_type value) {
             index.emplace_back(row);
             values.emplace_back(value);
         }

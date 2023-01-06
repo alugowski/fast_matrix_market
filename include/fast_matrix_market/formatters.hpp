@@ -196,7 +196,7 @@ namespace fast_matrix_market {
     template<typename VT>
     class row_major_array_formatter {
     public:
-        explicit row_major_array_formatter(const std::vector<VT> &values, int64_t ncols) : values(values), ncols(ncols), nrows(values.size() / ncols) {}
+        explicit row_major_array_formatter(const std::vector<VT> &values, int64_t ncols) : values(values), nrows(values.size() / ncols), ncols(ncols) {}
 
         [[nodiscard]] bool has_next() const {
             return cur_column != ncols;

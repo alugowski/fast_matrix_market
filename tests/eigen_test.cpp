@@ -4,12 +4,16 @@
 #include <algorithm>
 #include <sstream>
 
-#include <gtest/gtest.h>
+#include "fmm_tests.hpp"
 
 #include <fast_matrix_market/extras/Eigen.hpp>
-#include <unsupported/Eigen/SparseExtra>
 
-static const std::string kTestMatrixDir = TEST_MATRIX_DIR;  // configured in CMake
+// Disable some pedantic warnings from Eigen headers.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#include <unsupported/Eigen/SparseExtra>
+#pragma clang diagnostic pop
+
 
 using SpColMajor = Eigen::SparseMatrix<double, Eigen::ColMajor>;
 using SpRowMajor = Eigen::SparseMatrix<double, Eigen::RowMajor>;
@@ -110,7 +114,7 @@ TEST_P(EigenTest, Loaded) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-        LeapYearTests,
+        EigenTest,
         EigenTest,
         ::testing::Values(Param{Param::Load_Eigen, "eye3.mtx"}
                           , Param{Param::Load_Eigen, "kepner_gilbert_graph.mtx"}
