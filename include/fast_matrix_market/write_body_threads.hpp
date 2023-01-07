@@ -7,7 +7,7 @@
 #include <queue>
 
 #include "fast_matrix_market.hpp"
-#include "thread_pool/BS_thread_pool_light.hpp"
+#include "3rdparty/BS_thread_pool_light.hpp"
 
 namespace fast_matrix_market {
     /**
