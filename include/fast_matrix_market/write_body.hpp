@@ -104,11 +104,27 @@ namespace fast_matrix_market {
     }
 #else
 #ifdef DRAGONBOX_AVAILABLE
+
+#ifndef DRAGONBOX_DROP_E0
+#define DRAGONBOX_DROP_E0 true
+#endif
+
+    inline bool ends_with(const std::string &str, const std::string& suffix) {
+        if (suffix.size() > str.size()) {
+            return false;
+        }
+        return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+    }
+
     inline std::string value_to_string(const float& value) {
         std::string buffer(jkj::dragonbox::max_output_string_length<jkj::dragonbox::ieee754_binary32> + 1, ' ');
 
         char *end_ptr = jkj::dragonbox::to_chars(value, buffer.data());
         buffer.resize(end_ptr - buffer.data());
+
+        if (DRAGONBOX_DROP_E0 && ends_with(buffer, "E0")) {
+            buffer.resize(buffer.size() - 2);
+        }
         return buffer;
     }
 
@@ -117,6 +133,10 @@ namespace fast_matrix_market {
 
         char *end_ptr = jkj::dragonbox::to_chars(value, buffer.data());
         buffer.resize(end_ptr - buffer.data());
+
+        if (DRAGONBOX_DROP_E0 && ends_with(buffer, "E0")) {
+            buffer.resize(buffer.size() - 2);
+        }
         return buffer;
     }
 #endif
