@@ -3,27 +3,9 @@
 
 #pragma once
 
-#include <charconv>
-#include <complex>
-#include <type_traits>
-
-#ifdef FROM_CHARS_DOUBLE_NOT_SUPPORTED
-#include <fast_float/fast_float.h>
-#endif
-
 #include "fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
-
-    /**
-     * A type to use for pattern matrices. Pattern Matrix Market files do not write a value column, only the
-     * coordinates.
-     */
-    struct pattern_placeholder_type {};
-
-    // Negation needed to support symmetry expansion. Skew-symmetric symmetry negates values.
-    inline pattern_placeholder_type operator-(const pattern_placeholder_type& o) { return o; }
-
 
     /**
      * A handler wrapper for easily handling pattern matrices. This forwards a fixed value. For example, write 1.0 to
@@ -66,139 +48,6 @@ namespace fast_matrix_market {
     protected:
         COMPLEX_HANDLER& handler;
     };
-
-    ///////////////////////////////////////////
-    // Integer / Floating Point Field parsers
-    ///////////////////////////////////////////
-
-    /**
-     * Parse integer using std::from_chars
-     */
-    template <typename IT>
-    const char* read_int(const char* pos, const char* end, IT& out) {
-        std::from_chars_result result = std::from_chars(pos, end, out);
-        if (result.ec != std::errc()) {
-            throw invalid_mm("Error reading integer value.");
-        }
-        return result.ptr;
-    }
-
-#ifdef FROM_CHARS_DOUBLE_NOT_SUPPORTED
-    /**
-     * Parse float or double using fast_float::from_chars
-     */
-    template <typename FT>
-    const char* read_float(const char* pos, const char* end, FT& out) {
-        fast_float::from_chars_result result = fast_float::from_chars(pos, end, out, fast_float::chars_format::general);
-        if (result.ec != std::errc()) {
-            throw invalid_mm("Error reading floating-point value.");
-        }
-        return result.ptr;
-    }
-#else
-    /**
-     * Parse float or double using std::from_chars
-     */
-    template <typename FT>
-    const char* read_float(const char* pos, const char* end, FT& out) {
-        std::from_chars_result result = std::from_chars(pos, end, out);
-        if (result.ec != std::errc()) {
-            throw invalid_mm("Error reading floating-point value.");
-        }
-        return result.ptr;
-    }
-#endif
-
-#ifdef FROM_CHARS_LONG_DOUBLE_NOT_SUPPORTED
-    /**
-     * Parse `long double` using std::strtold().
-     *
-     * fast_float does not support long double.
-     */
-    inline const char* read_float(const char* pos, [[maybe_unused]] const char* end, long double& out) {
-        errno = 0;
-
-        char* value_end;
-        out = std::strtold(pos, &value_end);
-        if (errno != 0) {
-            throw invalid_mm("Error reading floating-point value.");
-        }
-        return value_end;
-    }
-#else
-    // Float block above handles long doubles too.
-#endif
-
-    ///////////////////////////////////////////
-    // Whitespace management
-    ///////////////////////////////////////////
-
-    inline const char* skip_spaces(const char* pos) {
-        return pos + std::strspn(pos, " ");
-    }
-
-    inline const char* bump_to_next_line(const char* pos, const char* end) {
-        // find the newline
-        pos = std::strchr(pos, '\n');
-
-        // bump to start of next line
-        if (pos != end) {
-            ++pos;
-        }
-        return pos;
-    }
-
-    //////////////////////////////////////
-    // Read value. These evaluate to the field parsers above, depending on requested type
-    //////////////////////////////////////
-
-    /**
-     * Pattern values are no-ops.
-     */
-    inline const char* read_value(const char* pos, [[maybe_unused]] const char* end, [[maybe_unused]] pattern_placeholder_type& out) {
-        return pos;
-    }
-
-    template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
-    const char* read_value(const char* pos, const char* end, T& out) {
-        return read_int(pos, end, out);
-    }
-
-    inline const char* read_value(const char* pos, const char* end, float& out) {
-        return read_float(pos, end, out);
-    }
-
-    inline const char* read_value(const char* pos, const char* end, double& out) {
-        return read_float(pos, end, out);
-    }
-
-    inline const char* read_value(const char* pos, const char* end, long double& out) {
-        return read_float(pos, end, out);
-    }
-
-    template <typename COMPLEX, typename std::enable_if<is_complex<COMPLEX>::value, int>::type = 0>
-    const char* read_value(const char* pos, const char* end, COMPLEX& out) {
-        typename COMPLEX::value_type real, imaginary;
-        pos = read_float(pos, end, real);
-        pos = skip_spaces(pos);
-        pos = read_float(pos, end, imaginary);
-
-        out.real(real);
-        out.imag(imaginary);
-
-        return pos;
-    }
-
-    template <typename T, typename std::enable_if<is_complex<T>::value, int>::type = 0>
-    T complex_conjugate(const T& value) {
-        return T(value.real(), -value.imag());
-    }
-
-    template <typename T, typename std::enable_if<!is_complex<T>::value, int>::type = 0>
-    T complex_conjugate(const T& value) {
-        return value;
-    }
-
 
     ///////////////////////////////////////////////////////////////////
     // Chunks
