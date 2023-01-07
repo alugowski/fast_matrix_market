@@ -41,7 +41,7 @@ namespace fast_matrix_market {
                     col_iter(col_begin),
                     val_iter(val_begin), val_end(val_end) {}
 
-            std::string get() {
+            std::string operator()() {
                 std::string chunk;
                 chunk.reserve((row_end - row_iter)*25);
 
@@ -121,7 +121,7 @@ namespace fast_matrix_market {
                     val_begin(val_begin), val_end(val_end),
                     transpose(transpose) {}
 
-            std::string get() {
+            std::string operator()() {
                 std::string chunk;
                 chunk.reserve((ptr_end - ptr_iter)*250);
 
@@ -207,7 +207,7 @@ namespace fast_matrix_market {
             explicit chunk(const std::vector<VT> &values, int64_t nrows, int64_t ncols, int64_t cur_column) :
             values(values), nrows(nrows), ncols(ncols), cur_column(cur_column) {}
 
-            std::string get() {
+            std::string operator()() {
                 std::string c;
                 c.reserve(ncols * 15);
 

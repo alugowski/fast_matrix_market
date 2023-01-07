@@ -3,10 +3,10 @@ project(fast_matrix_market VERSION 1.0.0 LANGUAGES CXX)
 SET(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -pedantic")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-g -O3 -DNDEBUG")
 
 # Main
-add_library(fast_matrix_market INTERFACE include/fast_matrix_market/fast_matrix_market.hpp include/fast_matrix_market/sequential_read.hpp include/fast_matrix_market/interface_triplet.hpp)
+add_library(fast_matrix_market INTERFACE include/fast_matrix_market/fast_matrix_market.hpp include/fast_matrix_market/read_body.hpp include/fast_matrix_market/interface_triplet.hpp)
 # add alias so the project can be used with add_subdirectory
 add_library(fast_matrix_market::fast_matrix_market ALIAS fast_matrix_market)
 
@@ -49,7 +49,7 @@ endif()
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     message("OpenMP found")
-    add_definitions(-DENABLE_OPENMP)
+    add_definitions(-DFMM_ENABLE_OPENMP)
     target_link_libraries(fast_matrix_market INTERFACE OpenMP::OpenMP_CXX)
 else()
     message("OpenMP not found, parallel benchmarks disabled.")

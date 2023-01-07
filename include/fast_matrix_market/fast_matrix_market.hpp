@@ -46,6 +46,16 @@ struct read_options {
 
 struct write_options {
     int64_t chunk_size_values = 2 << 12;
+
+    /**
+     * If true then a parallel implementation is used.
+     */
+    bool parallel_ok = true;
+
+    /**
+     * Number of threads to use. 0 means std::thread::hardware_concurrency().
+     */
+    int num_threads = 0;
 };
 
 template<class T> struct is_complex : std::false_type {};
@@ -326,8 +336,8 @@ inline bool write_header(std::ostream& os, matrix_market_header& header) {
 
 }
 
-#include "sequential_read.hpp"
-#include "sequential_write.hpp"
+#include "read_body.hpp"
+#include "write_body.hpp"
 #include "parse_handlers.hpp"
 #include "formatters.hpp"
 #include "interface_triplet.hpp"

@@ -32,6 +32,8 @@ Header-only. Use CMake to fetch the library, copy and use `add_subdirectory`, or
 Note: If you make a copy, be sure to also include the [`fast_float`](https://github.com/fastfloat/fast_float) library. You can omit it if you know your compiler implements `std::from_chars<double>` (e.g. GCC 12+).
 Same with [`Dragonbox`](https://github.com/jk-jeon/dragonbox).
 
+Thread pool implementation from [thread-pool](https://github.com/bshoshany/thread-pool).
+
 ## Flexible
 
 Support reading/writing to any datastructure. Simply provide single-method `parse_handler` and `formatter` implementations to support any datastructure.

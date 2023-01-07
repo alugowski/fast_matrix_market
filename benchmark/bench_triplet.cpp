@@ -6,19 +6,25 @@
 #include "fmm_bench.hpp"
 
 /**
- * Write triplets.
+ * Write triplets in parallel
  */
-static void triplet_write(benchmark::State& state) {
+static void triplet_write_parallel(benchmark::State& state) {
     auto triplet = construct_triplet<int64_t, double>(kInMemoryByteTargetWrite);
 
     std::size_t num_bytes = 0;
+
+    fast_matrix_market::write_options options;
+    options.parallel_ok = true;
+    options.num_threads = (int)state.range(0);
 
     for ([[maybe_unused]] auto _ : state) {
 
         std::ostringstream oss;
 
         fast_matrix_market::matrix_market_header header(triplet.nrows, triplet.ncols);
-        fast_matrix_market::write_matrix_market_triplet(oss, header, triplet.rows, triplet.cols, triplet.vals);
+        fast_matrix_market::write_matrix_market_triplet(oss, header,
+                                                        triplet.rows, triplet.cols, triplet.vals,
+                                                        options);
 
         num_bytes += oss.str().size();
     }
@@ -26,7 +32,7 @@ static void triplet_write(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(triplet_write)->Name("Triplet/write");
+BENCHMARK(triplet_write_parallel)->Name("Triplet/write")->Apply(NumThreadsArgument);
 
 /**
  * Read triplets.

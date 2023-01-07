@@ -87,7 +87,7 @@ namespace fast_matrix_market {
             explicit chunk(const SparseMatrixType& mat, MatIndex outer_iter, MatIndex outer_end) :
             mat(mat), outer_iter(outer_iter), outer_end(outer_end) {}
 
-            std::string get() {
+            std::string operator()() {
                 std::string chunk;
                 chunk.reserve((outer_end - outer_iter)*250);
 
@@ -151,7 +151,7 @@ namespace fast_matrix_market {
             explicit chunk(const DenseType& mat, MatIndex col_iter, MatIndex col_end) :
                     mat(mat), col_iter(col_iter), col_end(col_end) {}
 
-            std::string get() {
+            std::string operator()() {
                 std::string chunk;
                 chunk.reserve((col_end - col_iter) * mat.rows() * 15);
 
