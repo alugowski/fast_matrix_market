@@ -79,24 +79,37 @@ namespace fast_matrix_market {
                 throw invalid_mm("Column index out of bounds", line_num);
             }
 
-            // Matrix Market is one-based
-            handler.handle(row - 1, col - 1, value);
-
-            if (header.symmetry != general && options.generalize_symmetry && col != row) {
-                switch (header.symmetry) {
-                    case symmetric:
-                        handler.handle(col - 1, row - 1, value);
-                        break;
-                    case skew_symmetric:
-                        handler.handle(col - 1, row - 1, -value);
-                        break;
-                    case hermitian:
-                        handler.handle(col - 1, row - 1, complex_conjugate(value));
-                        break;
-                    case general:
-                        break;
+            // Generalize symmetry
+            // This appears before the regular handler call for ExtraZeroElement handling.
+            if (header.symmetry != general && options.generalize_symmetry) {
+                if (col != row) {
+                    switch (header.symmetry) {
+                        case symmetric:
+                            handler.handle(col - 1, row - 1, value);
+                            break;
+                        case skew_symmetric:
+                            handler.handle(col - 1, row - 1, -value);
+                            break;
+                        case hermitian:
+                            handler.handle(col - 1, row - 1, complex_conjugate(value));
+                            break;
+                        case general:
+                            break;
+                    }
+                } else {
+                    switch (options.generalize_coordinate_diagnonal_values) {
+                        case read_options::ExtraZeroElement:
+                            handler.handle(row - 1, col - 1, get_zero<typename HANDLER::value_type>());
+                            break;
+                        case read_options::DuplicateElement:
+                            handler.handle(row - 1, col - 1, value);
+                            break;
+                    }
                 }
             }
+
+            // Matrix Market is one-based
+            handler.handle(row - 1, col - 1, value);
 
             ++line_num;
         }
@@ -225,9 +238,6 @@ namespace fast_matrix_market {
             if (header.object == matrix) {
                 line_num = read_chunk_matrix_coordinate(chunk, header, line_num, handler, options);
             } else {
-                if (header.symmetry != general && options.generalize_symmetry) {
-                    throw not_implemented("Non-general symmetry for vectors not implemented.");
-                }
                 line_num = read_chunk_vector_coordinate(chunk, header, line_num, handler);
             }
         }
@@ -270,12 +280,19 @@ namespace fast_matrix_market {
     template <typename HANDLER>
     void read_matrix_market_body_no_complex(std::istream& instream, matrix_market_header& header,
                                             HANDLER& handler, const read_options& options = {}) {
+        // Verify generalize symmetry is compatible with this file.
+        if (header.symmetry != general && options.generalize_symmetry) {
+            if (header.object != matrix) {
+                throw not_implemented("Non-general symmetry for vectors not implemented.");
+            }
+            if (header.format != coordinate) {
+                throw not_implemented("Non-general symmetry for array matrices not implemented.");
+            }
+        }
+
         if (header.format == coordinate) {
             read_coordinate_body(instream, header, handler, options);
         } else {
-            if (header.symmetry != general && options.generalize_symmetry) {
-                throw not_implemented("Non-general symmetry for array matrices not implemented.");
-            }
             read_array_body(instream, header, handler, options);
         }
 

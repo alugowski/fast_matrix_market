@@ -40,7 +40,7 @@ namespace fast_matrix_market {
         read_header(instream, header);
 
         // allocate
-        *cs = spalloc(header.nrows, header.ncols, header.nnz,
+        *cs = spalloc(header.nrows, header.ncols, get_storage_nnz(header, options),
                       header.field == pattern ? 0 : 1, // pattern field means do not allocate values
                       1);
         if (*cs == nullptr) {

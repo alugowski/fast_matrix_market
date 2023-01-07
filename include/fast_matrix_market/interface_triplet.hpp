@@ -13,9 +13,9 @@ namespace fast_matrix_market {
                                     const read_options& options = {}) {
         read_header(instream, header);
 
-        rows.reserve(header.nnz);
-        cols.reserve(header.nnz);
-        values.reserve(header.nnz);
+        rows.reserve(get_storage_nnz(header, options));
+        cols.reserve(get_storage_nnz(header, options));
+        values.reserve(get_storage_nnz(header, options));
 
         auto handler = triplet_parse_handler(rows, cols, values);
         read_matrix_market_body(instream, header, handler, 1, options);

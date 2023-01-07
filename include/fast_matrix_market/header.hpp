@@ -92,6 +92,19 @@ namespace fast_matrix_market {
     };
 
     /**
+     * Calculate how many nonzero elements will need to be stored.
+     * For general matrices this will be the same as header.nnz, but if the MatrixMarket file has symmetry and
+     * generalize symmetry is selected then this function will calculate the total needed.
+     */
+    inline int64_t get_storage_nnz(const matrix_market_header& header, const read_options options) {
+        if (header.symmetry != general && options.generalize_symmetry) {
+            return 2 * header.nnz;
+        } else {
+            return header.nnz;
+        }
+    }
+
+    /**
      * Parse a Matrix Market header comment line.
      * @param header
      * @param line

@@ -32,6 +32,17 @@ namespace fast_matrix_market {
          * hermitian: for (row, column, value), also generate (column, row, complex_conjugate(value)) except if row==column
          */
         bool generalize_symmetry = true;
+
+        /**
+         * Generalize Symmetry:
+         * How to handle a value on the diagonal of a symmetric coordinate matrix.
+         *  - DuplicateElement: Duplicate the diagonal element
+         *  - ExtraZeroElement: emit a zero along with the diagonal element. The zero will appear first.
+         *
+         *  The extra cannot simply be omitted because the handlers work by setting already-allocated memory. This
+         *  is necessary for efficient parallelization.
+         */
+        enum {ExtraZeroElement, DuplicateElement} generalize_coordinate_diagnonal_values = ExtraZeroElement;
     };
 
     struct write_options {
@@ -100,13 +111,24 @@ namespace fast_matrix_market {
     };
 
     /**
-     * A type to use for pattern matrices. Pattern Matrix Market files do not write a value column, only the
-     * coordinates.
+     * A value type to use for pattern matrices. Pattern Matrix Market files do not write a value column, only the
+     * coordinates. Setting this as the value type signals the parser to not attempt to read a column that isn't there.
      */
     struct pattern_placeholder_type {};
 
-    // Negation needed to support symmetry generalization. Skew-symmetric symmetry negates values.
+    /**
+     * Negation of a pattern_placeholder_type needed to support symmetry generalization.
+     * Skew-symmetric symmetry negates values.
+     */
     inline pattern_placeholder_type operator-(const pattern_placeholder_type& o) { return o; }
+
+    /**
+     * Zero generator for generalize symmetry with ExtraZeroElement.
+     */
+    template <typename T>
+    T get_zero() {
+        return {};
+    }
 
 }
 
