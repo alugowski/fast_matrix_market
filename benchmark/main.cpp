@@ -50,4 +50,35 @@ std::string ConstructManyLines(std::size_t byte_target) {
  */
 const std::string kLineBlock = ConstructManyLines(50u << 20u);
 
+/**
+ * Set thread count benchmark arguments.
+ */
+void NumThreadsArgument(benchmark::internal::Benchmark* b) {
+    if (std::thread::hardware_concurrency() == 0) {
+        // Not defined.
+        b->ArgName("p")->Arg(1);
+        return;
+    }
+
+    unsigned int p = 1;
+
+    // Do every thread count initially.
+    for (; p < 8 && p < std::thread::hardware_concurrency(); ++p) {
+        b->ArgName("p")->Arg(p);
+    }
+
+    // For larger thread counts do powers of two and the value in-between.
+    for (; p < std::thread::hardware_concurrency(); p *= 2) {
+        b->ArgName("p")->Arg(p);
+
+        auto half_step = p + p / 2;
+        if (half_step < std::thread::hardware_concurrency()) {
+            b->ArgName("p")->Arg(half_step);
+        }
+    }
+
+    // Always do the max threads available.
+    b->ArgName("p")->Arg(std::thread::hardware_concurrency());
+}
+
 BENCHMARK_MAIN();
