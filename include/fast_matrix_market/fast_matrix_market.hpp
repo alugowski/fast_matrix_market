@@ -42,6 +42,9 @@ namespace fast_matrix_market {
          *
          *  The extra cannot simply be omitted because the handlers work by setting already-allocated memory. This
          *  is necessary for efficient parallelization.
+         *
+         *  This value is ignored if the parse handler has the kAppending flag set. In that case only a single
+         *  diagonal element is emitted.
          */
         enum {ExtraZeroElement, DuplicateElement} generalize_coordinate_diagnonal_values = ExtraZeroElement;
 

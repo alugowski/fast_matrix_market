@@ -110,13 +110,15 @@ namespace fast_matrix_market {
                             break;
                     }
                 } else {
-                    switch (options.generalize_coordinate_diagnonal_values) {
-                        case read_options::ExtraZeroElement:
-                            handler.handle(row - 1, col - 1, get_zero<typename HANDLER::value_type>());
-                            break;
-                        case read_options::DuplicateElement:
-                            handler.handle(row - 1, col - 1, value);
-                            break;
+                    if (!test_flag(HANDLER::flags, kAppending)) {
+                        switch (options.generalize_coordinate_diagnonal_values) {
+                            case read_options::ExtraZeroElement:
+                                handler.handle(row - 1, col - 1, get_zero<typename HANDLER::value_type>());
+                                break;
+                            case read_options::DuplicateElement:
+                                handler.handle(row - 1, col - 1, value);
+                                break;
+                        }
                     }
                 }
             }
@@ -261,9 +263,9 @@ namespace fast_matrix_market {
         auto expected_line_count = header.header_line_count + header.nnz;
         int64_t line_num;
 
-        bool threads = options.parallel_ok && options.num_threads != 1 && test_flag(HANDLER::flags, ParallelOk);
+        bool threads = options.parallel_ok && options.num_threads != 1 && test_flag(HANDLER::flags, kParallelOk);
 
-        if (header.format == coordinate && test_flag(HANDLER::flags, Dense)) {
+        if (header.format == coordinate && test_flag(HANDLER::flags, kDense)) {
             // Potential race condition if the file contains duplicates.
             threads = false;
         }

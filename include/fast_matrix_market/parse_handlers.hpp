@@ -16,14 +16,23 @@ namespace fast_matrix_market {
     /**
      * This parse handler supports parallelism.
      */
-    constexpr int ParallelOk = 1;
+    constexpr int kParallelOk = 1;
 
     /**
      * Writing to the same (row, column) position a second time will affect the previous value.
      * This means that if there is a possibility of duplicate writes from different threads then this
      * parse handler is unsafe. Example: coordinate file parsed into a dense array. Coordinate files may have dupes.
      */
-    constexpr int Dense = 2;
+    constexpr int kDense = 2;
+
+    /**
+     * This parse handler can handle a variable number of elements. If this flag is not set then the memory
+     * has already been allocated and must be filled. If this flag is set, then potentially fewer elements can be
+     * written without loss of correctness.
+     *
+     * This is useful for not needing to duplicate elements on the main diagonal when generalizing symmetry.
+     */
+    constexpr int kAppending = 4;
 
     /**
      * Tuple handler. A single vector of (row, column, value) tuples.
@@ -33,7 +42,7 @@ namespace fast_matrix_market {
     public:
         using coordinate_type = IT;
         using value_type = VT;
-        static constexpr int flags = ParallelOk;
+        static constexpr int flags = kParallelOk;
 
         using TUPLE = typename std::iterator_traits<ITER>::value_type;
 
@@ -54,14 +63,14 @@ namespace fast_matrix_market {
     };
 
     /**
-     * Triplet handler. Separate row, column, value vectors.
+     * Triplet handler. Separate row, column, value iterators.
      */
     template<typename IT_ITER, typename VT_ITER>
     class triplet_parse_handler {
     public:
         using coordinate_type = typename std::iterator_traits<IT_ITER>::value_type;
         using value_type = typename std::iterator_traits<VT_ITER>::value_type;
-        static constexpr int flags = ParallelOk;
+        static constexpr int flags = kParallelOk;
 
         explicit triplet_parse_handler(const IT_ITER& rows,
                                        const IT_ITER& cols,
@@ -95,14 +104,46 @@ namespace fast_matrix_market {
     };
 
     /**
-     * Triplet handler for pattern matrices. Separate row, column vectors.
+     * Triplet handler. Separate row, column, value vectors.
+     *
+     * Does NOT support parallelism.
+     */
+    template<typename IT_VEC, typename VT_VEC>
+    class triplet_appending_parse_handler {
+    public:
+        using coordinate_type = typename IT_VEC::value_type;
+        using value_type = typename VT_VEC::value_type;
+        static constexpr int flags = kAppending; // NOT parallel
+
+        explicit triplet_appending_parse_handler(IT_VEC& rows,
+                                                 IT_VEC& cols,
+                                                 VT_VEC& values) : rows(rows), cols(cols), values(values) {}
+
+        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
+            rows.emplace_back(row);
+            cols.emplace_back(col);
+            values.emplace_back(value);
+        }
+
+        triplet_appending_parse_handler<IT_VEC, VT_VEC> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
+            return *this;
+        }
+
+    protected:
+        IT_VEC& rows;
+        IT_VEC& cols;
+        VT_VEC& values;
+    };
+
+    /**
+     * Triplet handler for pattern matrices. Row and column vectors only.
      */
     template<typename IT_ITER>
     class triplet_pattern_parse_handler {
     public:
         using coordinate_type = typename std::iterator_traits<IT_ITER>::value_type;
         using value_type = pattern_placeholder_type;
-        static constexpr int flags = ParallelOk;
+        static constexpr int flags = kParallelOk;
 
         explicit triplet_pattern_parse_handler(const IT_ITER& rows,
                                                const IT_ITER& cols) : begin_rows(rows), begin_cols(cols),
@@ -136,7 +177,7 @@ namespace fast_matrix_market {
     public:
         using coordinate_type = typename std::iterator_traits<IT_ITER>::value_type;
         using value_type = typename std::iterator_traits<VT_ITER>::value_type;
-        static constexpr int flags = ParallelOk;
+        static constexpr int flags = kParallelOk;
 
         explicit doublet_parse_handler(const IT_ITER& index,
                                        const VT_ITER& values) : begin_index(index), begin_values(values),
@@ -170,7 +211,7 @@ namespace fast_matrix_market {
     public:
         using coordinate_type = IT;
         using value_type = VT;
-        static constexpr int flags = ParallelOk | Dense;
+        static constexpr int flags = kParallelOk | kDense;
 
         explicit dense_2d_call_adding_parse_handler(MAT &mat) : mat(mat) {}
 
@@ -194,7 +235,7 @@ namespace fast_matrix_market {
     public:
         using coordinate_type = int64_t;
         using value_type = typename std::iterator_traits<VT_ITER>::value_type;
-        static constexpr int flags = ParallelOk | Dense;
+        static constexpr int flags = kParallelOk | kDense;
 
         explicit dense_row_major_adding_parse_handler(const VT_ITER& values, int64_t ncols) : values(values), ncols(ncols) {}
 
