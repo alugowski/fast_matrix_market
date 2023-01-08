@@ -245,7 +245,7 @@ namespace fast_matrix_market {
      * Read the body with no automatic adaptations.
      */
     template <typename HANDLER>
-    void read_matrix_market_body_no_adapters(std::istream& instream, matrix_market_header& header,
+    void read_matrix_market_body_no_adapters(std::istream& instream, const matrix_market_header& header,
                                              HANDLER& handler, const read_options& options = {}) {
         // Verify generalize symmetry is compatible with this file.
         if (header.symmetry != general && options.generalize_symmetry) {
@@ -278,12 +278,6 @@ namespace fast_matrix_market {
             }
         }
 
-        if (header.symmetry != general && options.generalize_symmetry) {
-            // The symmetry has been generalized, so mark this in the parsed header.
-            // This is because to the calling code this might as well be a 'general' file.
-            header.symmetry = general;
-        }
-
         // verify the file is not truncated
         if (line_num < expected_line_count) {
             throw invalid_mm(std::string("Truncated file. Expected another ") + std::to_string(expected_line_count - line_num) + " lines.");
@@ -294,7 +288,7 @@ namespace fast_matrix_market {
      * Read the body by adapting real files to complex HANDLER.
      */
     template <typename HANDLER, typename std::enable_if<is_complex<typename HANDLER::value_type>::value, int>::type = 0>
-    void read_matrix_market_body_no_pattern(std::istream& instream, matrix_market_header& header,
+    void read_matrix_market_body_no_pattern(std::istream& instream, const matrix_market_header& header,
                                             HANDLER& handler, const read_options& options = {}) {
         if (header.field == complex) {
             read_matrix_market_body_no_adapters(instream, header, handler, options);
@@ -310,7 +304,7 @@ namespace fast_matrix_market {
      * Read the body by adapting real files to complex HANDLER.
      */
     template <typename HANDLER, typename std::enable_if<!is_complex<typename HANDLER::value_type>::value, int>::type = 0>
-    void read_matrix_market_body_no_pattern(std::istream& instream, matrix_market_header& header,
+    void read_matrix_market_body_no_pattern(std::istream& instream, const matrix_market_header& header,
                                             HANDLER& handler, const read_options& options = {}) {
         if (header.field != complex) {
             read_matrix_market_body_no_adapters(instream, header, handler, options);
@@ -328,7 +322,7 @@ namespace fast_matrix_market {
      *  - If the HANDLER expects std::complex values but the file is not complex then imag=0 is provided for each value.
      */
     template <typename HANDLER>
-    void read_matrix_market_body(std::istream& instream, matrix_market_header& header,
+    void read_matrix_market_body(std::istream& instream, const matrix_market_header& header,
                                  HANDLER& handler,
                                  typename HANDLER::value_type pattern_value,
                                  const read_options& options = {}) {
