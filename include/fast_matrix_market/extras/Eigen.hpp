@@ -58,7 +58,7 @@ namespace fast_matrix_market {
         read_header(instream, header);
         mat.resize(header.nrows, header.ncols);
 
-        auto handler = setting_2d_parse_handler<DenseType, typename DenseType::Index, typename DenseType::Scalar>(mat);
+        auto handler = dense_2d_call_adding_parse_handler<DenseType, typename DenseType::Index, typename DenseType::Scalar>(mat);
         read_matrix_market_body(instream, header, handler, 1, options);
     }
 

@@ -18,6 +18,7 @@ namespace fast_matrix_market {
     public:
         using coordinate_type = typename FWD_HANDLER::coordinate_type;
         using value_type = pattern_placeholder_type;
+        static constexpr int flags = FWD_HANDLER::flags;
 
         explicit pattern_parse_adapter(const FWD_HANDLER &handler, typename FWD_HANDLER::value_type fwd_value) : handler(
                 handler), fwd_value(fwd_value) {}
@@ -45,6 +46,7 @@ namespace fast_matrix_market {
         using coordinate_type = typename COMPLEX_HANDLER::coordinate_type;
         using complex_type = typename COMPLEX_HANDLER::value_type;
         using value_type = typename complex_type::value_type;
+        static constexpr int flags = COMPLEX_HANDLER::flags;
 
         explicit complex_parse_adapter(const COMPLEX_HANDLER &handler) : handler(handler) {}
 
@@ -259,7 +261,14 @@ namespace fast_matrix_market {
         auto expected_line_count = header.header_line_count + header.nnz;
         int64_t line_num;
 
-        if (options.parallel_ok && options.num_threads != 1) {
+        bool threads = options.parallel_ok && options.num_threads != 1 && test_flag(HANDLER::flags, ParallelOk);
+
+        if (header.format == coordinate && test_flag(HANDLER::flags, Dense)) {
+            // Potential race condition if the file contains duplicates.
+            threads = false;
+        }
+
+        if (threads) {
             line_num = read_body_threads(instream, header, handler, options);
         } else {
             if (header.format == coordinate) {

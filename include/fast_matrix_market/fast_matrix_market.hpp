@@ -150,14 +150,23 @@ namespace fast_matrix_market {
     {
         return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
     }
+
+    /**
+     * @param flags flags bitwise ORed together
+     * @param flag flag bit to test for
+     * @return true if the flag bit is set in flags, false otherwise
+     */
+    inline bool test_flag(int flags, int flag) {
+        return (flags & flag) == flag;
+    }
 }
 
 #include "field_conv.hpp"
 #include "header.hpp"
-#include "read_body.hpp"
-#include "write_body.hpp"
 #include "parse_handlers.hpp"
 #include "formatters.hpp"
+#include "read_body.hpp"
+#include "write_body.hpp"
 #include "interface_triplet.hpp"
 #include "interface_array.hpp"
 

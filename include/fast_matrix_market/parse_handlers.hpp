@@ -12,6 +12,19 @@
 #include "fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
+
+    /**
+     * This parse handler supports parallelism.
+     */
+    constexpr int ParallelOk = 1;
+
+    /**
+     * Writing to the same (row, column) position a second time will affect the previous value.
+     * This means that if there is a possibility of duplicate writes from different threads then this
+     * parse handler is unsafe. Example: coordinate file parsed into a dense array. Coordinate files may have dupes.
+     */
+    constexpr int Dense = 2;
+
     /**
      * Tuple handler. A single vector of (row, column, value) tuples.
      */
@@ -20,6 +33,7 @@ namespace fast_matrix_market {
     public:
         using coordinate_type = IT;
         using value_type = VT;
+        static constexpr int flags = ParallelOk;
 
         using TUPLE = typename std::iterator_traits<ITER>::value_type;
 
@@ -47,6 +61,7 @@ namespace fast_matrix_market {
     public:
         using coordinate_type = typename std::iterator_traits<IT_ITER>::value_type;
         using value_type = typename std::iterator_traits<VT_ITER>::value_type;
+        static constexpr int flags = ParallelOk;
 
         explicit triplet_parse_handler(const IT_ITER& rows,
                                        const IT_ITER& cols,
@@ -87,6 +102,7 @@ namespace fast_matrix_market {
     public:
         using coordinate_type = typename std::iterator_traits<IT_ITER>::value_type;
         using value_type = pattern_placeholder_type;
+        static constexpr int flags = ParallelOk;
 
         explicit triplet_pattern_parse_handler(const IT_ITER& rows,
                                                const IT_ITER& cols) : begin_rows(rows), begin_cols(cols),
@@ -120,6 +136,7 @@ namespace fast_matrix_market {
     public:
         using coordinate_type = typename std::iterator_traits<IT_ITER>::value_type;
         using value_type = typename std::iterator_traits<VT_ITER>::value_type;
+        static constexpr int flags = ParallelOk;
 
         explicit doublet_parse_handler(const IT_ITER& index,
                                        const VT_ITER& values) : begin_index(index), begin_values(values),
@@ -146,21 +163,22 @@ namespace fast_matrix_market {
     };
 
     /**
-     * Works with any type where `mat(row, column) = value` works.
+     * Works with any type where `mat(row, column) += value` works.
      */
     template<typename MAT, typename IT, typename VT>
-    class setting_2d_parse_handler {
+    class dense_2d_call_adding_parse_handler {
     public:
         using coordinate_type = IT;
         using value_type = VT;
+        static constexpr int flags = ParallelOk | Dense;
 
-        explicit setting_2d_parse_handler(MAT &mat) : mat(mat) {}
+        explicit dense_2d_call_adding_parse_handler(MAT &mat) : mat(mat) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            mat(row, col) = value;
+            mat(row, col) += value;
         }
 
-        setting_2d_parse_handler<MAT, IT, VT> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
+        dense_2d_call_adding_parse_handler<MAT, IT, VT> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
             return *this;
         }
 
@@ -172,18 +190,19 @@ namespace fast_matrix_market {
      * Dense array handler (row-major).
      */
     template <typename VT_ITER>
-    class row_major_parse_handler {
+    class dense_row_major_adding_parse_handler {
     public:
         using coordinate_type = int64_t;
         using value_type = typename std::iterator_traits<VT_ITER>::value_type;
+        static constexpr int flags = ParallelOk | Dense;
 
-        explicit row_major_parse_handler(const VT_ITER& values, int64_t ncols) : values(values), ncols(ncols) {}
+        explicit dense_row_major_adding_parse_handler(const VT_ITER& values, int64_t ncols) : values(values), ncols(ncols) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            values[col * ncols + row] = value;
+            values[col * ncols + row] += value;
         }
 
-        row_major_parse_handler<VT_ITER> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
+        dense_row_major_adding_parse_handler<VT_ITER> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
             return *this;
         }
 
