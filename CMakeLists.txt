@@ -45,15 +45,6 @@ if (NOT to_chars_double_supported)
     target_link_libraries(fast_matrix_market INTERFACE dragonbox::dragonbox_to_chars)
 endif()
 
-# enable OpenMP
-find_package(OpenMP)
-if(OpenMP_CXX_FOUND)
-    message("OpenMP found")
-    add_definitions(-DFMM_ENABLE_OPENMP)
-    target_link_libraries(fast_matrix_market INTERFACE OpenMP::OpenMP_CXX)
-else()
-    message("OpenMP not found, parallel benchmarks disabled.")
-endif()
 
 # Tests
 option(FAST_MATRIX_MARKET_TEST "Enable tests" OFF)

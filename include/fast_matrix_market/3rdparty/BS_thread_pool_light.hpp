@@ -199,6 +199,16 @@ public:
         waiting = false;
     }
 
+    /**
+     * @brief Get the total number of unfinished tasks: either still in the queue, or running in a thread. Note that get_tasks_total() == get_tasks_queued() + get_tasks_running().
+     *
+     * @return The total number of tasks.
+     */
+    [[nodiscard]] size_t get_tasks_total() const
+    {
+        return tasks_total;
+    }
+
 private:
     // ========================
     // Private member functions

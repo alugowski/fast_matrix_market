@@ -23,14 +23,19 @@ namespace fast_matrix_market {
 
         using TUPLE = typename std::iterator_traits<ITER>::value_type;
 
-        explicit tuple_parse_handler(const ITER& iter) : iter(iter) {}
+        explicit tuple_parse_handler(const ITER& iter) : begin_iter(iter), iter(iter) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
             *iter = TUPLE(row, col, value);
             ++iter;
         }
 
+        tuple_parse_handler<IT, VT, ITER> get_chunk_handler(int64_t offset_from_begin) {
+            return tuple_parse_handler(begin_iter + offset_from_begin);
+        }
+
     protected:
+        ITER begin_iter;
         ITER iter;
     };
 
@@ -45,7 +50,8 @@ namespace fast_matrix_market {
 
         explicit triplet_parse_handler(const IT_ITER& rows,
                                        const IT_ITER& cols,
-                                       const VT_ITER& values) : rows(rows), cols(cols), values(values) {}
+                                       const VT_ITER& values) : begin_rows(rows), begin_cols(cols), begin_values(values),
+                                                                rows(rows), cols(cols), values(values) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
             *rows = row;
@@ -57,7 +63,17 @@ namespace fast_matrix_market {
             ++values;
         }
 
+        triplet_parse_handler<IT_ITER, VT_ITER> get_chunk_handler(int64_t offset_from_begin) {
+            return triplet_parse_handler(begin_rows + offset_from_begin,
+                                         begin_cols + offset_from_begin,
+                                         begin_values + offset_from_begin);
+        }
+
     protected:
+        IT_ITER begin_rows;
+        IT_ITER begin_cols;
+        VT_ITER begin_values;
+
         IT_ITER rows;
         IT_ITER cols;
         VT_ITER values;
@@ -73,7 +89,8 @@ namespace fast_matrix_market {
         using value_type = pattern_placeholder_type;
 
         explicit triplet_pattern_parse_handler(const IT_ITER& rows,
-                                               const IT_ITER& cols) : rows(rows), cols(cols) {}
+                                               const IT_ITER& cols) : begin_rows(rows), begin_cols(cols),
+                                                                      rows(rows), cols(cols) {}
 
         void handle(const coordinate_type row, const coordinate_type col, [[maybe_unused]] const value_type ignored) {
             *rows = row;
@@ -83,7 +100,14 @@ namespace fast_matrix_market {
             ++cols;
         }
 
+        triplet_pattern_parse_handler<IT_ITER> get_chunk_handler(int64_t offset_from_begin) {
+            return triplet_pattern_parse_handler(begin_rows + offset_from_begin,
+                                                 begin_cols + offset_from_begin);
+        }
     protected:
+        IT_ITER begin_rows;
+        IT_ITER begin_cols;
+
         IT_ITER rows;
         IT_ITER cols;
     };
@@ -98,7 +122,8 @@ namespace fast_matrix_market {
         using value_type = typename std::iterator_traits<VT_ITER>::value_type;
 
         explicit doublet_parse_handler(const IT_ITER& index,
-                                       const VT_ITER& values) : index(index), values(values) {}
+                                       const VT_ITER& values) : begin_index(index), begin_values(values),
+                                                                index(index), values(values) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
             *index = std::max(row, col);
@@ -108,7 +133,14 @@ namespace fast_matrix_market {
             ++values;
         }
 
+        doublet_parse_handler<IT_ITER, VT_ITER> get_chunk_handler(int64_t offset_from_begin) {
+            return doublet_parse_handler(begin_index + offset_from_begin,
+                                         begin_values + offset_from_begin);
+        }
     protected:
+        IT_ITER begin_index;
+        VT_ITER begin_values;
+
         IT_ITER index;
         VT_ITER values;
     };
@@ -128,6 +160,10 @@ namespace fast_matrix_market {
             mat(row, col) = value;
         }
 
+        setting_2d_parse_handler<MAT, IT, VT> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
+            return *this;
+        }
+
     protected:
         MAT &mat;
     };
@@ -145,6 +181,10 @@ namespace fast_matrix_market {
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
             values[col * ncols + row] = value;
+        }
+
+        row_major_parse_handler<VT_ITER> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
+            return *this;
         }
 
     protected:

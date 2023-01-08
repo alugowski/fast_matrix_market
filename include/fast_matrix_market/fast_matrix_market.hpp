@@ -7,6 +7,7 @@
 #pragma once
 
 #include <complex>
+#include <future>
 #include <iostream>
 #include <map>
 #include <string>
@@ -43,13 +44,23 @@ namespace fast_matrix_market {
          *  is necessary for efficient parallelization.
          */
         enum {ExtraZeroElement, DuplicateElement} generalize_coordinate_diagnonal_values = ExtraZeroElement;
+
+        /**
+         * Whether or not parallel implementation is allowed.
+         */
+        bool parallel_ok = true;
+
+        /**
+         * Number of threads to use. 0 means std::thread::hardware_concurrency().
+         */
+        int num_threads = 0;
     };
 
     struct write_options {
         int64_t chunk_size_values = 2 << 12;
 
         /**
-         * If true then a parallel implementation is used.
+         * Whether or not parallel implementation is allowed.
          */
         bool parallel_ok = true;
 
@@ -130,6 +141,15 @@ namespace fast_matrix_market {
         return {};
     }
 
+    /**
+     * Determine if a std::future is ready to return a result, i.e. finished computing.
+     * @return true if the future is ready.
+     */
+    template<typename R>
+    bool is_ready(std::future<R> const& f)
+    {
+        return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    }
 }
 
 #include "field_conv.hpp"
