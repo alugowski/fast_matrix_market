@@ -44,6 +44,13 @@ triplet_matrix<IT, VT> construct_triplet(std::size_t byte_target) {
     return ret;
 }
 
+/**
+ * Constructs a large string block composed of repeated lines from kLines.
+ *
+ * @param byte_target size in bytes of the result
+ */
+std::string construct_large_coord_string(std::size_t byte_target);
+
 constexpr int64_t kInMemoryByteTargetRead = 200 * 2 << 20;
 constexpr int64_t kInMemoryByteTargetWrite = 100 * 2 << 20;
 

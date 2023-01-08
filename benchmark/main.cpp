@@ -5,51 +5,6 @@
 
 #include <numeric>
 
-const std::array<std::string, 3> kLines = {
-    "123456 234567 333.323",
-    "1 234567 333.323",
-    "1 2 3",
-};
-
-const std::array<std::string, 2> kIntStrings = {
-    "123456",
-    "1",
-};
-
-const std::array<std::string, 3> kDoubleStrings = {
-    "123456",
-    "1",
-    "333.323",
-};
-
-/**
- * Constructs a large string block composed of repeated lines from kLines.
- *
- * @param byte_target size in bytes of the result
- */
-std::string ConstructManyLines(std::size_t byte_target) {
-    std::vector<char> chunk;
-    for (const auto& line : kLines) {
-        std::copy(std::begin(line), std::end(line), std::back_inserter(chunk));
-        chunk.emplace_back('\n');
-    }
-
-    std::vector<char> result;
-    result.reserve(byte_target + chunk.size() + 1);
-
-    while (result.size() < byte_target) {
-        std::copy(std::begin(chunk), std::end(chunk), std::back_inserter(result));
-    }
-    result.emplace_back(0);
-
-    return {result.data()};
-}
-
-/**
- * Large string with many lines.
- */
-const std::string kLineBlock = ConstructManyLines(50u << 20u);
-
 /**
  * Set thread count benchmark arguments.
  */
@@ -79,6 +34,29 @@ void NumThreadsArgument(benchmark::internal::Benchmark* b) {
 
     // Always do the max threads available.
     b->ArgName("p")->Arg(std::thread::hardware_concurrency());
+}
+
+/**
+ * Constructs a large string block composed of repeated lines from kLines.
+ *
+ * @param byte_target size in bytes of the result
+ */
+std::string construct_large_coord_string(std::size_t byte_target) {
+    const std::string chunk =
+            "123456 234567 333.323\n"
+            "1 234567 333.323\n"
+            "1 2 3\n";
+
+    std::string result;
+
+    auto num_copies = byte_target / chunk.size();
+    result.reserve(chunk.size() * num_copies);
+
+    for (std::size_t i = 0; i < num_copies; ++i) {
+        result += chunk;
+    }
+
+    return result;
 }
 
 BENCHMARK_MAIN();
