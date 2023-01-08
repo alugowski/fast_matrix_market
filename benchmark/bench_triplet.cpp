@@ -60,8 +60,8 @@ static void triplet_write(benchmark::State& state) {
 
         std::ostringstream oss;
 
-        fast_matrix_market::matrix_market_header header(triplet.nrows, triplet.ncols);
-        fast_matrix_market::write_matrix_market_triplet(oss, header,
+        fast_matrix_market::write_matrix_market_triplet(oss,
+                                                        fast_matrix_market::matrix_market_header(triplet.nrows, triplet.ncols),
                                                         triplet.rows, triplet.cols, triplet.vals,
                                                         options);
 

@@ -18,6 +18,12 @@ struct triplet_matrix {
     std::vector<VT> vals;
 };
 
+template <typename VT>
+struct array_matrix {
+    int64_t nrows = 0, ncols = 0;
+    std::vector<VT> vals;
+};
+
 /**
  * Construct a test matrix.
  * @param byte_target How big the matrix tuples should be
@@ -40,6 +46,25 @@ triplet_matrix<IT, VT> construct_triplet(std::size_t byte_target) {
         ret.cols.emplace_back(i);
         ret.vals.emplace_back(static_cast<VT>(i) / 100);
     }
+
+    return ret;
+}
+
+/**
+ * Construct a test matrix.
+ * @param byte_target How big the matrix tuples should be
+ */
+template <typename VT>
+array_matrix<VT> construct_array(std::size_t byte_target) {
+    int64_t num_elements = byte_target / (sizeof(VT));
+    auto n = (int64_t)std::sqrt(num_elements);
+
+    array_matrix<VT> ret;
+
+    ret.nrows = n;
+    ret.ncols = n;
+
+    ret.vals.resize(n*n, static_cast<VT>(n) / 100);
 
     return ret;
 }
