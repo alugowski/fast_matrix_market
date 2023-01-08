@@ -3,8 +3,10 @@
 
 #pragma once
 
+#include <algorithm>
 #include <charconv>
 #include <complex>
+#include <iterator>
 #include <type_traits>
 
 #include "fast_matrix_market.hpp"
@@ -13,20 +15,102 @@ namespace fast_matrix_market {
     /**
      * Tuple handler. A single vector of (row, column, value) tuples.
      */
-    template<typename TUPLE, typename IT, typename VT>
+    template<typename IT, typename VT, typename ITER>
     class tuple_parse_handler {
     public:
         using coordinate_type = IT;
         using value_type = VT;
 
-        explicit tuple_parse_handler(std::vector<TUPLE> &tuples) : tuples(tuples) {}
+        using TUPLE = typename std::iterator_traits<ITER>::value_type;
+
+        explicit tuple_parse_handler(const ITER& iter) : iter(iter) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            tuples.emplace_back(row, col, value);
+            *iter = TUPLE(row, col, value);
+            ++iter;
         }
 
     protected:
-        std::vector<TUPLE> &tuples;
+        ITER iter;
+    };
+
+    /**
+     * Triplet handler. Separate row, column, value vectors.
+     */
+    template<typename IT_ITER, typename VT_ITER>
+    class triplet_parse_handler {
+    public:
+        using coordinate_type = typename std::iterator_traits<IT_ITER>::value_type;
+        using value_type = typename std::iterator_traits<VT_ITER>::value_type;
+
+        explicit triplet_parse_handler(const IT_ITER& rows,
+                                       const IT_ITER& cols,
+                                       const VT_ITER& values) : rows(rows), cols(cols), values(values) {}
+
+        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
+            *rows = row;
+            *cols = col;
+            *values = value;
+
+            ++rows;
+            ++cols;
+            ++values;
+        }
+
+    protected:
+        IT_ITER rows;
+        IT_ITER cols;
+        VT_ITER values;
+    };
+
+    /**
+     * Triplet handler for pattern matrices. Separate row, column vectors.
+     */
+    template<typename IT_ITER>
+    class triplet_pattern_parse_handler {
+    public:
+        using coordinate_type = typename std::iterator_traits<IT_ITER>::value_type;
+        using value_type = pattern_placeholder_type;
+
+        explicit triplet_pattern_parse_handler(const IT_ITER& rows,
+                                               const IT_ITER& cols) : rows(rows), cols(cols) {}
+
+        void handle(const coordinate_type row, const coordinate_type col, [[maybe_unused]] const value_type ignored) {
+            *rows = row;
+            *cols = col;
+
+            ++rows;
+            ++cols;
+        }
+
+    protected:
+        IT_ITER rows;
+        IT_ITER cols;
+    };
+
+    /**
+     * Doublet handler, for a (index, value) sparse vector.
+     */
+    template<typename IT_ITER, typename VT_ITER>
+    class doublet_parse_handler {
+    public:
+        using coordinate_type = typename std::iterator_traits<IT_ITER>::value_type;
+        using value_type = typename std::iterator_traits<VT_ITER>::value_type;
+
+        explicit doublet_parse_handler(const IT_ITER& index,
+                                       const VT_ITER& values) : index(index), values(values) {}
+
+        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
+            *index = std::max(row, col);
+            *values = value;
+
+            ++index;
+            ++values;
+        }
+
+    protected:
+        IT_ITER index;
+        VT_ITER values;
     };
 
     /**
@@ -49,91 +133,22 @@ namespace fast_matrix_market {
     };
 
     /**
-     * Triplet handler. Separate row, column, value vectors.
-     */
-    template<typename IT, typename VT>
-    class triplet_parse_handler {
-    public:
-        using coordinate_type = IT;
-        using value_type = VT;
-
-        explicit triplet_parse_handler(std::vector<coordinate_type> &rows,
-                                       std::vector<coordinate_type> &cols,
-                                       std::vector<value_type> &values) : rows(rows), cols(cols), values(values) {}
-
-        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            rows.emplace_back(row);
-            cols.emplace_back(col);
-            values.emplace_back(value);
-        }
-
-    protected:
-        std::vector<coordinate_type> &rows;
-        std::vector<coordinate_type> &cols;
-        std::vector<value_type> &values;
-    };
-
-    /**
-     * Triplet handler for pattern matrices. Separate row, column vectors.
-     */
-    template<typename IT>
-    class triplet_pattern_parse_handler {
-    public:
-        using coordinate_type = IT;
-        using value_type = pattern_placeholder_type;
-
-        explicit triplet_pattern_parse_handler(std::vector<coordinate_type> &rows,
-                                               std::vector<coordinate_type> &cols) : rows(rows), cols(cols) {}
-
-        void handle(const coordinate_type row, const coordinate_type col, [[maybe_unused]] const value_type ignored) {
-            rows.emplace_back(row);
-            cols.emplace_back(col);
-        }
-
-    protected:
-        std::vector<coordinate_type> &rows;
-        std::vector<coordinate_type> &cols;
-    };
-
-    /**
-     * Doublet handler, for a (index, value) sparse vector.
-     */
-    template<typename IT, typename VT>
-    class doublet_parse_handler {
-    public:
-        using coordinate_type = IT;
-        using value_type = VT;
-
-        explicit doublet_parse_handler(std::vector<coordinate_type> &index,
-                                       std::vector<value_type> &values) : index(index), values(values) {}
-
-        void handle(const coordinate_type row, [[maybe_unused]] const coordinate_type col, const value_type value) {
-            index.emplace_back(row);
-            values.emplace_back(value);
-        }
-
-    protected:
-        std::vector<coordinate_type> &index;
-        std::vector<value_type> &values;
-    };
-
-    /**
      * Dense array handler (row-major).
      */
-    template <typename VT>
+    template <typename VT_ITER>
     class row_major_parse_handler {
     public:
         using coordinate_type = int64_t;
-        using value_type = VT;
+        using value_type = typename std::iterator_traits<VT_ITER>::value_type;
 
-        explicit row_major_parse_handler(std::vector<VT> &values, int64_t ncols) : values(values), ncols(ncols) {}
+        explicit row_major_parse_handler(const VT_ITER& values, int64_t ncols) : values(values), ncols(ncols) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
             values[col * ncols + row] = value;
         }
 
     protected:
-        std::vector<VT>& values;
+        VT_ITER values;
         int64_t ncols;
     };
 }

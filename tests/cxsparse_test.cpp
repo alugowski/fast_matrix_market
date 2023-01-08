@@ -21,7 +21,7 @@ cs_dl *read_mtx(const std::string& path) {
 
     std::ifstream f(path);
 
-    fast_matrix_market::read_matrix_market_cxsparse(f, &A, cs_dl_spalloc, cs_dl_entry, cs_dl_spfree);
+    fast_matrix_market::read_matrix_market_cxsparse(f, &A, cs_dl_spalloc);
 
     // ignore the memory leak
     return A;

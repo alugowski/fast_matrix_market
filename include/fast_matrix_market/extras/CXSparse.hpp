@@ -6,34 +6,13 @@
 #include "fast_matrix_market/fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
-    template<typename IT, typename VT, typename CS, typename ENTRY, typename FREE>
-    class cxsparse_parse_handler {
-    public:
-        using coordinate_type = IT;
-        using value_type = VT;
-
-        explicit cxsparse_parse_handler(CS* cs, ENTRY entry, FREE spfree) : cs(cs), entry(entry), spfree(spfree) {}
-
-        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            if (!entry(cs, row, col, value)) {
-                spfree(cs);
-                throw fmm_error("Error setting entry");
-            }
-        }
-
-    protected:
-        CS* cs;
-        ENTRY entry;
-        FREE spfree;
-    };
-
     /**
      * Read Matrix Market file into a CXSparse cs_* triplet structure.
      */
-    template <typename CS, typename ALLOC, typename ENTRY, typename FREE>
+    template <typename CS, typename ALLOC>
     void read_matrix_market_cxsparse(std::istream &instream,
                                     CS **cs,
-                                    ALLOC spalloc, ENTRY entry, FREE spfree,
+                                    ALLOC spalloc,
                                     const read_options& options = {}) {
 
         matrix_market_header header;
@@ -47,13 +26,16 @@ namespace fast_matrix_market {
             return;
         }
 
-        auto handler = cxsparse_parse_handler<
-                decltype((*cs)->m),                                     // CS struct's index type
-                typename std::remove_pointer<decltype((*cs)->x)>::type, // CS struct's value type
-                CS, ENTRY, FREE> (*cs, entry, spfree);
+        if (header.field == pattern) {
+            auto handler = triplet_pattern_parse_handler((*cs)->i, (*cs)->p);
+            read_matrix_market_body_no_pattern(instream, header, handler, options);
+        } else {
+            auto handler = triplet_parse_handler((*cs)->i, (*cs)->p, (*cs)->x);
+            read_matrix_market_body_no_pattern(instream, header, handler, options);
+        }
 
-        // cxsparse_parse_handler handles pattern files via cs_entry()
-        read_matrix_market_body(instream, header, handler, 1, options);
+        // nz > 0 indicates a triplet matrix.
+        (*cs)->nz = (*cs)->nzmax;
     }
 
     /**

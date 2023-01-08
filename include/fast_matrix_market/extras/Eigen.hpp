@@ -38,9 +38,9 @@ namespace fast_matrix_market {
 
         // read into tuples
         std::vector<Triplet> elements;
-        elements.reserve(get_storage_nnz(header, options));
+        elements.resize(get_storage_nnz(header, options));
 
-        auto handler = tuple_parse_handler<Triplet, StorageIndex, Scalar>(elements);
+        auto handler = tuple_parse_handler<StorageIndex, Scalar, decltype(elements.begin())>(elements.begin());
         read_matrix_market_body(instream, header, handler, 1, options);
 
         // set the values into the matrix
