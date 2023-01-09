@@ -71,7 +71,7 @@ namespace fast_matrix_market {
             // triplet
             auto formatter = triplet_formatter(cs->i, cs->i + cs->nz,
                                                cs->p, cs->p + cs->nz,
-                                               cs->x, header.field == pattern ? nullptr : cs->x + cs->nz);
+                                               cs->x, header.field == pattern ? cs->x : cs->x + cs->nz);
             write_body(os, formatter, options);
         }
     }

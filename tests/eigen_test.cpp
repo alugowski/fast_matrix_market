@@ -20,10 +20,10 @@ using SpRowMajor = Eigen::SparseMatrix<double, Eigen::RowMajor>;
 using Dense = Eigen::MatrixXd;
 
 template <typename MatType>
-MatType read_mtx(const std::string& source) {
+MatType read_mtx(const std::string& source, typename MatType::Scalar pattern_value = 1) {
     std::istringstream iss(source);
     MatType ret;
-    fast_matrix_market::read_matrix_market_eigen(iss, ret);
+    fast_matrix_market::read_matrix_market_eigen(iss, ret, fast_matrix_market::read_options{}, pattern_value);
     return ret;
 }
 
@@ -36,14 +36,16 @@ MatType read_dense(const std::string& source) {
 }
 
 template <typename MatType>
-std::string write_mtx(MatType& mat) {
+std::string write_mtx(MatType& mat, bool pattern_only=false) {
+    fast_matrix_market::matrix_market_header header{};
+    if (pattern_only) header.field = fast_matrix_market::pattern;
+
     std::ostringstream oss;
-    fast_matrix_market::write_matrix_market_eigen(oss, mat);
+    fast_matrix_market::write_matrix_market_eigen(oss, mat, fast_matrix_market::write_options(), header);
     return oss.str();
 }
 
-template <>
-std::string write_mtx(Dense& mat) {
+std::string write_dense(Dense& mat) {
     std::ostringstream oss;
     fast_matrix_market::write_matrix_market_eigen_dense(oss, mat);
     return oss.str();
@@ -105,12 +107,20 @@ TEST_P(EigenTest, Loaded) {
 
     // dense
     Dense dense(col_major);
-    EXPECT_TRUE(dense.isApprox(read_dense<Dense>(write_mtx(dense)), 1e-6));
+    EXPECT_TRUE(dense.isApprox(read_dense<Dense>(write_dense(dense)), 1e-6));
 
     // sparse/dense combinations
     EXPECT_TRUE(col_major.isApprox(dense, 1e-6));
-    EXPECT_TRUE(col_major.isApprox(read_mtx<SpColMajor>(write_mtx(dense)), 1e-6));
+    EXPECT_TRUE(col_major.isApprox(read_mtx<SpColMajor>(write_dense(dense)), 1e-6));
     EXPECT_TRUE(dense.isApprox(read_dense<Dense>(write_mtx(col_major)), 1e-6));
+
+    // write pattern
+    std::string pattern_mtx = write_mtx(col_major, true);
+    EXPECT_TRUE(pattern_mtx.find("pattern") > 0); // pattern should appear in the header
+
+    auto mat_val_1 = read_mtx<SpColMajor>(pattern_mtx, 1);
+    EXPECT_TRUE(mat_val_1.isApprox(read_mtx<SpRowMajor>(pattern_mtx, 1), 1e-6));
+    EXPECT_FALSE(mat_val_1.isApprox(read_mtx<SpRowMajor>(pattern_mtx, 2), 1e-6));
 }
 
 INSTANTIATE_TEST_SUITE_P(

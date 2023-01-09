@@ -19,7 +19,8 @@ namespace fast_matrix_market {
     template <typename SparseType>
     void read_matrix_market_eigen(std::istream &instream,
                                   SparseType& mat,
-                                  const read_options& options = {}) {
+                                  const read_options& options = {},
+                                  typename SparseType::Scalar default_pattern_value = 1) {
 
         typedef typename SparseType::Scalar Scalar;
         typedef typename SparseType::StorageIndex StorageIndex;
@@ -34,7 +35,7 @@ namespace fast_matrix_market {
         elements.resize(get_storage_nnz(header, options));
 
         auto handler = tuple_parse_handler<StorageIndex, Scalar, decltype(elements.begin())>(elements.begin());
-        read_matrix_market_body(instream, header, handler, 1, options);
+        read_matrix_market_body(instream, header, handler, default_pattern_value, options);
 
         // set the values into the matrix
         mat.setFromTriplets(elements.begin(), elements.end());
@@ -46,13 +47,14 @@ namespace fast_matrix_market {
     template <typename DenseType>
     void read_matrix_market_eigen_dense(std::istream &instream,
                                   DenseType& mat,
-                                  const read_options& options = {}) {
+                                  const read_options& options = {},
+                                  typename DenseType::Scalar default_pattern_value = 1) {
         matrix_market_header header;
         read_header(instream, header);
         mat.resize(header.nrows, header.ncols);
 
         auto handler = dense_2d_call_adding_parse_handler<DenseType, typename DenseType::Index, typename DenseType::Scalar>(mat);
-        read_matrix_market_body(instream, header, handler, 1, options);
+        read_matrix_market_body(instream, header, handler, default_pattern_value, options);
     }
 
     /**
@@ -62,7 +64,8 @@ namespace fast_matrix_market {
     class sparse_Eigen_formatter {
     public:
         typedef typename SparseMatrixType::Index MatIndex;
-        explicit sparse_Eigen_formatter(const SparseMatrixType& mat) : mat(mat) {
+        explicit sparse_Eigen_formatter(const SparseMatrixType& mat, bool pattern_only) : mat(mat),
+                                                                                          pattern_only(pattern_only) {
             nnz_per_column = ((double)mat.nonZeros()) / mat.outerSize();
         }
 
@@ -72,8 +75,8 @@ namespace fast_matrix_market {
 
         class chunk {
         public:
-            explicit chunk(const SparseMatrixType& mat, MatIndex outer_iter, MatIndex outer_end) :
-            mat(mat), outer_iter(outer_iter), outer_end(outer_end) {}
+            explicit chunk(const SparseMatrixType& mat, MatIndex outer_iter, MatIndex outer_end, bool pattern_only) :
+            mat(mat), outer_iter(outer_iter), outer_end(outer_end), pattern_only(pattern_only) {}
 
             std::string operator()() {
                 std::string chunk;
@@ -87,8 +90,10 @@ namespace fast_matrix_market {
                         chunk += int_to_string(it.row() + 1);
                         chunk += kSpace;
                         chunk += int_to_string(it.col() + 1);
-                        chunk += kSpace;
-                        chunk += value_to_string(it.value());
+                        if (!pattern_only) {
+                            chunk += kSpace;
+                            chunk += value_to_string(it.value());
+                        }
                         chunk += kNewline;
                     }
                 }
@@ -98,13 +103,14 @@ namespace fast_matrix_market {
 
             const SparseMatrixType& mat;
             MatIndex outer_iter, outer_end;
+            bool pattern_only;
         };
 
         chunk next_chunk(const write_options& options) {
             auto num_columns = (ptrdiff_t)(nnz_per_column * (double)options.chunk_size_values + 1);
 
             MatIndex outer_end = std::min(outer_iter + num_columns, mat.outerSize());
-            chunk c(mat, outer_iter, outer_end);
+            chunk c(mat, outer_iter, outer_end, pattern_only);
             outer_iter = outer_end;
 
             return c;
@@ -114,6 +120,7 @@ namespace fast_matrix_market {
         const SparseMatrixType& mat;
         double nnz_per_column;
         MatIndex outer_iter = 0;
+        bool pattern_only;
     };
 
     /**
@@ -181,19 +188,20 @@ namespace fast_matrix_market {
     template <typename SparseType>
     void write_matrix_market_eigen(std::ostream &os,
                                    SparseType& mat,
-                                   const write_options& options = {}) {
-        matrix_market_header header;
+                                   const write_options& options = {}, matrix_market_header header = {}) {
         header.nrows = mat.rows();
         header.ncols = mat.cols();
         header.nnz = mat.nonZeros();
 
         header.object = matrix;
-        header.field = get_field_type::value<typename SparseType::Scalar>();
+        if (header.field != pattern) {
+            header.field = get_field_type::value<typename SparseType::Scalar>();
+        }
         header.format = coordinate;
 
         write_header(os, header);
 
-        auto formatter = sparse_Eigen_formatter(mat);
+        auto formatter = sparse_Eigen_formatter(mat, header.field == pattern);
         write_body(os, formatter, options);
     }
 

@@ -91,7 +91,7 @@ namespace fast_matrix_market {
 
         auto formatter = triplet_formatter(rows.begin(), rows.end(),
                                            cols.begin(), cols.end(),
-                                           values.begin(), values.end());
+                                           values.begin(), header.field == pattern ? values.begin() : values.end());
         write_body(os, formatter, options);
     }
 }

@@ -185,6 +185,10 @@ namespace fast_matrix_market {
         return std::to_string(value);
     }
 
+    inline std::string value_to_string([[maybe_unused]] const pattern_placeholder_type& value) {
+        return {};
+    }
+
     inline std::string value_to_string(const int32_t & value) {
         return int_to_string(value);
     }

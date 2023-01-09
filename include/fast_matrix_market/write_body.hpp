@@ -26,6 +26,11 @@ namespace fast_matrix_market {
         static field_type value() {
             return complex;
         }
+
+        template <typename T, typename std::enable_if<std::is_same<T, pattern_placeholder_type>::value, int>::type = 0>
+        static field_type value() {
+            return pattern;
+        }
     };
 
     /**
