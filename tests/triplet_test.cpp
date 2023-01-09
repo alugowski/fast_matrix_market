@@ -10,37 +10,6 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 
-template <typename IT, typename VT>
-struct triplet_matrix {
-    int64_t nrows = 0, ncols = 0;
-    std::vector<IT> rows;
-    std::vector<IT> cols;
-    std::vector<VT> vals;
-};
-
-template <typename IT, typename VT>
-bool operator==(const triplet_matrix<IT, VT>& a, const triplet_matrix<IT, VT>& b) {
-    if (a.nrows != b.nrows) {
-        return false;
-    }
-    if (a.ncols != b.ncols) {
-        return false;
-    }
-
-    if (a.rows != b.rows) {
-        return false;
-    }
-
-    if (a.cols != b.cols) {
-        return false;
-    }
-
-    if (a.vals != b.vals) {
-        return false;
-    }
-
-    return true;
-}
 
 /**
  * Construct a test matrix.

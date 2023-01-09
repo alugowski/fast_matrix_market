@@ -11,3 +11,70 @@
 #include <fast_matrix_market/fast_matrix_market.hpp>
 
 static const std::string kTestMatrixDir = TEST_MATRIX_DIR;  // configured in CMake
+
+template <typename IT, typename VT>
+struct triplet_matrix {
+    using value_type = VT;
+
+    int64_t nrows = 0, ncols = 0;
+    std::vector<IT> rows;
+    std::vector<IT> cols;
+    std::vector<VT> vals;
+};
+
+template <typename IT, typename VT>
+struct sparse_vector {
+    using value_type = VT;
+
+    int64_t length = 0;
+    std::vector<IT> indices;
+    std::vector<VT> vals;
+};
+
+template <typename VT>
+struct array_matrix {
+    using value_type = VT;
+
+    int64_t nrows = 0, ncols = 0;
+    std::vector<VT> vals;
+};
+
+template <typename IT, typename VT>
+bool operator==(const triplet_matrix<IT, VT>& a, const triplet_matrix<IT, VT>& b) {
+    if (a.nrows != b.nrows) {
+        return false;
+    }
+    if (a.ncols != b.ncols) {
+        return false;
+    }
+
+    if (a.rows != b.rows) {
+        return false;
+    }
+
+    if (a.cols != b.cols) {
+        return false;
+    }
+
+    if (a.vals != b.vals) {
+        return false;
+    }
+
+    return true;
+}
+
+template <typename VT>
+bool operator==(const array_matrix<VT>& a, const array_matrix<VT>& b) {
+    if (a.nrows != b.nrows) {
+        return false;
+    }
+    if (a.ncols != b.ncols) {
+        return false;
+    }
+
+    if (a.vals != b.vals) {
+        return false;
+    }
+
+    return true;
+}

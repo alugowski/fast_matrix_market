@@ -1,3 +1,6 @@
 %%MatrixMarket matrix coordinate complex general
-% no support for complex datatype
-4 4 0
+%
+3 3 3
+1 1 1 0
+2 2 1 0
+3 3 1 0
