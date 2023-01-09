@@ -36,7 +36,7 @@ static void array_read(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(array_read)->Name("Array/read")->Apply(NumThreadsArgument);
+BENCHMARK(array_read)->Name("Array read")->Apply(NumThreadsArgument);
 
 
 /**
@@ -66,4 +66,4 @@ static void array_write(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(array_write)->Name("Array/write")->Apply(NumThreadsArgument);
+BENCHMARK(array_write)->Name("Array write")->Apply(NumThreadsArgument);

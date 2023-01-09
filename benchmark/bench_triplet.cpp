@@ -41,7 +41,7 @@ static void triplet_read(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(triplet_read)->Name("Triplet/read")->Apply(NumThreadsArgument);
+BENCHMARK(triplet_read)->Name("Triplet read")->Apply(NumThreadsArgument);
 
 
 /**
@@ -71,4 +71,4 @@ static void triplet_write(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(triplet_write)->Name("Triplet/write")->Apply(NumThreadsArgument);
+BENCHMARK(triplet_write)->Name("Triplet write")->Apply(NumThreadsArgument);
