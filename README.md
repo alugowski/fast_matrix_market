@@ -100,9 +100,7 @@ You may also copy `include/fast_matrix_market` into your project's `include` dir
 
 Be sure to also include:
  * [`fast_float`](https://github.com/fastfloat/fast_float) library. You can omit it if you know your compiler implements `std::from_chars<double>` (e.g. VisualStudio, GCC 12+).
- * [`Dragonbox`](https://github.com/jk-jeon/dragonbox) Also omittable if your compiler implements `std::to_chars<double>`.
-
-Both can be omitted if performance and parallelism are not important.
+ * [`Dragonbox`](https://github.com/jk-jeon/dragonbox) Also omittable if your compiler implements `std::to_chars<double>` or if performance and parallelism are not important.
 
 
 ## Easy Integration
