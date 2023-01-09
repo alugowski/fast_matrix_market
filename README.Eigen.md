@@ -5,7 +5,7 @@
 # Usage
 
 ```c++
-#include <fast_matrix_market/extras/Eigen.hpp>
+#include <fast_matrix_market/app/Eigen.hpp>
 ```
 
 ### Reading

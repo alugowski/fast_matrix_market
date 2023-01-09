@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "fast_matrix_market.hpp"
+#include "../fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
     template <typename IT, typename VT>

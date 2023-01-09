@@ -170,7 +170,7 @@ namespace fast_matrix_market {
 #include "formatters.hpp"
 #include "read_body.hpp"
 #include "write_body.hpp"
-#include "interface_triplet.hpp"
-#include "interface_array.hpp"
+#include "app/triplet.hpp"
+#include "app/array.hpp"
 
 #endif

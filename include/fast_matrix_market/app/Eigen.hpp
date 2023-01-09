@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "fast_matrix_market/fast_matrix_market.hpp"
+#include "../fast_matrix_market.hpp"
 
 // Disable some pedantic warnings from Eigen headers.
 #pragma clang diagnostic push
@@ -13,13 +13,6 @@
 
 
 namespace fast_matrix_market {
-
-//    template <typename, typename = void>
-//    struct is_eigen_sparse : std::false_type {};
-//
-//    template <typename T>
-//    struct is_eigen_sparse<T, std::void_t<decltype(&T::isCompressed)>> : std::is_same<bool, decltype(std::declval<T>().isCompressed())> {};
-
     /**
      * Read Matrix Market file into an Eigen matrix.
      */

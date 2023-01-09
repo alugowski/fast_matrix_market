@@ -6,7 +6,7 @@
 
 #include "fmm_tests.hpp"
 
-#include <fast_matrix_market/extras/Eigen.hpp>
+#include <fast_matrix_market/app/Eigen.hpp>
 
 // Disable some pedantic warnings from Eigen headers.
 #pragma clang diagnostic push

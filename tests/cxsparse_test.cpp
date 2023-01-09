@@ -7,7 +7,7 @@
 
 #include "fmm_tests.hpp"
 
-#include <fast_matrix_market/extras/CXSparse.hpp>
+#include <fast_matrix_market/app/CXSparse.hpp>
 #include "fake_cxsparse/cs.hpp"
 
 using std::filesystem::directory_iterator;

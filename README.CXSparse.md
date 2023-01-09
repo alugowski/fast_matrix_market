@@ -5,7 +5,7 @@
 # Usage
 
 ```c++
-#include <fast_matrix_market/extras/CXSparse.hpp>
+#include <fast_matrix_market/app/CXSparse.hpp>
 ```
 
 ### Reading

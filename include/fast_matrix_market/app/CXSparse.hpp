@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "fast_matrix_market/fast_matrix_market.hpp"
+#include "../fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
     /**
