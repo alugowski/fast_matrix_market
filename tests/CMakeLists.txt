@@ -20,6 +20,9 @@ target_link_libraries(chunking_test GTest::gtest_main fast_matrix_market::fast_m
 add_executable(basic_test basic_test.cpp)
 target_link_libraries(basic_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
 
+add_executable(array_test array_test.cpp)
+target_link_libraries(array_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+
 add_executable(triplet_test triplet_test.cpp)
 target_link_libraries(triplet_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
 
@@ -36,6 +39,7 @@ target_link_libraries(eigen_test GTest::gtest_main fast_matrix_market::fast_matr
 include(GoogleTest)
 gtest_discover_tests(chunking_test)
 gtest_discover_tests(basic_test)
+gtest_discover_tests(array_test)
 gtest_discover_tests(triplet_test)
 gtest_discover_tests(cxsparse_test)
 gtest_discover_tests(eigen_test)

@@ -237,10 +237,10 @@ namespace fast_matrix_market {
         using value_type = typename std::iterator_traits<VT_ITER>::value_type;
         static constexpr int flags = kParallelOk | kDense;
 
-        explicit dense_row_major_adding_parse_handler(const VT_ITER& values, int64_t ncols) : values(values), ncols(ncols) {}
+        explicit dense_row_major_adding_parse_handler(const VT_ITER& values, int64_t nrows) : values(values), nrows(nrows) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            values[col * ncols + row] = static_cast<value_type>(values[col * ncols + row] + value);
+            values[col * nrows + row] = static_cast<value_type>(values[col * nrows + row] + value);
         }
 
         dense_row_major_adding_parse_handler<VT_ITER> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
@@ -249,6 +249,6 @@ namespace fast_matrix_market {
 
     protected:
         VT_ITER values;
-        int64_t ncols;
+        int64_t nrows;
     };
 }

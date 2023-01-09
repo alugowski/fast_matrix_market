@@ -15,7 +15,7 @@ namespace fast_matrix_market {
 
         row_major_values.resize(header.nrows * header.ncols);
 
-        auto handler = dense_row_major_adding_parse_handler(row_major_values.begin(), header.ncols);
+        auto handler = dense_row_major_adding_parse_handler(row_major_values.begin(), header.nrows);
         read_matrix_market_body(instream, header, handler, 1, options);
     }
 
@@ -37,7 +37,7 @@ namespace fast_matrix_market {
 
         write_header(os, header);
 
-        auto formatter = row_major_array_formatter(row_major_array, header.ncols);
+        auto formatter = row_major_array_formatter(row_major_array, header.nrows);
         write_body(os, formatter, options);
     }
 }

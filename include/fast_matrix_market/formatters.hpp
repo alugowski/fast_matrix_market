@@ -193,23 +193,23 @@ namespace fast_matrix_market {
     template<typename VT>
     class row_major_array_formatter {
     public:
-        explicit row_major_array_formatter(const std::vector<VT> &values, int64_t ncols) : values(values), nrows(values.size() / ncols), ncols(ncols) {}
+        explicit row_major_array_formatter(const std::vector<VT> &values, int64_t nrows) : values(values), nrows(nrows), ncols(values.size() / nrows) {}
 
         [[nodiscard]] bool has_next() const {
-            return cur_column != ncols;
+            return cur_row != nrows;
         }
 
         class chunk {
         public:
-            explicit chunk(const std::vector<VT> &values, int64_t nrows, int64_t ncols, int64_t cur_column) :
-            values(values), nrows(nrows), ncols(ncols), cur_column(cur_column) {}
+            explicit chunk(const std::vector<VT> &values, int64_t nrows, int64_t ncols, int64_t cur_row) :
+            values(values), nrows(nrows), ncols(ncols), cur_row(cur_row) {}
 
             std::string operator()() {
                 std::string c;
                 c.reserve(ncols * 15);
 
-                for (int64_t i = 0; i < nrows; ++i) {
-                    c += value_to_string(values[(i * ncols) + cur_column]);
+                for (int64_t i = 0; i < ncols; ++i) {
+                    c += value_to_string(values[(cur_row * ncols) + i]);
                     c += kNewline;
                 }
 
@@ -218,16 +218,16 @@ namespace fast_matrix_market {
 
             const std::vector<VT>& values;
             int64_t nrows, ncols;
-            int64_t cur_column = 0;
+            int64_t cur_row;
         };
 
         chunk next_chunk([[maybe_unused]] const write_options& options) {
-            return chunk(values, nrows, ncols, cur_column++);
+            return chunk(values, nrows, ncols, cur_row++);
         }
 
     protected:
         const std::vector<VT>& values;
         int64_t nrows, ncols;
-        int64_t cur_column = 0;
+        int64_t cur_row = 0;
     };
 }
