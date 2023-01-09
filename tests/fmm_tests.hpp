@@ -63,6 +63,23 @@ bool operator==(const triplet_matrix<IT, VT>& a, const triplet_matrix<IT, VT>& b
     return true;
 }
 
+template <typename IT, typename VT>
+bool operator==(const sparse_vector<IT, VT>& a, const sparse_vector<IT, VT>& b) {
+    if (a.length != b.length) {
+        return false;
+    }
+
+    if (a.indices != b.indices) {
+        return false;
+    }
+
+    if (a.vals != b.vals) {
+        return false;
+    }
+
+    return true;
+}
+
 template <typename VT>
 bool operator==(const array_matrix<VT>& a, const array_matrix<VT>& b) {
     if (a.nrows != b.nrows) {

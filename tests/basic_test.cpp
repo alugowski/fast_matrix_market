@@ -36,16 +36,16 @@ void read_array_file(const std::string& matrix_filename, ARRAY& array) {
     array.ncols = header.ncols;
 }
 
-//template <typename VECTOR>
-//void read_vector_file(const std::string& matrix_filename, VECTOR& vec) {
-//    std::ifstream f(kTestMatrixDir + "/" + matrix_filename);
-//    fast_matrix_market::read_options options{};
-//    options.chunk_size_bytes = 1;
-//
-//    fast_matrix_market::matrix_market_header header;
-//    fast_matrix_market::read_matrix_market_vector(f, header, vec.indices, vec.vals, options);
-//    vec.length = header.vector_length;
-//}
+template <typename VECTOR>
+void read_vector_file(const std::string& matrix_filename, VECTOR& vec) {
+    std::ifstream f(kTestMatrixDir + "/" + matrix_filename);
+    fast_matrix_market::read_options options{};
+    options.chunk_size_bytes = 1;
+
+    fast_matrix_market::matrix_market_header header;
+    fast_matrix_market::read_matrix_market_doublet(f, header, vec.indices, vec.vals, options);
+    vec.length = header.vector_length;
+}
 
 template <typename TRIPLET>
 bool expected(const TRIPLET& mat, int64_t nrows, int64_t ncols, int64_t rows_sum, int64_t cols_sum, typename TRIPLET::value_type value_sum) {
@@ -72,11 +72,8 @@ bool expected(const TRIPLET& mat, int64_t nrows, int64_t ncols, int64_t rows_sum
 }
 
 template <typename VECTOR>
-bool expected(const VECTOR& mat, int64_t nrows, int64_t ncols, int64_t index_sum, typename VECTOR::value_type value_sum) {
-    if (mat.nrows != nrows) {
-        return false;
-    }
-    if (mat.ncols != ncols) {
+bool expected_vec(const VECTOR& mat, int64_t length, int64_t index_sum, typename VECTOR::value_type value_sum) {
+    if (mat.length != length) {
         return false;
     }
 
@@ -230,9 +227,16 @@ TYPED_TEST(PlainVectorSuite, Basic) {
     EXPECT_TRUE(expected(array, 4, 1, 707));
     EXPECT_EQ(array, array2);
 
-
+    // Read vectors
     sparse_vector<int64_t, TypeParam> vec;
-//    EXPECT_THROW(read_vector_file("eye3.mtx", vec), fast_matrix_market::invalid_mm);
+    read_vector_file("vector_coordinate.mtx", vec);
+    EXPECT_TRUE(expected_vec(vec, 4, 4, 707));
+
+    sparse_vector<int64_t, TypeParam> vec_from_triplet;
+    vec_from_triplet.length = triplet.nrows;
+    vec_from_triplet.indices = triplet.rows;
+    vec_from_triplet.vals = triplet.vals;
+    EXPECT_EQ(vec, vec_from_triplet);
 }
 
 TEST(PlainVectorSuite, Complex) {

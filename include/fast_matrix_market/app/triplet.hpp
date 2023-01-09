@@ -6,6 +6,9 @@
 #include "../fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
+    /**
+     * Read a Matrix Market file into a triplet (i.e. row, column, value vectors).
+     */
     template <typename IT, typename VT>
     void read_matrix_market_triplet(std::istream &instream,
                                     matrix_market_header& header,
@@ -47,6 +50,30 @@ namespace fast_matrix_market {
         read_matrix_market_body(instream, header, handler, 1, options);
     }
 
+    /**
+     * Read a Matrix Market vector file into a doublet sparse vector (i.e. index, value vectors).
+     *
+     * Any vector-like Matrix Market file will work:
+     *  - object=vector file, either dense or sparse
+     *  - object=matrix file as long as nrows=1 or ncols=1
+     */
+    template <typename IT, typename VT>
+    void read_matrix_market_doublet(std::istream &instream,
+                                    matrix_market_header& header,
+                                    std::vector<IT>& indices, std::vector<VT>& values,
+                                    const read_options& options = {}) {
+        read_header(instream, header);
+
+        indices.resize(header.nnz);
+        values.resize(get_storage_nnz(header, options));
+
+        auto handler = doublet_parse_handler(indices.begin(), values.begin());
+        read_matrix_market_body(instream, header, handler, 1, options);
+    }
+
+    /**
+     * Write triplets to a Matrix Market file.
+     */
     template <typename IT, typename VT>
     void write_matrix_market_triplet(std::ostream &os,
                                      matrix_market_header header,
