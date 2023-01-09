@@ -14,10 +14,11 @@
 
 namespace fast_matrix_market {
     /**
-     * Read Matrix Market file into an Eigen matrix.
+     * Read Matrix Market file into an Eigen matrix and a header struct.
      */
     template <typename SparseType>
     void read_matrix_market_eigen(std::istream &instream,
+                                  matrix_market_header &header,
                                   SparseType& mat,
                                   const read_options& options = {},
                                   typename SparseType::Scalar default_pattern_value = 1) {
@@ -26,7 +27,6 @@ namespace fast_matrix_market {
         typedef typename SparseType::StorageIndex StorageIndex;
         typedef Eigen::Triplet<Scalar, StorageIndex> Triplet;
 
-        matrix_market_header header;
         read_header(instream, header);
         mat.resize(header.nrows, header.ncols);
 
@@ -42,19 +42,43 @@ namespace fast_matrix_market {
     }
 
     /**
+     * Read Matrix Market file into an Eigen matrix.
+     */
+    template <typename SparseType>
+    void read_matrix_market_eigen(std::istream &instream,
+                                  SparseType& mat,
+                                  const read_options& options = {},
+                                  typename SparseType::Scalar default_pattern_value = 1) {
+        matrix_market_header header;
+        read_matrix_market_eigen<SparseType>(instream, header, mat, options, default_pattern_value);
+    }
+
+    /**
      * Read Matrix Market file into an Eigen Dense matrix.
      */
     template <typename DenseType>
     void read_matrix_market_eigen_dense(std::istream &instream,
-                                  DenseType& mat,
-                                  const read_options& options = {},
-                                  typename DenseType::Scalar default_pattern_value = 1) {
-        matrix_market_header header;
+                                        matrix_market_header& header,
+                                        DenseType& mat,
+                                        const read_options& options = {},
+                                        typename DenseType::Scalar default_pattern_value = 1) {
         read_header(instream, header);
         mat.resize(header.nrows, header.ncols);
 
         auto handler = dense_2d_call_adding_parse_handler<DenseType, typename DenseType::Index, typename DenseType::Scalar>(mat);
         read_matrix_market_body(instream, header, handler, default_pattern_value, options);
+    }
+
+    /**
+     * Read Matrix Market file into an Eigen Dense matrix.
+     */
+    template <typename DenseType>
+    void read_matrix_market_eigen_dense(std::istream &instream,
+                                        DenseType& mat,
+                                        const read_options& options = {},
+                                        typename DenseType::Scalar default_pattern_value = 1) {
+        matrix_market_header header;
+        read_matrix_market_eigen_dense<DenseType>(instream, header, mat, options, default_pattern_value);
     }
 
     /**
