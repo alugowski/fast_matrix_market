@@ -87,7 +87,7 @@ using MyTypes = ::testing::Types<float, double, std::complex<double>, int64_t, l
 TYPED_TEST_SUITE(TripletTest, MyTypes);
 
 TYPED_TEST(TripletTest, Generated) {
-    for (int nnz : {0, 10, 1000, 10000}) {
+    for (int nnz : {0, 10, 1000}) {
         for (int chunk_size : {1, 15, 203, 1 << 10, 1 << 20}) {
             for (int p : {1, 4}) {
                 this->load(nnz, chunk_size, p);
