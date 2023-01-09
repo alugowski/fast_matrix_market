@@ -41,18 +41,19 @@ Run the benchmarks on your own machine, they're fully automated and intended to 
 
 ## Full Featured
 
-* `matrix` and `vector` files.
-  * A vector data structure (sparse doublet or dense) will accept either a `vector` file, an M-by-1 `matrix` file or a 1-by-N `matrix` file.
-
 * `coordinate` and `array`, each readable into either sparse or dense structures.
 
 * All `field` types supported, with appropriate C++ types: `integer`, `real`, `double`, `complex`, `pattern`.
 
-  * Support all C++ integer types, `float`, `double`, `long double`, `std::complex<>`.
+  * Support all C++ integer types, `float`, `double`, `long double`, and `std::complex<>`.
 
   * Automatic `std::complex` up-cast. For example, `real` files can be read into `std::complex<double>` arrays.
 
   * Read and write `pattern` files. Read just the indices or supply a default value.
+* 
+* `matrix` and `vector` files. Most loaders crash on `vector` files.
+  * A vector data structure (sparse doublet or dense) will accept either a `vector` file, an M-by-1 `matrix` file or a 1-by-N `matrix` file.
+  * A matrix data structure will read a `vector` file as if it was a M-by-1 column matrix.
 
 * Ability to read just the header (useful for metadata collection).
 
