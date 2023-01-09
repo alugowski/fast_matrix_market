@@ -17,8 +17,6 @@ constexpr int64_t kIOStreamTargetRead = 10 * 2 << 20;
  */
 static void triplet_read_iostream(benchmark::State& state) {
     std::string large = construct_large_coord_string(kIOStreamTargetRead);
-    // read options
-    fast_matrix_market::read_options options{};
 
     std::size_t num_bytes = 0;
 
