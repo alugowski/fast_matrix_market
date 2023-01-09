@@ -79,7 +79,7 @@ namespace fast_matrix_market {
     /**
      *
      */
-    class fmm_error : std::exception {
+    class fmm_error : public std::exception {
     public:
         explicit fmm_error(std::string msg): msg(std::move(msg)) {}
 
@@ -93,17 +93,22 @@ namespace fast_matrix_market {
     /**
      * The provided stream does not represent a Matrix Market file.
      */
-    class invalid_mm : fmm_error {
+    class invalid_mm : public fmm_error {
     public:
         explicit invalid_mm(std::string msg): fmm_error(std::move(msg)) {}
-        explicit invalid_mm(const std::string& msg, int64_t line_num):
-            fmm_error(std::string("Line: ") + std::to_string(line_num) + ": " + msg) {}
+        explicit invalid_mm(std::string msg, int64_t line_num) : fmm_error(std::move(msg)) {
+            prepend_line_number(line_num);
+        }
+
+        void prepend_line_number(int64_t line_num) {
+            msg = std::string("Line ") + std::to_string(line_num) + ": " + msg;
+        }
     };
 
     /**
      * Passed in argument was not valid.
      */
-    class invalid_argument : fmm_error {
+    class invalid_argument : public fmm_error {
     public:
         explicit invalid_argument(std::string msg): fmm_error(std::move(msg)) {}
     };
@@ -111,7 +116,7 @@ namespace fast_matrix_market {
     /**
      * Matrix Market file has complex fields but the datastructure to load into cannot handle complex values.
      */
-    class complex_incompatible : invalid_argument {
+    class complex_incompatible : public invalid_argument {
     public:
         explicit complex_incompatible(std::string msg): invalid_argument(std::move(msg)) {}
     };
@@ -119,7 +124,7 @@ namespace fast_matrix_market {
     /**
      * Thrown when a certain part of the Matrix Market spec has not been implemented yet.
      */
-    class not_implemented : fmm_error {
+    class not_implemented : public fmm_error {
     public:
         explicit not_implemented(std::string msg): fmm_error(std::move(msg)) {}
     };

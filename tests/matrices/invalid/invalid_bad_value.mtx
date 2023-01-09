@@ -1,4 +1,4 @@
-%%MatrixMarket matrix coordinate double skew-symmetric
+%%MatrixMarket matrix coordinate double general
 3 3 3
 2 1 not_a_double
 3 1 45

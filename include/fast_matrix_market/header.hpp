@@ -43,7 +43,7 @@ namespace fast_matrix_market {
     const std::map<symmetry_type, const std::string> symmetry_map = {
             {general, "general"},
             {symmetric, "symmetric"},
-            {skew_symmetric, "skew_symmetric"},
+            {skew_symmetric, "skew-symmetric"},
             {hermitian, "hermitian"},
     };
 
@@ -138,7 +138,7 @@ namespace fast_matrix_market {
                 return key;
             }
         }
-        throw invalid_mm(std::string("Invalid MatrixMarket header: ") + s, line_num);
+        throw invalid_mm(std::string("Invalid MatrixMarket header element: ") + s, line_num);
     }
 
 

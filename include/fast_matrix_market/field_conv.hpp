@@ -27,6 +27,10 @@ namespace fast_matrix_market {
     }
 
     inline const char* bump_to_next_line(const char* pos, const char* end) {
+        if (pos == end) {
+            return pos;
+        }
+
         // find the newline
         pos = std::strchr(pos, '\n');
 
@@ -49,7 +53,7 @@ namespace fast_matrix_market {
     const char* read_int(const char* pos, const char* end, IT& out) {
         std::from_chars_result result = std::from_chars(pos, end, out);
         if (result.ec != std::errc()) {
-            throw invalid_mm("Error reading integer value.");
+            throw invalid_mm("Invalid integer value.");
         }
         return result.ptr;
     }
@@ -66,7 +70,7 @@ namespace fast_matrix_market {
         char* value_end;
         long long parsed_value = std::strtoll(pos, &value_end, 10);
         if (errno != 0) {
-            throw invalid_mm("Error reading integer value.");
+            throw invalid_mm("Invalid integer value.");
         }
         out = static_cast<T>(parsed_value);
         return value_end;
@@ -81,7 +85,7 @@ namespace fast_matrix_market {
     const char* read_float(const char* pos, const char* end, FT& out) {
         fast_float::from_chars_result result = fast_float::from_chars(pos, end, out, fast_float::chars_format::general);
         if (result.ec != std::errc()) {
-            throw invalid_mm("Error reading floating-point value.");
+            throw invalid_mm("Invalid floating-point value.");
         }
         return result.ptr;
     }
@@ -93,7 +97,7 @@ namespace fast_matrix_market {
     const char* read_float(const char* pos, const char* end, FT& out) {
         std::from_chars_result result = std::from_chars(pos, end, out);
         if (result.ec != std::errc()) {
-            throw invalid_mm("Error reading floating-point value.");
+            throw invalid_mm("Invalid floating-point value.");
         }
         return result.ptr;
     }
@@ -108,7 +112,7 @@ namespace fast_matrix_market {
         char* value_end;
         out = std::strtod(pos, &value_end);
         if (errno != 0) {
-            throw invalid_mm("Error reading floating-point value.");
+            throw invalid_mm("Invalid floating-point value.");
         }
         return value_end;
     }
@@ -122,7 +126,7 @@ namespace fast_matrix_market {
         char* value_end;
         out = std::strtof(pos, &value_end);
         if (errno != 0) {
-            throw invalid_mm("Error reading floating-point value.");
+            throw invalid_mm("Invalid floating-point value.");
         }
         return value_end;
     }
@@ -136,7 +140,7 @@ namespace fast_matrix_market {
     inline const char* read_float(const char* pos, const char* end, long double& out) {
         std::from_chars_result result = std::from_chars(pos, end, out);
         if (result.ec != std::errc()) {
-            throw invalid_mm("Error reading floating-point value.");
+            throw invalid_mm("Invalid floating-point value.");
         }
         return result.ptr;
     }
@@ -152,7 +156,7 @@ namespace fast_matrix_market {
         char* value_end;
         out = std::strtold(pos, &value_end);
         if (errno != 0) {
-            throw invalid_mm("Error reading floating-point value.");
+            throw invalid_mm("Invalid floating-point value.");
         }
         return value_end;
     }

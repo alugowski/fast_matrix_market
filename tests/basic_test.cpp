@@ -107,11 +107,12 @@ bool expected(const ARRAY& mat, int64_t nrows, int64_t ncols, typename ARRAY::va
 class InvalidSuite : public testing::TestWithParam<std::string> {
 public:
     static std::vector<std::string> get_invalid_matrix_files() {
-        const std::string kInvalidMatrixDir = kTestMatrixDir + "invalid/";
+        const std::string kInvalidSubdir = "invalid/";
+        const std::string kInvalidMatrixDir = kTestMatrixDir + kInvalidSubdir;
 
         std::vector<std::string> ret;
         for (const auto & mtx : std::filesystem::directory_iterator(kInvalidMatrixDir)) {
-            ret.emplace_back(mtx.path().filename());
+            ret.push_back(kInvalidSubdir + mtx.path().filename().string());
         }
 
         std::sort(ret.begin(), ret.end());

@@ -73,60 +73,65 @@ namespace fast_matrix_market {
         const char *end = pos + chunk.size();
 
         while (pos != end && pos != nullptr) {
-            typename HANDLER::coordinate_type row, col;
-            typename HANDLER::value_type value;
+            try {
+                typename HANDLER::coordinate_type row, col;
+                typename HANDLER::value_type value;
 
-            pos = skip_spaces(pos);
-            pos = read_int(pos, end, row);
-            pos = skip_spaces(pos);
-            pos = read_int(pos, end, col);
-            pos = skip_spaces(pos);
-            pos = read_value(pos, end, value);
-            pos = bump_to_next_line(pos, end);
+                pos = skip_spaces(pos);
+                pos = read_int(pos, end, row);
+                pos = skip_spaces(pos);
+                pos = read_int(pos, end, col);
+                pos = skip_spaces(pos);
+                pos = read_value(pos, end, value);
+                pos = bump_to_next_line(pos, end);
 
-            // validate
-            if (row <= 0 || row > header.nrows) {
-                throw invalid_mm("Row index out of bounds", line_num);
-            }
-            if (col <= 0 || col > header.ncols) {
-                throw invalid_mm("Column index out of bounds", line_num);
-            }
+                // validate
+                if (row <= 0 || row > header.nrows) {
+                    throw invalid_mm("Row index out of bounds");
+                }
+                if (col <= 0 || col > header.ncols) {
+                    throw invalid_mm("Column index out of bounds");
+                }
 
-            // Generalize symmetry
-            // This appears before the regular handler call for ExtraZeroElement handling.
-            if (header.symmetry != general && options.generalize_symmetry) {
-                if (col != row) {
-                    switch (header.symmetry) {
-                        case symmetric:
-                            handler.handle(col - 1, row - 1, value);
-                            break;
-                        case skew_symmetric:
-                            handler.handle(col - 1, row - 1, -value);
-                            break;
-                        case hermitian:
-                            handler.handle(col - 1, row - 1, complex_conjugate(value));
-                            break;
-                        case general:
-                            break;
-                    }
-                } else {
-                    if (!test_flag(HANDLER::flags, kAppending)) {
-                        switch (options.generalize_coordinate_diagnonal_values) {
-                            case read_options::ExtraZeroElement:
-                                handler.handle(row - 1, col - 1, get_zero<typename HANDLER::value_type>());
+                // Generalize symmetry
+                // This appears before the regular handler call for ExtraZeroElement handling.
+                if (header.symmetry != general && options.generalize_symmetry) {
+                    if (col != row) {
+                        switch (header.symmetry) {
+                            case symmetric:
+                                handler.handle(col - 1, row - 1, value);
                                 break;
-                            case read_options::DuplicateElement:
-                                handler.handle(row - 1, col - 1, value);
+                            case skew_symmetric:
+                                handler.handle(col - 1, row - 1, -value);
                                 break;
+                            case hermitian:
+                                handler.handle(col - 1, row - 1, complex_conjugate(value));
+                                break;
+                            case general:
+                                break;
+                        }
+                    } else {
+                        if (!test_flag(HANDLER::flags, kAppending)) {
+                            switch (options.generalize_coordinate_diagnonal_values) {
+                                case read_options::ExtraZeroElement:
+                                    handler.handle(row - 1, col - 1, get_zero<typename HANDLER::value_type>());
+                                    break;
+                                case read_options::DuplicateElement:
+                                    handler.handle(row - 1, col - 1, value);
+                                    break;
+                            }
                         }
                     }
                 }
+
+                // Matrix Market is one-based
+                handler.handle(row - 1, col - 1, value);
+
+                ++line_num;
+            } catch (invalid_mm& inv) {
+                inv.prepend_line_number(line_num + 1);
+                throw;
             }
-
-            // Matrix Market is one-based
-            handler.handle(row - 1, col - 1, value);
-
-            ++line_num;
         }
         return line_num;
     }
@@ -138,24 +143,29 @@ namespace fast_matrix_market {
         const char *end = pos + chunk.size();
 
         while (pos != end && pos != nullptr) {
-            typename HANDLER::coordinate_type row;
-            typename HANDLER::value_type value;
+            try {
+                typename HANDLER::coordinate_type row;
+                typename HANDLER::value_type value;
 
-            pos = skip_spaces(pos);
-            pos = read_int(pos, end, row);
-            pos = skip_spaces(pos);
-            pos = read_value(pos, end, value);
-            pos = bump_to_next_line(pos, end);
+                pos = skip_spaces(pos);
+                pos = read_int(pos, end, row);
+                pos = skip_spaces(pos);
+                pos = read_value(pos, end, value);
+                pos = bump_to_next_line(pos, end);
 
-            // validate
-            if (row <= 0 || row > header.vector_length) {
-                throw invalid_mm("Index out of bounds", line_num);
+                // validate
+                if (row <= 0 || row > header.vector_length) {
+                    throw invalid_mm("Index out of bounds", line_num);
+                }
+
+                // Matrix Market is one-based
+                handler.handle(row - 1, 0, value);
+
+                ++line_num;
+            } catch (invalid_mm& inv) {
+                inv.prepend_line_number(line_num + 1);
+                throw;
             }
-
-            // Matrix Market is one-based
-            handler.handle(row - 1, 0, value);
-
-            ++line_num;
         }
         return line_num;
     }
@@ -169,26 +179,31 @@ namespace fast_matrix_market {
         const char *end = pos + chunk.size();
 
         while (pos != end && pos != nullptr) {
-            if (col == header.ncols) {
-                throw invalid_mm("Too many values in array", line_num);
+            try {
+                if (col == header.ncols) {
+                    throw invalid_mm("Too many values in array (file too long)");
+                }
+
+                typename HANDLER::value_type value;
+
+                pos = skip_spaces(pos);
+                pos = read_value(pos, end, value);
+                pos = bump_to_next_line(pos, end);
+
+                handler.handle(row, col, value);
+
+                // Matrix Market is column-major.
+                ++row;
+                if (row == header.nrows) {
+                    ++col;
+                    row = 0;
+                }
+
+                ++line_num;
+            } catch (invalid_mm& inv) {
+                inv.prepend_line_number(line_num + 1);
+                throw;
             }
-
-            typename HANDLER::value_type value;
-
-            pos = skip_spaces(pos);
-            pos = read_value(pos, end, value);
-            pos = bump_to_next_line(pos, end);
-
-            handler.handle(row, col, value);
-
-            // Matrix Market is column-major.
-            ++row;
-            if (row == header.nrows) {
-                ++col;
-                row = 0;
-            }
-
-            ++line_num;
         }
         return line_num;
     }

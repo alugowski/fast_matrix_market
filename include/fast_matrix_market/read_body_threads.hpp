@@ -50,6 +50,7 @@ namespace fast_matrix_market {
         auto line_num = header.header_line_count;
 
         std::queue<std::future<line_count_result>> line_count_futures;
+        std::queue<std::future<void>> parse_futures;
         BS::thread_pool_light pool(options.num_threads);
 
         // Number of concurrent chunks available to work on.
@@ -67,6 +68,13 @@ namespace fast_matrix_market {
 
         // Read chunks in order as they become available.
         while (!line_count_futures.empty()) {
+
+            // Wait on any parse results. This will throw any parse errors.
+            while (!parse_futures.empty() && is_ready(parse_futures.front())) {
+                parse_futures.front().get();
+                parse_futures.pop();
+            }
+
             if (pool.get_tasks_total() < inflight_count && is_ready(line_count_futures.front())) {
                 // Next chunk has finished line count.
 
@@ -93,20 +101,30 @@ namespace fast_matrix_market {
                     typename HANDLER::coordinate_type row = body_line % header.nrows;
                     typename HANDLER::coordinate_type col = body_line / header.nrows;
 
-                    std::ignore = pool.submit([=]() mutable {
+                    parse_futures.push(pool.submit([=]() mutable {
                         read_chunk_array(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, row, col);
-                    });
+                    }));
                 } else if (header.object == matrix) {
-                    std::ignore = pool.submit([=]() mutable {
+                    parse_futures.push(pool.submit([=]() mutable {
                         read_chunk_matrix_coordinate(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, options);
-                    });
+                    }));
                 } else {
-                    std::ignore = pool.submit([=]() mutable {
+                    parse_futures.push(pool.submit([=]() mutable {
                         read_chunk_vector_coordinate(lcr.chunk, header, lcr.chunk_line_start, chunk_handler);
-                    });
+                    }));
                 }
             } else {
                 // Next chunk is not done. Yield CPU for it.
+                std::this_thread::yield();
+            }
+        }
+
+        // Wait on any parse results. This will throw any parse errors.
+        while (!parse_futures.empty()) {
+            if (is_ready(parse_futures.front())) {
+                parse_futures.front().get();
+                parse_futures.pop();
+            } else {
                 std::this_thread::yield();
             }
         }
