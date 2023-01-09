@@ -3,6 +3,7 @@
 # Native compiler support for this is still spotty at best.
 #
 # https://github.com/fastfloat/fast_float
+include(FetchContent)
 
 FetchContent_Declare(
         fast_float

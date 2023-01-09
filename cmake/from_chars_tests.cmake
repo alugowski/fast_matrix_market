@@ -2,6 +2,18 @@
 # The method is specified in C++17, but compiler support varies.
 include(CheckSourceCompiles)
 
+# Check for int support
+check_source_compiles(CXX "
+#include <charconv>
+int main(void) {
+    int value = 0;
+    const char* ptr;
+    std::from_chars_result result = std::from_chars(ptr, ptr, value);
+    return 0;
+}
+" from_chars_int_supported)
+
+# Check for double support
 check_source_compiles(CXX "
 #include <charconv>
 int main(void) {
@@ -10,11 +22,7 @@ int main(void) {
     std::from_chars_result result = std::from_chars(ptr, ptr, value, std::chars_format::general);
     return 0;
 }
-" float_from_chars_supported)
-if (NOT float_from_chars_supported)
-    add_definitions(-DFROM_CHARS_DOUBLE_NOT_SUPPORTED)
-    message("std::from_chars<double> not detected. Need fast_float.")
-endif()
+" from_chars_double_supported)
 
 # Check for long double support
 check_source_compiles(CXX "
@@ -25,8 +33,4 @@ int main(void) {
     std::from_chars_result result = std::from_chars(ptr, ptr, value, std::chars_format::general);
     return 0;
 }
-" long_double_from_chars_supported)
-if (NOT long_double_from_chars_supported)
-    add_definitions(-DFROM_CHARS_LONG_DOUBLE_NOT_SUPPORTED)
-    message("std::from_chars<long double> not detected. Using std::strtold() fallback.")
-endif()
+" from_chars_long_double_supported)

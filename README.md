@@ -98,10 +98,13 @@ target_link_libraries(YOUR_TARGET fast_matrix_market::fast_matrix_market)
 #### Copy
 You may also copy `include/fast_matrix_market` into your project's `include` directory.
 
-Be sure to also include:
- * [`fast_float`](https://github.com/fastfloat/fast_float) library. You can omit it if you know your compiler implements `std::from_chars<double>` (e.g. VisualStudio, GCC 12+).
- * [`Dragonbox`](https://github.com/jk-jeon/dragonbox) Also omittable if your compiler implements `std::to_chars<double>` or if performance and parallelism are not important.
+Define:
+* `FMM_FROM_CHARS_<INT|DOUBLE|LONG_DOUBLE>_SUPPORTED` as appropriate for your compiler.
+* `FMM_TO_CHARS_<INT|DOUBLE|LONG_DOUBLE>_SUPPORTED` as appropriate for your compiler.
 
+Optionally also include for best performance:
+ * [`fast_float`](https://github.com/fastfloat/fast_float) library and define `FMM_USE_FAST_FLOAT`.
+ * [`Dragonbox`](https://github.com/jk-jeon/dragonbox) and define `FMM_USE_DRAGONBOX`.
 
 ## Easy Integration
 

@@ -7,11 +7,11 @@
 #include <complex>
 #include <type_traits>
 
-#ifdef FROM_CHARS_DOUBLE_NOT_SUPPORTED
+#ifdef FMM_USE_FAST_FLOAT
 #include <fast_float/fast_float.h>
 #endif
 
-#ifdef DRAGONBOX_AVAILABLE
+#ifdef FMM_USE_DRAGONBOX
 #include <dragonbox/dragonbox_to_chars.h>
 #endif
 
@@ -41,6 +41,7 @@ namespace fast_matrix_market {
     // Integer / Floating Point Field parsers
     ///////////////////////////////////////////
 
+#ifdef FMM_FROM_CHARS_INT_SUPPORTED
     /**
      * Parse integer using std::from_chars
      */
@@ -52,8 +53,27 @@ namespace fast_matrix_market {
         }
         return result.ptr;
     }
+#else
+    /**
+     * Parse integers using C routines.
+     *
+     * This is a compatibility fallback.
+     */
+    template <typename T>
+    const char* read_int(const char* pos, [[maybe_unused]] const char* end, T& out) {
+        errno = 0;
 
-#ifdef FROM_CHARS_DOUBLE_NOT_SUPPORTED
+        char* value_end;
+        long long parsed_value = std::strtoll(pos, &value_end, 10);
+        if (errno != 0) {
+            throw invalid_mm("Error reading integer value.");
+        }
+        out = static_cast<T>(parsed_value);
+        return value_end;
+    }
+#endif
+
+#ifdef FMM_USE_FAST_FLOAT
     /**
      * Parse float or double using fast_float::from_chars
      */
@@ -65,7 +85,7 @@ namespace fast_matrix_market {
         }
         return result.ptr;
     }
-#else
+#elif defined(FMM_FROM_CHARS_DOUBLE_SUPPORTED)
     /**
      * Parse float or double using std::from_chars
      */
@@ -77,9 +97,50 @@ namespace fast_matrix_market {
         }
         return result.ptr;
     }
+
+#else
+    /**
+     * Parse double using strtod(). This is a compatibility fallback.
+     */
+    inline const char* read_float(const char* pos, [[maybe_unused]] const char* end, double& out) {
+        errno = 0;
+
+        char* value_end;
+        out = std::strtod(pos, &value_end);
+        if (errno != 0) {
+            throw invalid_mm("Error reading floating-point value.");
+        }
+        return value_end;
+    }
+
+    /**
+     * Parse float using strtof(). This is a compatibility fallback.
+     */
+    inline const char* read_float(const char* pos, [[maybe_unused]] const char* end, float& out) {
+        errno = 0;
+
+        char* value_end;
+        out = std::strtof(pos, &value_end);
+        if (errno != 0) {
+            throw invalid_mm("Error reading floating-point value.");
+        }
+        return value_end;
+    }
+
 #endif
 
-#ifdef FROM_CHARS_LONG_DOUBLE_NOT_SUPPORTED
+#ifdef FMM_FROM_CHARS_LONG_DOUBLE_SUPPORTED
+    /**
+     * Parse long double using std::from_chars
+     */
+    inline const char* read_float(const char* pos, const char* end, long double& out) {
+        std::from_chars_result result = std::from_chars(pos, end, out);
+        if (result.ec != std::errc()) {
+            throw invalid_mm("Error reading floating-point value.");
+        }
+        return result.ptr;
+    }
+#else
     /**
      * Parse `long double` using std::strtold().
      *
@@ -95,9 +156,8 @@ namespace fast_matrix_market {
         }
         return value_end;
     }
-#else
-    // Float block above handles long doubles too.
 #endif
+
     //////////////////////////////////////
     // Read value. These evaluate to the field parsers above, depending on requested type
     //////////////////////////////////////
@@ -153,7 +213,7 @@ namespace fast_matrix_market {
     // Value to String conversions
     ////////////////////////////////////////////
 
-#ifdef TO_CHARS_INT_SUPPORTED
+#ifdef FMM_TO_CHARS_INT_SUPPORTED
     /**
      * Convert integral types to string.
      * std::to_string and std::to_chars has similar performance, however std::to_string is locale dependent and
@@ -197,34 +257,11 @@ namespace fast_matrix_market {
         return int_to_string(value);
     }
 
-#ifdef TO_CHARS_DOUBLE_SUPPORTED
-    inline std::string value_to_string(const float& value) {
-        std::string ret(15, ' ');
-        std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
-        if (result.ec == std::errc()) {
-            ret.resize(result.ptr - ret.data());
-            return ret;
-        } else {
-            return std::to_string(value);
-        }
-    }
+#ifdef FMM_USE_DRAGONBOX
 
-    inline std::string value_to_string(const double& value) {
-        std::string ret(25, ' ');
-        std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
-        if (result.ec == std::errc()) {
-            ret.resize(result.ptr - ret.data());
-            return ret;
-        } else {
-            return std::to_string(value);
-        }
-    }
-#else
-#ifdef DRAGONBOX_AVAILABLE
-
-#ifndef DRAGONBOX_DROP_E0
-#define DRAGONBOX_DROP_E0 true
-#endif
+    #ifndef DRAGONBOX_DROP_E0
+    #define DRAGONBOX_DROP_E0 true
+    #endif
 
     inline bool ends_with(const std::string &str, const std::string& suffix) {
         if (suffix.size() > str.size()) {
@@ -256,10 +293,34 @@ namespace fast_matrix_market {
         }
         return buffer;
     }
-#endif
+
+#elif defined(FMM_TO_CHARS_DOUBLE_SUPPORTED)
+    inline std::string value_to_string(const float& value) {
+        std::string ret(15, ' ');
+        std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
+        if (result.ec == std::errc()) {
+            ret.resize(result.ptr - ret.data());
+            return ret;
+        } else {
+            return std::to_string(value);
+        }
+    }
+
+    inline std::string value_to_string(const double& value) {
+        std::string ret(25, ' ');
+        std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
+        if (result.ec == std::errc()) {
+            ret.resize(result.ptr - ret.data());
+            return ret;
+        } else {
+            return std::to_string(value);
+        }
+    }
+#else
+// fallback to value_to_string<T>() which calls std::to_string<>()
 #endif
 
-#ifdef TO_CHARS_LONG_DOUBLE_SUPPORTED
+#ifdef FMM_TO_CHARS_LONG_DOUBLE_SUPPORTED
     inline std::string value_to_string(const long double& value) {
         std::string ret(35, ' ');
         std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
