@@ -228,7 +228,7 @@ TYPED_TEST(PlainVectorSuite, Basic) {
     read_array_file("vector_coordinate.mtx", array);
     read_array_file("vector_array.mtx", array2);
     EXPECT_TRUE(expected(array, 4, 1, 707));
-//    EXPECT_EQ(array, array2);
+    EXPECT_EQ(array, array2);
 
 
     sparse_vector<int64_t, TypeParam> vec;

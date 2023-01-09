@@ -90,8 +90,8 @@ namespace fast_matrix_market {
                 auto chunk_handler = handler.get_chunk_handler(body_line);
                 if (header.format == array) {
                     // compute the row/column
-                    typename HANDLER::coordinate_type row = body_line % header.ncols;
-                    typename HANDLER::coordinate_type col = body_line / header.ncols;
+                    typename HANDLER::coordinate_type row = body_line % header.nrows;
+                    typename HANDLER::coordinate_type col = body_line / header.nrows;
 
                     std::ignore = pool.submit([=]() mutable {
                         read_chunk_array(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, row, col);
