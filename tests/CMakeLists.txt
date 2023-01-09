@@ -14,10 +14,6 @@ enable_testing()
 
 add_definitions(-DTEST_MATRIX_DIR="${CMAKE_CURRENT_SOURCE_DIR}/matrices/")
 
-# test driver
-add_executable(driver driver.cpp)
-target_link_libraries(driver fast_matrix_market::fast_matrix_market)
-
 add_executable(chunking_test chunking_test.cpp)
 target_link_libraries(chunking_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
 

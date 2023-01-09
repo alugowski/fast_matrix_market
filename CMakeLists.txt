@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.19) # needed for CheckSourceCompiles
 project(fast_matrix_market VERSION 1.0.0 LANGUAGES CXX)
 
 # These options get switched on if compiler support demands it.

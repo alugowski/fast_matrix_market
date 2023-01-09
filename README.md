@@ -94,6 +94,7 @@ add_subdirectory(fast_matrix_market)
 
 target_link_libraries(YOUR_TARGET fast_matrix_market::fast_matrix_market)
 ```
+See [examples/](examples) for what parts of the repo are needed.
 
 #### Copy
 You may also copy `include/fast_matrix_market` into your project's `include` directory.
@@ -118,6 +119,7 @@ Bundled integrations include:
 * **Eigen** `SparseMatrix` matrices and dense `Matrix`/`Vector`. See [Eigen README](README.Eigen.md).
 * **SuiteSparse [CXSparse](https://github.com/DrTimothyAldenDavis/SuiteSparse/tree/dev/CXSparse)** `cs_xx` structures, in both COO and CSC modes. See [CXSparse README](README.CXSparse.md).
 
+See [examples/](examples).
 
 ## Other 3rd Party Libraries Used
 Bundled thread pool implementation from [thread-pool](https://github.com/bshoshany/thread-pool). Thank you!
