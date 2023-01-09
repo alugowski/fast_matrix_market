@@ -174,6 +174,13 @@ namespace fast_matrix_market {
         return read_int(pos, end, out);
     }
 
+    inline const char* read_value(const char* pos, const char* end, bool& out) {
+        double parsed;
+        auto ret = read_float(pos, end, parsed);
+        out = (parsed != 0);
+        return ret;
+    }
+
     inline const char* read_value(const char* pos, const char* end, float& out) {
         return read_float(pos, end, out);
     }
@@ -247,6 +254,10 @@ namespace fast_matrix_market {
 
     inline std::string value_to_string([[maybe_unused]] const pattern_placeholder_type& value) {
         return {};
+    }
+
+    inline std::string value_to_string(const bool & value) {
+        return value ? "1" : "0";
     }
 
     inline std::string value_to_string(const int32_t & value) {

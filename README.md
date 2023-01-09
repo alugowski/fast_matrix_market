@@ -45,7 +45,7 @@ Run the benchmarks on your own machine, they're fully automated and intended to 
 
 * All `field` types supported, with appropriate C++ types: `integer`, `real`, `double`, `complex`, `pattern`.
 
-  * Support all C++ integer types, `float`, `double`, `long double`, and `std::complex<>`.
+  * Support all C++ integer types, `bool`, `float`, `double`, `long double`, and `std::complex<>`.
 
   * Automatic `std::complex` up-cast. For example, `real` files can be read into `std::complex<double>` arrays.
 

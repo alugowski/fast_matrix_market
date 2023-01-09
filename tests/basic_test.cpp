@@ -138,6 +138,7 @@ class PlainTripletSuite : public testing::Test {
 };
 
 using PlainTripletTypes = ::testing::Types<
+        triplet_matrix<int64_t, bool>,
         triplet_matrix<int64_t, int32_t>,
         triplet_matrix<int64_t, float>,
         triplet_matrix<int64_t, double>,
@@ -173,6 +174,7 @@ class PlainArraySuite : public testing::Test {
 };
 
 using PlainArrayTypes = ::testing::Types<
+        array_matrix<bool>,
         array_matrix<int32_t>,
         array_matrix<float>,
         array_matrix<double>,

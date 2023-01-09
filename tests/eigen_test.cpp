@@ -14,10 +14,12 @@
 #include <unsupported/Eigen/SparseExtra>
 #pragma clang diagnostic pop
 
+using VT = double;
 
-using SpColMajor = Eigen::SparseMatrix<double, Eigen::ColMajor>;
-using SpRowMajor = Eigen::SparseMatrix<double, Eigen::RowMajor>;
-using Dense = Eigen::MatrixXd;
+using SpColMajor = Eigen::SparseMatrix<VT, Eigen::ColMajor>;
+using SpRowMajor = Eigen::SparseMatrix<VT, Eigen::RowMajor>;
+using Dense = Eigen::Matrix<VT, Eigen::Dynamic, Eigen::Dynamic>;
+using DenseVector = Eigen::Vector<VT, Eigen::Dynamic>;
 
 template <typename MatType>
 MatType read_mtx(const std::string& source, typename MatType::Scalar pattern_value = 1) {
@@ -81,7 +83,7 @@ public:
             case Param::Load_FMM_Vec: {
                 std::ifstream f(load_path);
 
-                Eigen::VectorXd vec;
+                DenseVector vec;
                 fast_matrix_market::read_matrix_market_eigen_dense(f, vec);
                 col_major = vec.sparseView();
                 row_major = vec.sparseView();

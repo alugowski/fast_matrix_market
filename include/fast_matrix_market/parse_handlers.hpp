@@ -240,7 +240,7 @@ namespace fast_matrix_market {
         explicit dense_row_major_adding_parse_handler(const VT_ITER& values, int64_t ncols) : values(values), ncols(ncols) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            values[col * ncols + row] += value;
+            values[col * ncols + row] = static_cast<value_type>(values[col * ncols + row] + value);
         }
 
         dense_row_major_adding_parse_handler<VT_ITER> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
