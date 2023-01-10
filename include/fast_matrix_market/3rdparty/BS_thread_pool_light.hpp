@@ -23,6 +23,7 @@
 #include <thread>             // std::thread
 #include <type_traits>        // std::common_type_t, std::decay_t, std::invoke_result_t, std::is_void_v
 #include <utility>            // std::forward, std::move, std::swap
+using namespace std::chrono_literals;
 
 namespace BS
 {
@@ -195,7 +196,7 @@ public:
     {
         waiting = true;
         std::unique_lock<std::mutex> tasks_lock(tasks_mutex);
-        task_done_cv.wait(tasks_lock, [this] { return (tasks_total == 0); });
+        task_done_cv.wait(tasks_lock, [&] { return (tasks_total == 0); });
         waiting = false;
     }
 
@@ -267,9 +268,13 @@ private:
         {
             std::function<void()> task;
             std::unique_lock<std::mutex> tasks_lock(tasks_mutex);
-            task_available_cv.wait(tasks_lock, [this] { return !tasks.empty() || !running; });
+            task_available_cv.wait_until(tasks_lock, std::chrono::system_clock::now() + 50ms, [this] { return !tasks.empty() || !running; });
             if (running)
             {
+                if (tasks.empty()) {
+                    continue;
+                }
+
                 task = std::move(tasks.front());
                 tasks.pop();
                 tasks_lock.unlock();
