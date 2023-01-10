@@ -8,10 +8,26 @@
 #include "fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
+
+    template <typename T, bool is_value, typename std::enable_if<is_value, int>::type = 0>
+    std::string column_to_str(const T& c) {
+        return value_to_string(c);
+    }
+
+    template <typename T, bool is_value, typename std::enable_if<!is_value, int>::type = 0>
+    std::string column_to_str(const T& c) {
+        return int_to_string(c + 1);
+    }
+
     /**
      * Format row, column, value vectors.
+     *
+     * @tparam A_ITER
+     * @tparam B_ITER
+     * @tparam C_ITER Must be a valid iterator, but if begin==end then the values are not written.
+     * @tparam COLUMN_IS_VALUE if true then the B_ITER values are not incremented.
      */
-    template<typename A_ITER, typename B_ITER, typename C_ITER>
+    template<typename A_ITER, typename B_ITER, typename C_ITER, bool COLUMN_IS_VALUE = false>
     class triplet_formatter {
     public:
         explicit triplet_formatter(const A_ITER row_begin, const A_ITER row_end,
@@ -45,7 +61,8 @@ namespace fast_matrix_market {
                 for (; row_iter != row_end; ++row_iter, ++col_iter) {
                     chunk += int_to_string(*row_iter + 1);
                     chunk += kSpace;
-                    chunk += int_to_string(*col_iter + 1);
+                    chunk += column_to_str<decltype(*col_iter), COLUMN_IS_VALUE>(*col_iter);
+
                     if (val_iter != val_end) {
                         chunk += kSpace;
                         chunk += value_to_string(*val_iter);

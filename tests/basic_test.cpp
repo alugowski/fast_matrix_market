@@ -46,6 +46,27 @@ void read_vector_file(const std::string& matrix_filename, VECTOR& vec) {
     vec.length = header.vector_length;
 }
 
+template <typename VECTOR>
+void read_vector_string(const std::string& str, VECTOR& vec, fast_matrix_market::matrix_market_header& header) {
+    std::istringstream f(str);
+    fast_matrix_market::read_options options{};
+    options.chunk_size_bytes = 1;
+
+    fast_matrix_market::read_matrix_market_doublet(f, header, vec.indices, vec.vals, options);
+    vec.length = header.vector_length;
+}
+
+template <typename VECTOR>
+std::string write_vector_string(VECTOR& vec, fast_matrix_market::matrix_market_header header = {}) {
+    std::ostringstream f;
+
+    header.vector_length = vec.length;
+    fast_matrix_market::write_matrix_market_doublet(f, header, vec.indices, vec.vals);
+    vec.length = header.vector_length;
+
+    return f.str();
+}
+
 template <typename TRIPLET>
 bool expected(const TRIPLET& mat, int64_t nrows, int64_t ncols, int64_t rows_sum, int64_t cols_sum, typename TRIPLET::value_type value_sum) {
     if (mat.nrows != nrows) {
@@ -245,9 +266,38 @@ TYPED_TEST(PlainVectorSuite, Basic) {
     vec_from_triplet.indices = triplet.rows;
     vec_from_triplet.vals = triplet.vals;
     EXPECT_EQ(vec, vec_from_triplet);
+
+    // write out the vector
+    fast_matrix_market::matrix_market_header header;
+    std::string vec_str = write_vector_string(vec);
+    sparse_vector<int64_t, TypeParam> vec_from_string;
+    read_vector_string(vec_str, vec_from_string, header);
+    EXPECT_EQ(vec, vec_from_string);
 }
 
 TEST(PlainVectorSuite, Complex) {
+}
+
+/**
+ * Simple header tests
+ */
+
+TEST(Header, Comment) {
+    // Create a vector
+    sparse_vector<int64_t, double> vec;
+    read_vector_file("vector_coordinate.mtx", vec);
+
+    fast_matrix_market::matrix_market_header header, header2;
+    header.vector_length = vec.length;
+
+    // set a comment
+    header.comment = "multi-line\ncomment";
+
+    // write and read into header2
+    std::string vec_str = write_vector_string(vec, header);
+    read_vector_string(vec_str, vec, header2);
+
+    EXPECT_EQ(header.comment, header2.comment);
 }
 
 /**
@@ -289,7 +339,7 @@ public:
             symmetry_problem p{};
             p.symmetric = kSymmetrySubdir + std::regex_replace(filename, std::regex("_general"), "");
             p.general = kSymmetrySubdir + filename;
-            p.general_dup = kSymmetrySubdir + std::regex_replace(filename, std::regex("_general"), "_general_dup");;
+            p.general_dup = kSymmetrySubdir + std::regex_replace(filename, std::regex("_general"), "_general_dup");
             ret.push_back(p);
         }
 

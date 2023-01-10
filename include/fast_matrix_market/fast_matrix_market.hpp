@@ -186,7 +186,8 @@ namespace fast_matrix_market {
 #include "formatters.hpp"
 #include "read_body.hpp"
 #include "write_body.hpp"
-#include "app/triplet.hpp"
 #include "app/array.hpp"
+#include "app/doublet.hpp"
+#include "app/triplet.hpp"
 
 #endif
