@@ -47,22 +47,16 @@ namespace fast_matrix_market {
 
         // Write chunks in order as they become available.
         while (!futures.empty()) {
-            if (is_ready(futures.front())) {
-                // Next chunk is done.
+            std::string chunk = futures.front().get();
+            futures.pop();
 
-                // Start another to replace it.
-                if (formatter.has_next()) {
-                    futures.push(pool.submit(formatter.next_chunk(options)));
-                }
-
-                // Write this one out.
-                std::string chunk = futures.front().get();
-                futures.pop();
-                os.write(chunk.c_str(), (std::streamsize) chunk.size());
-            } else {
-                // Next chunk is not done. Yield CPU for it.
-                std::this_thread::yield();
+            // Next chunk is ready. Start another to replace it.
+            if (formatter.has_next()) {
+                futures.push(pool.submit(formatter.next_chunk(options)));
             }
+
+            // Write this one out.
+            os.write(chunk.c_str(), (std::streamsize) chunk.size());
         }
     }
 }

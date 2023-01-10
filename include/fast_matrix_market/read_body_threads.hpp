@@ -71,67 +71,56 @@ namespace fast_matrix_market {
         // Read chunks in order as they become available.
         while (!line_count_futures.empty()) {
 
-            // Wait on any parse results. This will throw any parse errors.
-            while (!parse_futures.empty() && is_ready(parse_futures.front())) {
+            // Wait on any parse results. This serves as backpressure.
+            while (!parse_futures.empty() && (is_ready(parse_futures.front()) || parse_futures.size() > inflight_count)) {
+                // This will throw any parse errors.
                 parse_futures.front().get();
                 parse_futures.pop();
             }
 
-            if (pool.get_tasks_total() < inflight_count && is_ready(line_count_futures.front())) {
-                // Next chunk has finished line count.
+            // We are ready to start another parse task.
+            line_count_result lcr = line_count_futures.front().get();
+            line_count_futures.pop();
 
-                // Start another to replace it.
-                if (instream.good()) {
-                    line_count_result lcr;
-                    lcr.chunk = get_next_chunk(instream, options);
+            // Next chunk has finished line count. Start another to replace it.
+            if (instream.good()) {
+                line_count_result new_lcr;
+                new_lcr.chunk = get_next_chunk(instream, options);
 
-                    line_count_futures.push(pool.submit(count_chunk_lines, lcr));
-                }
+                line_count_futures.push(pool.submit(count_chunk_lines, new_lcr));
+            }
 
-                // Figure out where this chunk belongs
-                line_count_result lcr = line_count_futures.front().get();
-                line_count_futures.pop();
+            // Figure out where this chunk belongs
+            lcr.chunk_line_start = line_num;
+            line_num += lcr.chunk_line_count;
 
-                lcr.chunk_line_start = line_num;
-                line_num += lcr.chunk_line_count;
+            // Parse it.
+            auto body_line = lcr.chunk_line_start - header.header_line_count;
+            auto chunk_handler = handler.get_chunk_handler(body_line * generalizing_symmetry_factor);
+            if (header.format == array) {
+                // compute the starting row/column for this array chunk
+                typename HANDLER::coordinate_type row = body_line % header.nrows;
+                typename HANDLER::coordinate_type col = body_line / header.nrows;
 
-                // Parse it.
-                auto body_line = lcr.chunk_line_start - header.header_line_count;
-                auto chunk_handler = handler.get_chunk_handler(body_line * generalizing_symmetry_factor);
-                if (header.format == array) {
-                    // compute the row/column
-                    typename HANDLER::coordinate_type row = body_line % header.nrows;
-                    typename HANDLER::coordinate_type col = body_line / header.nrows;
-
-                    parse_futures.push(pool.submit([=]() mutable {
-                        read_chunk_array(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, row, col);
-                    }));
-                } else if (header.object == matrix) {
-                    parse_futures.push(pool.submit([=]() mutable {
-                        read_chunk_matrix_coordinate(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, options);
-                    }));
-                } else {
-                    parse_futures.push(pool.submit([=]() mutable {
-                        read_chunk_vector_coordinate(lcr.chunk, header, lcr.chunk_line_start, chunk_handler);
-                    }));
-                }
+                parse_futures.push(pool.submit([=]() mutable {
+                    read_chunk_array(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, row, col);
+                }));
+            } else if (header.object == matrix) {
+                parse_futures.push(pool.submit([=]() mutable {
+                    read_chunk_matrix_coordinate(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, options);
+                }));
             } else {
-                // Next chunk is not done. Yield CPU for it.
-                std::this_thread::yield();
+                parse_futures.push(pool.submit([=]() mutable {
+                    read_chunk_vector_coordinate(lcr.chunk, header, lcr.chunk_line_start, chunk_handler);
+                }));
             }
         }
 
         // Wait on any parse results. This will throw any parse errors.
         while (!parse_futures.empty()) {
-            if (is_ready(parse_futures.front())) {
-                parse_futures.front().get();
-                parse_futures.pop();
-            } else {
-                std::this_thread::yield();
-            }
+            parse_futures.front().get();
+            parse_futures.pop();
         }
-
-        pool.wait_for_tasks();
 
         return line_num;
     }
