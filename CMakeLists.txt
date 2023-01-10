@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.19) # needed for CheckSourceCompiles
-project(fast_matrix_market VERSION 1.0.1 LANGUAGES CXX)
+
+# Read the version from fast_matrix_market.hpp
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_version.sh include/fast_matrix_market/fast_matrix_market.hpp
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_VARIABLE FMM_VERSION)
+
+project(fast_matrix_market VERSION ${FMM_VERSION} LANGUAGES CXX)
+message("Fast Matrix Market version ${PROJECT_VERSION}")
 
 # These options get switched on if compiler support demands it.
 # You may force their use to override compiler-provided routines.
