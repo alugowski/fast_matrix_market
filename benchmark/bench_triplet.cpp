@@ -5,50 +5,53 @@
 
 #include "fmm_bench.hpp"
 
+using VT = double;
+
+static std::string generate_read_string() {
+    // Generate a big matrix in-memory.
+    auto triplet = construct_triplet<int64_t, VT>(kInMemoryByteTargetRead);
+
+    std::ostringstream oss;
+    fast_matrix_market::matrix_market_header header(triplet.nrows, triplet.ncols);
+    fast_matrix_market::write_matrix_market_triplet(oss, header, triplet.rows, triplet.cols, triplet.vals);
+    return oss.str();
+}
+
+static std::string string_to_read = generate_read_string();
+static auto triplet_to_write = construct_triplet<int64_t, VT>(kInMemoryByteTargetWrite);
 
 /**
  * Read triplets.
  */
 static void triplet_read(benchmark::State& state) {
-    // Generate a big matrix in-memory.
-    auto triplet = construct_triplet<int64_t, double>(kInMemoryByteTargetRead);
-
-    std::ostringstream oss;
-    fast_matrix_market::matrix_market_header header(triplet.nrows, triplet.ncols);
-    fast_matrix_market::write_matrix_market_triplet(oss, header, triplet.rows, triplet.cols, triplet.vals);
-    std::string mm = oss.str();
-
     // read options
     fast_matrix_market::read_options options{};
     options.parallel_ok = true;
     options.num_threads = (int)state.range(0);
 
-//    options.generalize_symmetry = false;
-//    options.chunk_size_bytes = 2 * 2 << 20;
-
     std::size_t num_bytes = 0;
 
     for ([[maybe_unused]] auto _ : state) {
-        triplet.rows.resize(0);
-        triplet.cols.resize(0);
-        triplet.vals.resize(0);
+        fast_matrix_market::matrix_market_header header;
+        triplet_matrix<int64_t, VT> triplet;
 
-        std::istringstream iss(mm);
+        std::istringstream iss(string_to_read);
         fast_matrix_market::read_matrix_market_triplet(iss, header, triplet.rows, triplet.cols, triplet.vals, options);
-        num_bytes += mm.size();
+        num_bytes += string_to_read.size();
+        benchmark::ClobberMemory();
     }
 
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(triplet_read)->Name("Triplet read")->Apply(NumThreadsArgument);
+BENCHMARK(triplet_read)->Name("Triplet read")->UseRealTime()->Apply(NumThreadsArgument);
 
 
 /**
  * Write triplets.
  */
 static void triplet_write(benchmark::State& state) {
-    auto triplet = construct_triplet<int64_t, double>(kInMemoryByteTargetWrite);
+
 
     std::size_t num_bytes = 0;
 
@@ -61,14 +64,15 @@ static void triplet_write(benchmark::State& state) {
         std::ostringstream oss;
 
         fast_matrix_market::write_matrix_market_triplet(oss,
-                                                        fast_matrix_market::matrix_market_header(triplet.nrows, triplet.ncols),
-                                                        triplet.rows, triplet.cols, triplet.vals,
-                                                        options);
+                fast_matrix_market::matrix_market_header(triplet_to_write.nrows, triplet_to_write.ncols),
+                triplet_to_write.rows, triplet_to_write.cols, triplet_to_write.vals,
+                options);
 
         num_bytes += oss.str().size();
+        benchmark::ClobberMemory();
     }
 
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(triplet_write)->Name("Triplet write")->Apply(NumThreadsArgument);
+BENCHMARK(triplet_write)->Name("Triplet write")->UseRealTime()->Apply(NumThreadsArgument);

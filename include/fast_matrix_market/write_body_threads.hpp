@@ -38,7 +38,7 @@ namespace fast_matrix_market {
         // Number of concurrent chunks available to work on.
         // Too few may starve workers (such as due to uneven chunk splits)
         // Too many increases costs, such as storing chunk results in memory before they're written.
-        const int inflight_count = 3 * (int)pool.get_thread_count();
+        const int inflight_count = 5 * (int)pool.get_thread_count();
 
         // Start computing tasks.
         for (int batch_i = 0; batch_i < inflight_count && formatter.has_next(); ++batch_i) {

@@ -31,4 +31,4 @@ static void bench_chunking(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(bench_chunking)->Name("Chunking");
+BENCHMARK(bench_chunking)->Name("Chunking")->UseRealTime();

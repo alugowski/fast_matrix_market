@@ -76,8 +76,8 @@ array_matrix<VT> construct_array(std::size_t byte_target) {
  */
 std::string construct_large_coord_string(std::size_t byte_target);
 
-constexpr int64_t kInMemoryByteTargetRead = 400 * 2 << 20;
-constexpr int64_t kInMemoryByteTargetWrite = 400 * 2 << 20;
+constexpr int64_t kInMemoryByteTargetRead = 512 * 2 << 20;
+constexpr int64_t kInMemoryByteTargetWrite = 512 * 2 << 20;
 
 /**
  * Set thread count benchmark arguments.
