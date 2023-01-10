@@ -1,6 +1,6 @@
 {
   "context": {
-    "date": "2023-01-08T15:28:34-08:00",
+    "date": "2023-01-09T11:35:47-08:00",
     "host_name": "notchie.local",
     "executable": "./cmake-build-release/benchmark/fmm_bench",
     "num_cpus": 8,
@@ -26,7 +26,7 @@
         "num_sharing": 1
       }
     ],
-    "load_avg": [5.55127,6.63477,6.31738],
+    "load_avg": [10.7646,11.8047,9.91016],
     "library_build_type": "release"
   },
   "benchmarks": [
@@ -40,10 +40,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 1.1569739589467645e+09,
-      "cpu_time": 1.1228730000000000e+09,
+      "real_time": 1.1711361669003963e+09,
+      "cpu_time": 1.1417490000000000e+09,
       "time_unit": "ns",
-      "bytes_per_second": 3.2677181747178888e+08
+      "bytes_per_second": 3.2136945248036128e+08
     },
     {
       "name": "Array read/p:2",
@@ -55,10 +55,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 7.5266300048679113e+08,
-      "cpu_time": 5.9124899999999964e+08,
+      "real_time": 6.6296129208058119e+08,
+      "cpu_time": 5.0348299999999988e+08,
       "time_unit": "ns",
-      "bytes_per_second": 6.2059005765760314e+08
+      "bytes_per_second": 7.2876989093971407e+08
     },
     {
       "name": "Array read/p:3",
@@ -70,10 +70,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 5.1221470860764384e+08,
-      "cpu_time": 4.0233799999999988e+08,
+      "real_time": 4.5630758302286267e+08,
+      "cpu_time": 3.7526850000000000e+08,
       "time_unit": "ns",
-      "bytes_per_second": 9.1197761832091463e+08
+      "bytes_per_second": 9.7776192512827480e+08
     },
     {
       "name": "Array read/p:4",
@@ -85,10 +85,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 4.0169727103784680e+08,
-      "cpu_time": 3.2275250000000000e+08,
+      "real_time": 3.9482816727831960e+08,
+      "cpu_time": 3.1310949999999994e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.1368564178433940e+09
+      "bytes_per_second": 1.1718687903113770e+09
     },
     {
       "name": "Array read/p:5",
@@ -99,11 +99,11 @@
       "repetitions": 1,
       "repetition_index": 0,
       "threads": 1,
-      "iterations": 2,
-      "real_time": 3.6862783366814256e+08,
-      "cpu_time": 2.7929899999999994e+08,
+      "iterations": 3,
+      "real_time": 3.2807187487681705e+08,
+      "cpu_time": 2.6632799999999997e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.3137291970254102e+09
+      "bytes_per_second": 1.3777118853443875e+09
     },
     {
       "name": "Array read/p:6",
@@ -115,10 +115,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.3986361107478541e+08,
-      "cpu_time": 2.6691566666666707e+08,
+      "real_time": 3.2589440265049535e+08,
+      "cpu_time": 2.7136633333333355e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.3746785851211410e+09
+      "bytes_per_second": 1.3521325453046856e+09
     },
     {
       "name": "Array read/p:7",
@@ -130,10 +130,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.3691994411249954e+08,
-      "cpu_time": 2.5871066666666743e+08,
+      "real_time": 3.1317204174896079e+08,
+      "cpu_time": 2.5832966666666660e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.4182764697242181e+09
+      "bytes_per_second": 1.4203682284522753e+09
     },
     {
       "name": "Array read/p:8",
@@ -144,11 +144,11 @@
       "repetitions": 1,
       "repetition_index": 0,
       "threads": 1,
-      "iterations": 2,
-      "real_time": 3.7279756274074316e+08,
-      "cpu_time": 2.9694700000000030e+08,
+      "iterations": 3,
+      "real_time": 3.1658199988305569e+08,
+      "cpu_time": 2.5854633333333394e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.2356523251624014e+09
+      "bytes_per_second": 1.4191779332911284e+09
     },
     {
       "name": "Array write/p:1",
@@ -160,10 +160,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 2.3723063338547945e+09,
-      "cpu_time": 2.3719819999999990e+09,
+      "real_time": 2.6822795830667019e+09,
+      "cpu_time": 2.6763270000000005e+09,
       "time_unit": "ns",
-      "bytes_per_second": 1.5469057142929420e+08
+      "bytes_per_second": 1.3709955883567289e+08
     },
     {
       "name": "Array write/p:2",
@@ -175,10 +175,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 1.4086457910016179e+09,
-      "cpu_time": 1.3093970000000005e+09,
+      "real_time": 1.6369888335466385e+09,
+      "cpu_time": 1.2655010000000005e+09,
       "time_unit": "ns",
-      "bytes_per_second": 2.8022307291066027e+08
+      "bytes_per_second": 2.8994307471902424e+08
     },
     {
       "name": "Array write/p:3",
@@ -190,10 +190,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 1.0534482914954424e+09,
-      "cpu_time": 9.3781900000000107e+08,
+      "real_time": 1.1661314172670245e+09,
+      "cpu_time": 8.1715100000000262e+08,
       "time_unit": "ns",
-      "bytes_per_second": 3.9125167116469127e+08
+      "bytes_per_second": 4.4902747594997597e+08
     },
     {
       "name": "Array write/p:4",
@@ -205,10 +205,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 8.7818120792508125e+08,
-      "cpu_time": 7.9650700000000191e+08,
+      "real_time": 1.7135380422696471e+09,
+      "cpu_time": 6.1684599999999893e+08,
       "time_unit": "ns",
-      "bytes_per_second": 4.6066544424593776e+08
+      "bytes_per_second": 5.9483769206576788e+08
     },
     {
       "name": "Array write/p:5",
@@ -220,10 +220,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 7.0239016693085432e+08,
-      "cpu_time": 6.3516799999999666e+08,
+      "real_time": 7.3786733299493790e+08,
+      "cpu_time": 5.8455099999999762e+08,
       "time_unit": "ns",
-      "bytes_per_second": 5.7767905656456554e+08
+      "bytes_per_second": 6.2770100641347206e+08
     },
     {
       "name": "Array write/p:6",
@@ -234,11 +234,11 @@
       "repetitions": 1,
       "repetition_index": 0,
       "threads": 1,
-      "iterations": 1,
-      "real_time": 6.9616179168224335e+08,
-      "cpu_time": 5.3436100000000054e+08,
+      "iterations": 2,
+      "real_time": 6.3810485415160656e+08,
+      "cpu_time": 4.8602600000000072e+08,
       "time_unit": "ns",
-      "bytes_per_second": 6.8665799150761306e+08
+      "bytes_per_second": 7.5494572512581515e+08
     },
     {
       "name": "Array write/p:7",
@@ -249,11 +249,11 @@
       "repetitions": 1,
       "repetition_index": 0,
       "threads": 1,
-      "iterations": 1,
-      "real_time": 6.9757645856589079e+08,
-      "cpu_time": 5.2796599999999928e+08,
+      "iterations": 2,
+      "real_time": 6.3055522926151752e+08,
+      "cpu_time": 4.2125550000000089e+08,
       "time_unit": "ns",
-      "bytes_per_second": 6.9497515180901897e+08
+      "bytes_per_second": 8.7102305133107865e+08
     },
     {
       "name": "Array write/p:8",
@@ -264,11 +264,11 @@
       "repetitions": 1,
       "repetition_index": 0,
       "threads": 1,
-      "iterations": 2,
-      "real_time": 7.1891449997201562e+08,
-      "cpu_time": 4.7102100000000036e+08,
+      "iterations": 3,
+      "real_time": 7.9842983310421312e+08,
+      "cpu_time": 2.5581733333333528e+08,
       "time_unit": "ns",
-      "bytes_per_second": 7.7899552461567473e+08
+      "bytes_per_second": 1.4343173944428990e+09
     },
     {
       "name": "Chunking",
@@ -279,11 +279,11 @@
       "repetitions": 1,
       "repetition_index": 0,
       "threads": 1,
-      "iterations": 7,
-      "real_time": 9.6012761949428484e+07,
-      "cpu_time": 9.5711571428571418e+07,
+      "iterations": 6,
+      "real_time": 1.0553441677863400e+08,
+      "cpu_time": 1.0527766666666712e+08,
       "time_unit": "ns",
-      "bytes_per_second": 4.3822326677920723e+09
+      "bytes_per_second": 3.9840394290653434e+09
     },
     {
       "name": "IOStream read",
@@ -295,10 +295,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 4.4091910403221846e+08,
-      "cpu_time": 4.4085549999999964e+08,
+      "real_time": 4.5148493722081184e+08,
+      "cpu_time": 4.5043049999999774e+08,
       "time_unit": "ns",
-      "bytes_per_second": 4.7569974742290884e+07
+      "bytes_per_second": 4.6558758787426926e+07
     },
     {
       "name": "IOStream write",
@@ -310,10 +310,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 3.1555297924205661e+08,
-      "cpu_time": 3.1553650000000036e+08,
+      "real_time": 3.2221075007691979e+08,
+      "cpu_time": 3.2129000000000119e+08,
       "time_unit": "ns",
-      "bytes_per_second": 5.9536079027307399e+07
+      "bytes_per_second": 5.8469936817205422e+07
     },
     {
       "name": "Triplet read/p:1",
@@ -325,10 +325,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 1.2624468747526407e+09,
-      "cpu_time": 1.1083319999999971e+09,
+      "real_time": 1.0708567081019282e+09,
+      "cpu_time": 1.0181070000000006e+09,
       "time_unit": "ns",
-      "bytes_per_second": 4.4121361288855797e+08
+      "bytes_per_second": 4.8031411826065409e+08
     },
     {
       "name": "Triplet read/p:2",
@@ -340,10 +340,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 7.2723608277738094e+08,
-      "cpu_time": 5.8463000000000417e+08,
+      "real_time": 6.9375879131257534e+08,
+      "cpu_time": 5.4989100000000238e+08,
       "time_unit": "ns",
-      "bytes_per_second": 8.3644555701896322e+08
+      "bytes_per_second": 8.8928745151311421e+08
     },
     {
       "name": "Triplet read/p:3",
@@ -355,10 +355,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 5.7016816688701510e+08,
-      "cpu_time": 4.6637450000000060e+08,
+      "real_time": 4.8123933374881744e+08,
+      "cpu_time": 4.1549999999999976e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0485375293889340e+09
+      "bytes_per_second": 1.1769221805054159e+09
     },
     {
       "name": "Triplet read/p:4",
@@ -370,10 +370,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 5.5114081269130111e+08,
-      "cpu_time": 4.4853399999999863e+08,
+      "real_time": 4.4679622864350677e+08,
+      "cpu_time": 3.9264049999999881e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0902432502329845e+09
+      "bytes_per_second": 1.2454425002005689e+09
     },
     {
       "name": "Triplet read/p:5",
@@ -385,10 +385,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 5.1839841622859240e+08,
-      "cpu_time": 4.1553550000000429e+08,
+      "real_time": 4.1462006233632565e+08,
+      "cpu_time": 3.7822749999999774e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.1768216337713504e+09
+      "bytes_per_second": 1.2929021977513611e+09
     },
     {
       "name": "Triplet read/p:6",
@@ -400,10 +400,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 5.4168431274592876e+08,
-      "cpu_time": 4.5494000000000411e+08,
+      "real_time": 4.0737054171040654e+08,
+      "cpu_time": 3.7463900000000197e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0748915593264949e+09
+      "bytes_per_second": 1.3052863316419206e+09
     },
     {
       "name": "Triplet read/p:7",
@@ -415,10 +415,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 5.5238474998623133e+08,
-      "cpu_time": 4.3175000000000095e+08,
+      "real_time": 4.1049147956073284e+08,
+      "cpu_time": 3.8153349999999976e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.1326257463810050e+09
+      "bytes_per_second": 1.2816991587894650e+09
     },
     {
       "name": "Triplet read/p:8",
@@ -430,10 +430,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 5.0878454139456153e+08,
-      "cpu_time": 3.9344300000000131e+08,
+      "real_time": 3.9522143779322505e+08,
+      "cpu_time": 3.6751899999999791e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.2429021891353979e+09
+      "bytes_per_second": 1.3305738369989109e+09
     },
     {
       "name": "Triplet write/p:1",
@@ -445,10 +445,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 7.6686758454889059e+08,
-      "cpu_time": 7.6669000000000405e+08,
+      "real_time": 8.4218662511557341e+08,
+      "cpu_time": 8.4078100000000691e+08,
       "time_unit": "ns",
-      "bytes_per_second": 3.0210864495428240e+08
+      "bytes_per_second": 2.7548633591862577e+08
     },
     {
       "name": "Triplet write/p:2",
@@ -460,10 +460,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 4.8087000008672476e+08,
-      "cpu_time": 3.8285700000000131e+08,
+      "real_time": 4.8076556250452995e+08,
+      "cpu_time": 4.2106800000000179e+08,
       "time_unit": "ns",
-      "bytes_per_second": 6.0498744178635681e+08
+      "bytes_per_second": 5.5008615473035002e+08
     },
     {
       "name": "Triplet write/p:3",
@@ -474,11 +474,11 @@
       "repetitions": 1,
       "repetition_index": 0,
       "threads": 1,
-      "iterations": 4,
-      "real_time": 3.5074384370818734e+08,
-      "cpu_time": 2.6761124999999985e+08,
+      "iterations": 2,
+      "real_time": 3.7132047908380628e+08,
+      "cpu_time": 3.2217299999999583e+08,
       "time_unit": "ns",
-      "bytes_per_second": 8.6552294419610584e+08
+      "bytes_per_second": 7.1894192561140442e+08
     },
     {
       "name": "Triplet write/p:4",
@@ -489,11 +489,11 @@
       "repetitions": 1,
       "repetition_index": 0,
       "threads": 1,
-      "iterations": 3,
-      "real_time": 2.7332648634910583e+08,
-      "cpu_time": 2.5807866666666496e+08,
+      "iterations": 2,
+      "real_time": 3.0814633332192898e+08,
+      "cpu_time": 2.7011650000000387e+08,
       "time_unit": "ns",
-      "bytes_per_second": 8.9749253586762261e+08
+      "bytes_per_second": 8.5749547695159936e+08
     },
     {
       "name": "Triplet write/p:5",
@@ -505,10 +505,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 2.6911245845258236e+08,
-      "cpu_time": 2.0365533333333492e+08,
+      "real_time": 2.7267388906329870e+08,
+      "cpu_time": 2.4108800000000012e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.1373317516850276e+09
+      "bytes_per_second": 9.6074328460976863e+08
     },
     {
       "name": "Triplet write/p:6",
@@ -519,11 +519,11 @@
       "repetitions": 1,
       "repetition_index": 0,
       "threads": 1,
-      "iterations": 4,
-      "real_time": 2.4303284357301891e+08,
-      "cpu_time": 1.8786774999999878e+08,
+      "iterations": 3,
+      "real_time": 2.6177812491854033e+08,
+      "cpu_time": 2.1968066666666648e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.2329081335141423e+09
+      "bytes_per_second": 1.0543653226956712e+09
     },
     {
       "name": "Triplet write/p:7",
@@ -535,10 +535,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 4,
-      "real_time": 2.3584966687485576e+08,
-      "cpu_time": 1.8521199999999994e+08,
+      "real_time": 2.5086717726662755e+08,
+      "cpu_time": 2.0378299999999961e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.2505867708355834e+09
+      "bytes_per_second": 1.1366192322225134e+09
     },
     {
       "name": "Triplet write/p:8",
@@ -550,10 +550,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 4,
-      "real_time": 2.4390570819377899e+08,
-      "cpu_time": 1.7598600000000176e+08,
+      "real_time": 2.5757534359581769e+08,
+      "cpu_time": 1.6032475000000089e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.3161483129339702e+09
+      "bytes_per_second": 1.4447156599339695e+09
     }
   ]
 }
