@@ -278,13 +278,6 @@ namespace fast_matrix_market {
     #define DRAGONBOX_DROP_E0 true
     #endif
 
-    inline bool ends_with(const std::string &str, const std::string& suffix) {
-        if (suffix.size() > str.size()) {
-            return false;
-        }
-        return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
-    }
-
     inline std::string value_to_string(const float& value) {
         std::string buffer(jkj::dragonbox::max_output_string_length<jkj::dragonbox::ieee754_binary32> + 1, ' ');
 

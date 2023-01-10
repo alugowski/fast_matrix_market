@@ -53,6 +53,8 @@ namespace fast_matrix_market {
         std::queue<std::future<void>> parse_futures;
         BS::thread_pool_light pool(options.num_threads);
 
+        int generalizing_symmetry_factor = (header.symmetry != general && options.generalize_symmetry) ? 2 : 1;
+
         // Number of concurrent chunks available to work on.
         // Too few may starve workers (such as due to uneven chunk splits)
         // Too many increases costs, such as storing chunk results in memory before they're written.
@@ -95,7 +97,7 @@ namespace fast_matrix_market {
 
                 // Parse it.
                 auto body_line = lcr.chunk_line_start - header.header_line_count;
-                auto chunk_handler = handler.get_chunk_handler(body_line);
+                auto chunk_handler = handler.get_chunk_handler(body_line * generalizing_symmetry_factor);
                 if (header.format == array) {
                     // compute the row/column
                     typename HANDLER::coordinate_type row = body_line % header.nrows;

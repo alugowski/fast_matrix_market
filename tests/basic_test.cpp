@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <numeric>
 #include <fstream>
+#include <regex>
 
 #include "fmm_tests.hpp"
 
@@ -13,9 +14,8 @@
 
 
 template <typename TRIPLET>
-void read_triplet_file(const std::string& matrix_filename, TRIPLET& triplet) {
+void read_triplet_file(const std::string& matrix_filename, TRIPLET& triplet, fast_matrix_market::read_options options = {}) {
     std::ifstream f(kTestMatrixDir + "/" + matrix_filename);
-    fast_matrix_market::read_options options{};
     options.chunk_size_bytes = 1;
 
     fast_matrix_market::matrix_market_header header;
@@ -25,9 +25,8 @@ void read_triplet_file(const std::string& matrix_filename, TRIPLET& triplet) {
 }
 
 template <typename ARRAY>
-void read_array_file(const std::string& matrix_filename, ARRAY& array) {
+void read_array_file(const std::string& matrix_filename, ARRAY& array, fast_matrix_market::read_options options = {}) {
     std::ifstream f(kTestMatrixDir + "/" + matrix_filename);
-    fast_matrix_market::read_options options{};
     options.chunk_size_bytes = 1;
 
     fast_matrix_market::matrix_market_header header;
@@ -164,6 +163,9 @@ TEST(PlainTripletSuite, Complex) {
 
     read_triplet_file("eye3_complex.mtx", triplet2);
     EXPECT_EQ(triplet, triplet2);
+
+    triplet_matrix<int64_t, double> non_complex;
+    EXPECT_THROW(read_triplet_file("eye3_complex.mtx", non_complex), fast_matrix_market::complex_incompatible);
 }
 
 /**
@@ -203,6 +205,9 @@ TEST(PlainArraySuite, Complex) {
     read_array_file("eye3_complex.mtx", array2);
 
     EXPECT_EQ(array, array2);
+
+    array_matrix<double> non_complex;
+    EXPECT_THROW(read_array_file("eye3_complex.mtx", non_complex), fast_matrix_market::complex_incompatible);
 }
 
 /**
@@ -246,22 +251,84 @@ TEST(PlainVectorSuite, Complex) {
 }
 
 /**
- * Very basic tests: Patterns
+ * Describe a symmetry test problem.
  */
-class PatternSuite : public testing::TestWithParam<std::string> {
+struct symmetry_problem {
+    std::string symmetric;
+    std::string general;
+    std::string general_dup;
 
+    bool operator<(const symmetry_problem& rhs) const {
+        return symmetric < rhs.symmetric;
+    }
 };
+
+std::ostream& operator<<(std::ostream& os, const symmetry_problem& p) {
+    os << p.symmetric;
+    return os;
+}
 
 /**
  * Very basic tests: Symmetries
  */
-class SymmetrySuite : public testing::TestWithParam<std::string> {
-    // Test that symmetry is reported in header
-    // Test that symmetry is generalized
-    // Test non-dupe loader (no duplicate main diagonal elements)
+class SymmetrySuite : public testing::TestWithParam<symmetry_problem> {
+public:
 
-    // Test against expected general version
+
+    static std::vector<symmetry_problem> get_symmetry_problems() {
+        const std::string kSymmetrySubdir = "symmetry/";
+        const std::string kSymmetryMatrixDir = kTestMatrixDir + kSymmetrySubdir;
+
+        std::vector<symmetry_problem> ret;
+        for (const auto & mtx : std::filesystem::directory_iterator(kSymmetryMatrixDir)) {
+            auto filename = mtx.path().filename().string();
+            if (!fast_matrix_market::ends_with(filename, "_general.mtx")) {
+                continue;
+            }
+
+            symmetry_problem p{};
+            p.symmetric = kSymmetrySubdir + std::regex_replace(filename, std::regex("_general"), "");
+            p.general = kSymmetrySubdir + filename;
+            p.general_dup = kSymmetrySubdir + std::regex_replace(filename, std::regex("_general"), "_general_dup");;
+            ret.push_back(p);
+        }
+
+        std::sort(ret.begin(), ret.end());
+        return ret;
+    }
 };
+
+using SymMat = triplet_matrix<int64_t, std::complex<double>>;
+TEST_P(SymmetrySuite, Small) {
+    SymMat symmetric, sym_zero, sym_dup, general_zero, general_dup;
+
+    fast_matrix_market::read_options ro_no_gen{};
+    ro_no_gen.generalize_symmetry = false;
+
+    fast_matrix_market::read_options ro_gen_zero{};
+    ro_gen_zero.generalize_symmetry = true;
+    ro_gen_zero.generalize_coordinate_diagnonal_values = fast_matrix_market::read_options::ExtraZeroElement;
+
+    fast_matrix_market::read_options ro_gen_dup{};
+    ro_gen_dup.generalize_symmetry = true;
+    ro_gen_dup.generalize_coordinate_diagnonal_values = fast_matrix_market::read_options::DuplicateElement;
+
+    symmetry_problem p = GetParam();
+    read_triplet_file(p.symmetric, symmetric, ro_no_gen);
+    read_triplet_file(p.symmetric, sym_zero, ro_gen_zero);
+    read_triplet_file(p.symmetric, sym_dup, ro_gen_dup);
+    read_triplet_file(p.general, general_zero, ro_no_gen);
+    read_triplet_file(p.general_dup, general_dup, ro_no_gen);
+
+    EXPECT_EQ(symmetric.nrows, sym_zero.nrows);
+    EXPECT_EQ(symmetric.ncols, sym_zero.ncols);
+    EXPECT_EQ(symmetric.vals.size() * 2, sym_zero.vals.size());
+    EXPECT_EQ(sym_dup.vals.size(), sym_zero.vals.size());
+    EXPECT_EQ(sym_zero, general_zero);
+    EXPECT_EQ(sym_dup, general_dup);
+}
+
+INSTANTIATE_TEST_SUITE_P(SymmetrySuite, SymmetrySuite, testing::ValuesIn(SymmetrySuite::get_symmetry_problems()));
 
 
 #pragma clang diagnostic pop

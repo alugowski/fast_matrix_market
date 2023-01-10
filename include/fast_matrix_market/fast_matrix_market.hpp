@@ -171,6 +171,13 @@ namespace fast_matrix_market {
     inline bool test_flag(int flags, int flag) {
         return (flags & flag) == flag;
     }
+
+    inline bool ends_with(const std::string &str, const std::string& suffix) {
+        if (suffix.size() > str.size()) {
+            return false;
+        }
+        return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+    }
 }
 
 #include "field_conv.hpp"

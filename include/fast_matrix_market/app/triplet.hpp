@@ -25,32 +25,6 @@ namespace fast_matrix_market {
     }
 
     /**
-     * A special version of the triplet loader that does not create duplicate main diagonal entries
-     * if options.generalize_symmetry is set.
-     *
-     * The main drawback is that parallelism is disabled.
-     */
-    template <typename IT, typename VT>
-    void read_matrix_market_triplet_no_symmetry_dupes(
-                                    std::istream &instream,
-                                    matrix_market_header& header,
-                                    std::vector<IT>& rows, std::vector<IT>& cols, std::vector<VT>& values,
-                                    const read_options& options = {}) {
-        read_header(instream, header);
-
-        rows.resize(0);
-        cols.resize(0);
-        values.resize(0);
-
-        rows.reserve(get_storage_nnz(header, options));
-        cols.reserve(get_storage_nnz(header, options));
-        values.reserve(get_storage_nnz(header, options));
-
-        auto handler = triplet_appending_parse_handler(rows, cols, values);
-        read_matrix_market_body(instream, header, handler, 1, options);
-    }
-
-    /**
      * Read a Matrix Market vector file into a doublet sparse vector (i.e. index, value vectors).
      *
      * Any vector-like Matrix Market file will work:

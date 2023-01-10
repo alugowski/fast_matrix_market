@@ -104,38 +104,6 @@ namespace fast_matrix_market {
     };
 
     /**
-     * Triplet handler. Separate row, column, value vectors.
-     *
-     * Does NOT support parallelism.
-     */
-    template<typename IT_VEC, typename VT_VEC>
-    class triplet_appending_parse_handler {
-    public:
-        using coordinate_type = typename IT_VEC::value_type;
-        using value_type = typename VT_VEC::value_type;
-        static constexpr int flags = kAppending; // NOT parallel
-
-        explicit triplet_appending_parse_handler(IT_VEC& rows,
-                                                 IT_VEC& cols,
-                                                 VT_VEC& values) : rows(rows), cols(cols), values(values) {}
-
-        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            rows.emplace_back(row);
-            cols.emplace_back(col);
-            values.emplace_back(value);
-        }
-
-        triplet_appending_parse_handler<IT_VEC, VT_VEC> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
-            return *this;
-        }
-
-    protected:
-        IT_VEC& rows;
-        IT_VEC& cols;
-        VT_VEC& values;
-    };
-
-    /**
      * Triplet handler for pattern matrices. Row and column vectors only.
      */
     template<typename IT_ITER>
