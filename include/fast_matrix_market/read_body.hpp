@@ -63,6 +63,23 @@ namespace fast_matrix_market {
     };
 
     ///////////////////////////////////////////////////////////////////
+    // Limit bool parallelism
+    // vector<bool> is specialized to use a bitmask-like scheme. This means
+    // that different elements can share the same memory location, making
+    // writes to this container require locking.
+    // Instead, disable parallelism for bools.
+
+    template <typename T, typename std::enable_if<std::is_same<T, bool>::value, int>::type = 0>
+    bool limit_parallelism_for_value_type(bool) {
+        return false;
+    }
+
+    template <typename T, typename std::enable_if<!std::is_same<T, bool>::value, int>::type = 0>
+    bool limit_parallelism_for_value_type(bool parallelism_selected) {
+        return parallelism_selected;
+    }
+
+    ///////////////////////////////////////////////////////////////////
     // Chunks
     ///////////////////////////////////////////////////////////////////
 
@@ -279,6 +296,8 @@ namespace fast_matrix_market {
         int64_t line_num;
 
         bool threads = options.parallel_ok && options.num_threads != 1 && test_flag(HANDLER::flags, kParallelOk);
+
+        threads = limit_parallelism_for_value_type<typename HANDLER::value_type>(threads);
 
         if (header.format == coordinate && test_flag(HANDLER::flags, kDense)) {
             // Potential race condition if the file contains duplicates.
