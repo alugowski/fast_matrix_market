@@ -28,7 +28,7 @@ std::string chunk_and_recombine(const std::string& s, int chunk_size) {
     return recombined;
 }
 
-class InvalidSuite : public testing::TestWithParam<int> {
+class ChunkingSuite : public testing::TestWithParam<int> {
 public:
     struct PrintToStringParamName
     {
@@ -40,11 +40,19 @@ public:
     };
 };
 
-TEST_P(InvalidSuite, Small) {
+TEST_P(ChunkingSuite, Small) {
     EXPECT_EQ(one_line_no_newline, chunk_and_recombine(one_line_no_newline, GetParam()));
     EXPECT_EQ(one_line_newline, chunk_and_recombine(one_line_newline, GetParam()));
     EXPECT_EQ(short_s, chunk_and_recombine(short_s, GetParam()));
 }
 
-INSTANTIATE_TEST_SUITE_P(Chunking, InvalidSuite, testing::Range(0, 10),
-                         InvalidSuite::PrintToStringParamName());
+INSTANTIATE_TEST_SUITE_P(Chunking, ChunkingSuite, testing::Range(0, 10),
+                         ChunkingSuite::PrintToStringParamName());
+
+TEST(LineCount, LineCount) {
+    EXPECT_EQ(fast_matrix_market::count_lines(""), 1);
+    EXPECT_EQ(fast_matrix_market::count_lines("asdf"), 1);
+    EXPECT_EQ(fast_matrix_market::count_lines("dsafasfa\n"), 1);
+    EXPECT_EQ(fast_matrix_market::count_lines("asdfasdfa\n2sadfas"), 2);
+    EXPECT_EQ(fast_matrix_market::count_lines("asdfasdfa\n2sadfas\n"), 2);
+}
