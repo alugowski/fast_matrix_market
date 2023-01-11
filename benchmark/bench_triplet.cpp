@@ -13,8 +13,7 @@ static std::string generate_read_string() {
     auto triplet = construct_triplet<int64_t, VT>(kInMemoryByteTargetRead);
 
     std::ostringstream oss;
-    fast_matrix_market::matrix_market_header header(triplet.nrows, triplet.ncols);
-    fast_matrix_market::write_matrix_market_triplet(oss, header, triplet.rows, triplet.cols, triplet.vals);
+    fast_matrix_market::write_matrix_market_triplet(oss, {triplet.nrows, triplet.ncols}, triplet.rows, triplet.cols, triplet.vals);
     return oss.str();
 }
 
@@ -65,9 +64,9 @@ static void triplet_write(benchmark::State& state) {
         std::ostringstream oss;
 
         fast_matrix_market::write_matrix_market_triplet(oss,
-                fast_matrix_market::matrix_market_header(triplet_to_write.nrows, triplet_to_write.ncols),
-                triplet_to_write.rows, triplet_to_write.cols, triplet_to_write.vals,
-                options);
+                                                        {triplet_to_write.nrows, triplet_to_write.ncols},
+                                                        triplet_to_write.rows, triplet_to_write.cols, triplet_to_write.vals,
+                                                        options);
 
         num_bytes += oss.str().size();
         benchmark::ClobberMemory();

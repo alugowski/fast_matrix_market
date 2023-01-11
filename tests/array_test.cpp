@@ -32,7 +32,7 @@ template <typename MatType>
 std::string write_mtx(MatType& array, const fast_matrix_market::write_options& options) {
     std::ostringstream oss;
     fast_matrix_market::write_matrix_market_array(oss,
-                                                  fast_matrix_market::matrix_market_header(array.nrows, array.ncols),
+                                                  {array.nrows, array.ncols},
                                                   array.vals,
                                                   options);
     return oss.str();

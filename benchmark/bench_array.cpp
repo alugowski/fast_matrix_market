@@ -13,8 +13,7 @@ static std::string generate_read_string() {
     auto array = construct_array<VT>(kInMemoryByteTargetRead);
 
     std::ostringstream oss;
-    fast_matrix_market::matrix_market_header header(array.nrows, array.ncols);
-    fast_matrix_market::write_matrix_market_array(oss, header, array.vals);
+    fast_matrix_market::write_matrix_market_array(oss, {array.nrows, array.ncols}, array.vals);
     return oss.str();
 }
 
@@ -63,9 +62,9 @@ static void array_write(benchmark::State& state) {
         std::ostringstream oss;
 
         fast_matrix_market::write_matrix_market_array(oss,
-                fast_matrix_market::matrix_market_header(array_to_write.nrows, array_to_write.ncols),
-                array_to_write.vals,
-                options);
+                                                      {array_to_write.nrows, array_to_write.ncols},
+                                                      array_to_write.vals,
+                                                      options);
 
         num_bytes += oss.str().size();
         benchmark::ClobberMemory();

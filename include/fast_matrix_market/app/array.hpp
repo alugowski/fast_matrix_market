@@ -6,6 +6,9 @@
 #include "../fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
+    /**
+     * Read a Matrix Market file into a row-major array.
+     */
     template <typename VT>
     void read_matrix_market_array(std::istream &instream,
                                   matrix_market_header& header,
@@ -33,6 +36,9 @@ namespace fast_matrix_market {
         ncols = header.ncols;
     }
 
+    /**
+     * Write a row-major array to a Matrix Market file.
+     */
     template <typename VT>
     void write_matrix_market_array(std::ostream &os,
                                    matrix_market_header header,

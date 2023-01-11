@@ -35,7 +35,7 @@ std::string write_mtx(MatType& triplet, const fast_matrix_market::write_options&
     std::ostringstream oss;
 
     fast_matrix_market::write_matrix_market_triplet(oss,
-                                                    fast_matrix_market::matrix_market_header(triplet.nrows, triplet.ncols),
+                                                    {triplet.nrows, triplet.ncols},
                                                     triplet.rows, triplet.cols, triplet.vals,
                                                     options);
     return oss.str();
