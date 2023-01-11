@@ -6,6 +6,7 @@
 #include "fmm_bench.hpp"
 
 using VT = double;
+static int num_iterations = 3;
 
 static std::string generate_read_string() {
     // Generate a big matrix in-memory.
@@ -44,7 +45,7 @@ static void array_read(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(array_read)->Name("Array read")->UseRealTime()->Apply(NumThreadsArgument);
+BENCHMARK(array_read)->Name("Array read")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);
 
 
 /**
@@ -73,4 +74,4 @@ static void array_write(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(array_write)->Name("Array write")->UseRealTime()->Apply(NumThreadsArgument);
+BENCHMARK(array_write)->Name("Array write")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);

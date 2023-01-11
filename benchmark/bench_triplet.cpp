@@ -6,6 +6,7 @@
 #include "fmm_bench.hpp"
 
 using VT = double;
+static int num_iterations = 3;
 
 static std::string generate_read_string() {
     // Generate a big matrix in-memory.
@@ -44,7 +45,7 @@ static void triplet_read(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(triplet_read)->Name("Triplet read")->UseRealTime()->Apply(NumThreadsArgument);
+BENCHMARK(triplet_read)->Name("Triplet read")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);
 
 
 /**
@@ -75,4 +76,4 @@ static void triplet_write(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(triplet_write)->Name("Triplet write")->UseRealTime()->Apply(NumThreadsArgument);
+BENCHMARK(triplet_write)->Name("Triplet write")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);
