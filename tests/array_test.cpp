@@ -6,10 +6,10 @@
 
 #include "fmm_tests.hpp"
 
+#if defined(__clang__)
 // for TYPED_TEST_SUITE
-#pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-
+#endif
 
 /**
  * Construct a test matrix.
@@ -17,7 +17,7 @@
  */
 template <typename VT>
 void construct_array(array_matrix<VT>& ret, int64_t num_elements) {
-    ret.nrows = std::max(1LL, (int64_t)std::ceil(std::sqrt(num_elements) / 2));
+    ret.nrows = std::max((int64_t)1LL, (int64_t)std::ceil(std::sqrt(num_elements) / 2));
     ret.ncols = num_elements / ret.nrows;
 
     num_elements = ret.nrows * ret.ncols;
@@ -83,5 +83,3 @@ TYPED_TEST(ArrayTest, Generated) {
         }
     }
 }
-
-#pragma clang diagnostic pop

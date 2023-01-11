@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -pedantic")
-endif()
+elseif (MSVC)
+    add_compile_options(/bigobj)
+endif ()
 
 include(FetchContent)
 
@@ -12,7 +14,9 @@ include(../cmake/GoogleTest.cmake)
 
 enable_testing()
 
-add_definitions(-DTEST_MATRIX_DIR="${CMAKE_CURRENT_SOURCE_DIR}/matrices/")
+set(MATRIX_DIR "${CMAKE_CURRENT_LIST_DIR}/matrices/")
+message("Test Matrix directory: ${MATRIX_DIR}")
+add_definitions(-DTEST_MATRIX_DIR="${MATRIX_DIR}")
 
 add_executable(chunking_test chunking_test.cpp)
 target_link_libraries(chunking_test GTest::gtest_main fast_matrix_market::fast_matrix_market)

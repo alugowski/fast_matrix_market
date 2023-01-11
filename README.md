@@ -1,3 +1,5 @@
+[![tests](https://github.com/alugowski/fast_matrix_market/actions/workflows/tests.yml/badge.svg)](https://github.com/alugowski/fast_matrix_market/actions/workflows/tests.yml)
+
 A fast and full-featured Matrix Market I/O library.
 
 [Matrix Market](https://math.nist.gov/MatrixMarket/formats.html) is a simple, human-readable, and widely used sparse matrix file format that looks like this:
@@ -69,7 +71,6 @@ include(FetchContent)
 FetchContent_Declare(
         fast_matrix_market
         GIT_REPOSITORY https://github.com/alugowski/fast_matrix_market
-        GIT_TAG v1.0.6
         GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(fast_matrix_market)

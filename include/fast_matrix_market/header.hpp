@@ -210,6 +210,9 @@ namespace fast_matrix_market {
 
                 if (header.format == coordinate) {
                     iss >> header.nnz;
+                    if (header.nnz < 0) {
+                        throw invalid_mm("Matrix NNZ can't be negative.", lines_read);
+                    }
                 } else {
                     header.nnz = header.nrows * header.ncols;
                 }

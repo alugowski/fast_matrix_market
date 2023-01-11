@@ -5,10 +5,10 @@
 
 #include "fmm_tests.hpp"
 
+#if defined(__clang__)
 // for TYPED_TEST_SUITE
-#pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-
+#endif
 
 /**
  * Construct a test matrix.
@@ -89,5 +89,3 @@ TYPED_TEST(TripletTest, Generated) {
         }
     }
 }
-
-#pragma clang diagnostic pop

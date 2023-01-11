@@ -8,9 +8,10 @@
 
 #include "fmm_tests.hpp"
 
+#if defined(__clang__)
 // for TYPED_TEST_SUITE
-#pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#endif
 
 
 template <typename TRIPLET>
@@ -136,8 +137,13 @@ public:
 };
 
 TEST_P(InvalidSuite, Small) {
-    EXPECT_THROW(read_triplet_file(GetParam(), triplet_ld), fast_matrix_market::invalid_mm);
-    EXPECT_THROW(read_triplet_file(GetParam(), triplet_lc), fast_matrix_market::invalid_mm);
+    fast_matrix_market::read_options options{};
+    options.parallel_ok = true;
+    EXPECT_THROW(read_triplet_file(GetParam(), triplet_ld, options), fast_matrix_market::invalid_mm);
+
+    // Also verify sequential
+    options.parallel_ok = false;
+    EXPECT_THROW(read_triplet_file(GetParam(), triplet_lc, options), fast_matrix_market::invalid_mm);
 }
 
 INSTANTIATE_TEST_SUITE_P(Invalid, InvalidSuite, testing::ValuesIn(InvalidSuite::get_invalid_matrix_files()));
@@ -371,6 +377,3 @@ TEST_P(SymmetrySuite, Small) {
 }
 
 INSTANTIATE_TEST_SUITE_P(SymmetrySuite, SymmetrySuite, testing::ValuesIn(SymmetrySuite::get_symmetry_problems()));
-
-
-#pragma clang diagnostic pop

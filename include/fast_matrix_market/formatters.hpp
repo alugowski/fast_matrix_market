@@ -22,6 +22,8 @@ namespace fast_matrix_market {
     /**
      * Format row, column, value vectors.
      *
+     * Value range may be empty (i.e. val_begin == val_end) to omit writing values at all. Useful for pattern matrices.
+     *
      * @tparam A_ITER
      * @tparam B_ITER
      * @tparam C_ITER Must be a valid iterator, but if begin==end then the values are not written.
@@ -34,10 +36,11 @@ namespace fast_matrix_market {
                                    const B_ITER col_begin, const B_ITER col_end,
                                    const C_ITER val_begin, const C_ITER val_end) :
                                    row_iter(row_begin), row_end(row_end),
-                                   col_iter(col_begin), col_end(col_end),
+                                   col_iter(col_begin),
                                    val_iter(val_begin), val_end(val_end) {
-            if (row_end - row_begin != col_end - col_begin) {
-                throw invalid_argument("Row and column ranges must have equal length.");
+            if (row_end - row_begin != col_end - col_begin ||
+                    (row_end - row_begin != val_end - val_begin && val_end != val_begin)) {
+                throw invalid_argument("Row, column, and value ranges must have equal length.");
             }
         }
 
@@ -80,9 +83,10 @@ namespace fast_matrix_market {
         };
 
         chunk next_chunk(const write_options& options) {
-            A_ITER row_chunk_end = std::min(row_iter + options.chunk_size_values, row_end);
-            B_ITER col_chunk_end = std::min(col_iter + options.chunk_size_values, col_end);
-            C_ITER val_chunk_end = std::min(val_iter + options.chunk_size_values, val_end);
+            auto chunk_size = std::min(options.chunk_size_values, (int64_t)(row_end - row_iter));
+            A_ITER row_chunk_end = row_iter + chunk_size;
+            B_ITER col_chunk_end = col_iter + chunk_size;
+            C_ITER val_chunk_end = (val_iter != val_end) ? val_iter + chunk_size: val_end;
 
             chunk c(row_iter, row_chunk_end,
                     col_iter,
@@ -97,7 +101,7 @@ namespace fast_matrix_market {
 
     protected:
         A_ITER row_iter, row_end;
-        B_ITER col_iter, col_end;
+        B_ITER col_iter;
         C_ITER val_iter, val_end;
     };
 
@@ -112,9 +116,13 @@ namespace fast_matrix_market {
                                const VAL_ITER val_begin, const VAL_ITER val_end,
                                bool transpose = false) :
                 ptr_begin(ptr_begin), ptr_iter(ptr_begin), ptr_end(ptr_end),
-                ind_begin(ind_begin), ind_end(ind_end),
+                ind_begin(ind_begin),
                 val_begin(val_begin), val_end(val_end),
                 transpose(transpose) {
+            if (ind_end - ind_begin != val_end - val_begin && val_end != val_begin) {
+                throw invalid_argument("Index and value ranges must have equal length.");
+            }
+
             auto num_columns = (ptr_end - ptr_iter);
             auto nnz = (ind_end - ind_begin);
             nnz_per_column = ((double)nnz) / num_columns;
@@ -127,11 +135,11 @@ namespace fast_matrix_market {
         class chunk {
         public:
             explicit chunk(const PTR_ITER ptr_begin, const PTR_ITER ptr_iter, const PTR_ITER ptr_end,
-                           const IND_ITER ind_begin, const IND_ITER ind_end,
+                           const IND_ITER ind_begin,
                            const VAL_ITER val_begin, const VAL_ITER val_end,
                            bool transpose) :
                     ptr_begin(ptr_begin), ptr_iter(ptr_iter), ptr_end(ptr_end),
-                    ind_begin(ind_begin), ind_end(ind_end),
+                    ind_begin(ind_begin),
                     val_begin(val_begin), val_end(val_end),
                     transpose(transpose) {}
 
@@ -176,18 +184,19 @@ namespace fast_matrix_market {
             }
 
             PTR_ITER ptr_begin, ptr_iter, ptr_end;
-            IND_ITER ind_begin, ind_end;
+            IND_ITER ind_begin;
             VAL_ITER val_begin, val_end;
             bool transpose;
         };
 
         chunk next_chunk(const write_options& options) {
-            auto num_columns = (ptrdiff_t)(nnz_per_column * (double)options.chunk_size_values + 1);
+            auto num_columns = (int64_t)(nnz_per_column * (double)options.chunk_size_values + 1);
 
-            PTR_ITER ptr_chunk_end = std::min(ptr_iter + num_columns, ptr_end);
+            num_columns = std::min(num_columns, (int64_t)(ptr_end - ptr_iter));
+            PTR_ITER ptr_chunk_end = ptr_iter + num_columns;
 
             chunk c(ptr_begin, ptr_iter, ptr_chunk_end,
-                    ind_begin, ind_end,
+                    ind_begin,
                     val_begin, val_end,
                     transpose);
 
@@ -198,7 +207,7 @@ namespace fast_matrix_market {
 
     protected:
         PTR_ITER ptr_begin, ptr_iter, ptr_end;
-        IND_ITER ind_begin, ind_end;
+        IND_ITER ind_begin;
         VAL_ITER val_begin, val_end;
         bool transpose;
         double nnz_per_column;

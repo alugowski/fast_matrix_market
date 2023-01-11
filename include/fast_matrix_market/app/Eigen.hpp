@@ -5,11 +5,13 @@
 
 #include "../fast_matrix_market.hpp"
 
+#if defined(__clang__)
 // Disable some pedantic warnings from Eigen headers.
-#pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#endif
+
 #include <Eigen/Sparse>
-#pragma clang diagnostic pop
+
 
 
 namespace fast_matrix_market {
@@ -63,7 +65,7 @@ namespace fast_matrix_market {
                                         const read_options& options = {},
                                         typename DenseType::Scalar default_pattern_value = 1) {
         read_header(instream, header);
-        mat.resize(header.nrows, header.ncols);
+        mat.setZero(header.nrows, header.ncols);
 
         auto handler = dense_2d_call_adding_parse_handler<DenseType, typename DenseType::Index, typename DenseType::Scalar>(mat);
         read_matrix_market_body(instream, header, handler, default_pattern_value, options);
@@ -131,9 +133,10 @@ namespace fast_matrix_market {
         };
 
         chunk next_chunk(const write_options& options) {
-            auto num_columns = (ptrdiff_t)(nnz_per_column * (double)options.chunk_size_values + 1);
+            auto num_columns = (MatIndex)(nnz_per_column * (double)options.chunk_size_values + 1);
+            num_columns = std::min(num_columns, mat.outerSize() - outer_iter);
 
-            MatIndex outer_end = std::min(outer_iter + num_columns, mat.outerSize());
+            MatIndex outer_end = outer_iter + num_columns;
             chunk c(mat, outer_iter, outer_end, pattern_only);
             outer_iter = outer_end;
 
@@ -192,9 +195,10 @@ namespace fast_matrix_market {
         };
 
         chunk next_chunk(const write_options& options) {
-            auto num_columns = (ptrdiff_t)(mat.rows() * (double)options.chunk_size_values + 1);
+            auto num_columns = (MatIndex)(mat.rows() * (double)options.chunk_size_values + 1);
+            num_columns = std::min(num_columns, mat.cols() - col_iter);
 
-            MatIndex col_end = std::min(col_iter + num_columns, mat.cols());
+            MatIndex col_end = col_iter + num_columns;
             chunk c(mat, col_iter, col_end);
             col_iter = col_end;
 

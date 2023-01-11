@@ -96,6 +96,9 @@ namespace fast_matrix_market {
 
             // Parse it.
             auto body_line = lcr.chunk_line_start - header.header_line_count;
+            if (body_line > header.nnz) {
+                throw invalid_mm("File too long", lcr.chunk_line_start + 1);
+            }
             auto chunk_handler = handler.get_chunk_handler(body_line * generalizing_symmetry_factor);
             if (header.format == array) {
                 // compute the starting row/column for this array chunk

@@ -8,11 +8,12 @@
 
 #include <fast_matrix_market/app/Eigen.hpp>
 
+#if defined(__clang__)
 // Disable some pedantic warnings from Eigen headers.
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#endif
 #include <unsupported/Eigen/SparseExtra>
-#pragma clang diagnostic pop
 
 using VT = double;
 
@@ -93,6 +94,20 @@ public:
 
     }
 
+    /**
+     * Equality check that prints the matrices if they're unequal. Useful for debugging when remote tests fail.
+     */
+    static bool is_equal(const Dense& lhs, const Dense& rhs) {
+        if (lhs.isApprox(rhs, 1e-6)) {
+            return true;
+        }
+
+        std::cout << "Left:" << std::endl << lhs.rows() << "-by-" << lhs.cols() << std::endl << lhs << std::endl;
+        std::cout << "Right:" << std::endl << rhs.rows() << "-by-" << rhs.cols() << std::endl << rhs << std::endl << std::endl;
+
+        return false;
+    }
+
     protected:
     SpColMajor col_major;
     SpRowMajor row_major;
@@ -109,12 +124,12 @@ TEST_P(EigenTest, Loaded) {
 
     // dense
     Dense dense(col_major);
-    EXPECT_TRUE(dense.isApprox(read_dense<Dense>(write_dense(dense)), 1e-6));
+    EXPECT_TRUE(is_equal(dense, read_dense<Dense>(write_dense(dense))));
 
     // sparse/dense combinations
     EXPECT_TRUE(col_major.isApprox(dense, 1e-6));
     EXPECT_TRUE(col_major.isApprox(read_mtx<SpColMajor>(write_dense(dense)), 1e-6));
-    EXPECT_TRUE(dense.isApprox(read_dense<Dense>(write_mtx(col_major)), 1e-6));
+    EXPECT_TRUE(is_equal(dense, read_dense<Dense>(write_mtx(col_major))));
 
     // write pattern
     std::string pattern_mtx = write_mtx(col_major, true);

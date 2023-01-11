@@ -64,8 +64,8 @@ namespace fast_matrix_market {
 
     ///////////////////////////////////////////////////////////////////
     // Limit bool parallelism
-    // vector<bool> is specialized to use a bitmask-like scheme. This means
-    // that different elements can share the same memory location, making
+    // vector<bool> is specialized to use a bitfield-like scheme. This means
+    // that different elements can share the same bytes, making
     // writes to this container require locking.
     // Instead, disable parallelism for bools.
 
@@ -91,6 +91,10 @@ namespace fast_matrix_market {
 
         while (pos != end && pos != nullptr) {
             try {
+                if ((line_num - header.header_line_count) >= header.nnz) {
+                    throw invalid_mm("Too many lines in file (file too long)");
+                }
+
                 typename HANDLER::coordinate_type row, col;
                 typename HANDLER::value_type value;
 
@@ -161,6 +165,10 @@ namespace fast_matrix_market {
 
         while (pos != end && pos != nullptr) {
             try {
+                if ((line_num - header.header_line_count) >= header.nnz) {
+                    throw invalid_mm("Too many lines in file (file too long)");
+                }
+
                 typename HANDLER::coordinate_type row;
                 typename HANDLER::value_type value;
 
@@ -197,7 +205,7 @@ namespace fast_matrix_market {
 
         while (pos != end && pos != nullptr) {
             try {
-                if (col == header.ncols) {
+                if (col >= header.ncols) {
                     throw invalid_mm("Too many values in array (file too long)");
                 }
 
