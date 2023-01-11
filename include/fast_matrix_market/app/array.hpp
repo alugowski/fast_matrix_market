@@ -19,6 +19,20 @@ namespace fast_matrix_market {
         read_matrix_market_body(instream, header, handler, 1, options);
     }
 
+    /**
+     * Convenience method that omits the header requirement if the user only cares about the dimensions.
+     */
+    template <typename VT, typename DIM>
+    void read_matrix_market_array(std::istream &instream,
+                                  DIM& nrows, DIM& ncols,
+                                  std::vector<VT>& row_major_values,
+                                  const read_options& options = {}) {
+        matrix_market_header header;
+        read_matrix_market_array(instream, header, row_major_values, options);
+        nrows = header.nrows;
+        ncols = header.ncols;
+    }
+
     template <typename VT>
     void write_matrix_market_array(std::ostream &os,
                                    matrix_market_header header,

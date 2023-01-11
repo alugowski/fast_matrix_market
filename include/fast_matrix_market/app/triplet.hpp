@@ -25,6 +25,20 @@ namespace fast_matrix_market {
     }
 
     /**
+     * Convenience method that omits the header requirement if the user only cares about the dimensions.
+     */
+    template <typename IT, typename VT, typename DIM>
+    void read_matrix_market_triplet(std::istream &instream,
+                                    DIM& nrows, DIM& ncols,
+                                    std::vector<IT>& rows, std::vector<IT>& cols, std::vector<VT>& values,
+                                    const read_options& options = {}) {
+        matrix_market_header header;
+        read_matrix_market_triplet(instream, header, rows, cols, values, options);
+        nrows = header.nrows;
+        ncols = header.ncols;
+    }
+
+    /**
      * Write triplets to a Matrix Market file.
      */
     template <typename IT, typename VT>

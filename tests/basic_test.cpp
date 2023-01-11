@@ -18,10 +18,7 @@ void read_triplet_file(const std::string& matrix_filename, TRIPLET& triplet, fas
     std::ifstream f(kTestMatrixDir + "/" + matrix_filename);
     options.chunk_size_bytes = 1;
 
-    fast_matrix_market::matrix_market_header header;
-    fast_matrix_market::read_matrix_market_triplet(f, header, triplet.rows, triplet.cols, triplet.vals, options);
-    triplet.nrows = header.nrows;
-    triplet.ncols = header.ncols;
+    fast_matrix_market::read_matrix_market_triplet(f, triplet.nrows, triplet.ncols, triplet.rows, triplet.cols, triplet.vals, options);
 }
 
 template <typename ARRAY>
@@ -29,10 +26,7 @@ void read_array_file(const std::string& matrix_filename, ARRAY& array, fast_matr
     std::ifstream f(kTestMatrixDir + "/" + matrix_filename);
     options.chunk_size_bytes = 1;
 
-    fast_matrix_market::matrix_market_header header;
-    fast_matrix_market::read_matrix_market_array(f, header, array.vals, options);
-    array.nrows = header.nrows;
-    array.ncols = header.ncols;
+    fast_matrix_market::read_matrix_market_array(f, array.nrows, array.ncols, array.vals, options);
 }
 
 template <typename VECTOR>
@@ -41,9 +35,7 @@ void read_vector_file(const std::string& matrix_filename, VECTOR& vec) {
     fast_matrix_market::read_options options{};
     options.chunk_size_bytes = 1;
 
-    fast_matrix_market::matrix_market_header header;
-    fast_matrix_market::read_matrix_market_doublet(f, header, vec.indices, vec.vals, options);
-    vec.length = header.vector_length;
+    fast_matrix_market::read_matrix_market_doublet(f, vec.length, vec.indices, vec.vals, options);
 }
 
 template <typename VECTOR>

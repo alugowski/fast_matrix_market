@@ -31,10 +31,10 @@ void construct_array(array_matrix<VT>& ret, int64_t num_elements) {
 template <typename MatType>
 std::string write_mtx(MatType& array, const fast_matrix_market::write_options& options) {
     std::ostringstream oss;
-    fast_matrix_market::matrix_market_header header(array.nrows, array.ncols);
-    fast_matrix_market::write_matrix_market_array(oss, header,
-                                                    array.vals,
-                                                    options);
+    fast_matrix_market::write_matrix_market_array(oss,
+                                                  fast_matrix_market::matrix_market_header(array.nrows, array.ncols),
+                                                  array.vals,
+                                                  options);
     return oss.str();
 }
 
@@ -42,10 +42,7 @@ template <typename MatType>
 MatType read_mtx(const std::string& source, const fast_matrix_market::read_options& options) {
     std::istringstream iss(source);
     MatType array;
-    fast_matrix_market::matrix_market_header header;
-    fast_matrix_market::read_matrix_market_array(iss, header,  array.vals, options);
-    array.nrows = header.nrows;
-    array.ncols = header.ncols;
+    fast_matrix_market::read_matrix_market_array(iss, array.nrows, array.ncols, array.vals, options);
     return array;
 }
 

@@ -33,8 +33,9 @@ void construct_triplet(triplet_matrix<IT, VT>& ret, int64_t num_elements) {
 template <typename MatType>
 std::string write_mtx(MatType& triplet, const fast_matrix_market::write_options& options) {
     std::ostringstream oss;
-    fast_matrix_market::matrix_market_header header(triplet.nrows, triplet.ncols);
-    fast_matrix_market::write_matrix_market_triplet(oss, header,
+
+    fast_matrix_market::write_matrix_market_triplet(oss,
+                                                    fast_matrix_market::matrix_market_header(triplet.nrows, triplet.ncols),
                                                     triplet.rows, triplet.cols, triplet.vals,
                                                     options);
     return oss.str();
@@ -44,10 +45,10 @@ template <typename MatType>
 MatType read_mtx(const std::string& source, const fast_matrix_market::read_options& options) {
     std::istringstream iss(source);
     MatType triplet;
-    fast_matrix_market::matrix_market_header header;
-    fast_matrix_market::read_matrix_market_triplet(iss, header, triplet.rows, triplet.cols, triplet.vals, options);
-    triplet.nrows = header.nrows;
-    triplet.ncols = header.ncols;
+    fast_matrix_market::read_matrix_market_triplet(iss,
+                                                   triplet.nrows, triplet.ncols,
+                                                   triplet.rows, triplet.cols, triplet.vals,
+                                                   options);
     return triplet;
 }
 

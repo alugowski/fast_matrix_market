@@ -29,6 +29,19 @@ namespace fast_matrix_market {
     }
 
     /**
+     * Convenience method that omits the header requirement if the user only cares about the dimensions.
+     */
+    template <typename IT, typename VT, typename DIM>
+    void read_matrix_market_doublet(std::istream &instream,
+                                    DIM& length,
+                                    std::vector<IT>& indices, std::vector<VT>& values,
+                                    const read_options& options = {}) {
+        matrix_market_header header;
+        read_matrix_market_doublet(instream, header, indices, values, options);
+        length = header.vector_length;
+    }
+
+    /**
      * Write doublets to a Matrix Market file.
      */
     template <typename IT, typename VT>
