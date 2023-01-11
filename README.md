@@ -13,7 +13,7 @@ Most sparse matrix libraries include Matrix Market read and write routines.
 
 However, included routines are typically slow and/or are missing format features. Use this library to fix these shortcomings.
 
-## Fast
+# Fast
 
 `fast_matrix_market` takes the fastest available sequential methods and parallelizes them.
 
@@ -26,17 +26,14 @@ Note: IOStreams benchmark is sequential. IOStreams get *slower* with additional 
 
 
 The majority of the improvement comes from using C++17's `std::from_chars` and `std::to_chars`.
-Also:
-* Parse floating-point using [`fast_float`](https://github.com/fastfloat/fast_float). Compiler support for floating-point `std::from_chars` varies.
-* Write floating-point using [`Dragonbox`](https://github.com/jk-jeon/dragonbox). Compiler support for floating-point `std::to_chars` varies.
-
-We include standard library fallbacks for the above libraries, but both sequential and parallel performance can suffer without them.
+If floating-point versions are not available then fall back on [fast_float](https://github.com/fastfloat/fast_float) 
+and [Dragonbox](https://github.com/jk-jeon/dragonbox).
 
 Loaders using IOStreams or `fscanf` are both slow and do not parallelize. See [parse_bench](https://github.com/alugowski/parse-bench) for a demonstration.
 
 The benchmarks are fully automated and intended for you to run on your system. The `run_benchmarks.sh` script builds, runs, and saves benchmark data, then simply run all the cells in the [benchmark_plots/plot.ipynb](benchmark_plots/plot.ipynb) Jupyter notebook.
 
-## Full Featured
+# Full Featured
 
 * `coordinate` and `array`, each readable into either sparse or dense structures.
 
@@ -61,19 +58,18 @@ The benchmarks are fully automated and intended for you to run on your system. T
 * Optional (on by default) automatic symmetry generalization. If your code cannot make use of the symmetry but the file specifies one, the loader can emit the symmetric entries for you.
 
 
-## Installation
+# Installation
 
 `fast_matrix_market` is a header-only library written in C++17. Parallelism uses C++11 threads.
 
-#### CMake Fetch
-Use CMake to fetch the library
+### CMake
 
 ```cmake
 include(FetchContent)
 FetchContent_Declare(
         fast_matrix_market
         GIT_REPOSITORY https://github.com/alugowski/fast_matrix_market
-        GIT_TAG main
+        GIT_TAG v1.0.6
         GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(fast_matrix_market)
@@ -81,27 +77,24 @@ FetchContent_MakeAvailable(fast_matrix_market)
 target_link_libraries(YOUR_TARGET fast_matrix_market::fast_matrix_market)
 ```
 
-#### CMake Subdirectory
-You may copy or checkout the repo into your project and use `add_subdirectory`:
+Alternatively copy or checkout the repo into your project and:
 ```cmake
 add_subdirectory(fast_matrix_market)
-
-target_link_libraries(YOUR_TARGET fast_matrix_market::fast_matrix_market)
 ```
 See [examples/](examples) for what parts of the repo are needed.
 
-#### Copy
+### Manual Copy
 You may also copy `include/fast_matrix_market` into your project's `include` directory.
 
 Define:
 * `FMM_FROM_CHARS_<INT|DOUBLE|LONG_DOUBLE>_SUPPORTED` as appropriate for your compiler.
 * `FMM_TO_CHARS_<INT|DOUBLE|LONG_DOUBLE>_SUPPORTED` as appropriate for your compiler.
 
-Optionally also include for best performance:
- * [`fast_float`](https://github.com/fastfloat/fast_float) library and define `FMM_USE_FAST_FLOAT`.
- * [`Dragonbox`](https://github.com/jk-jeon/dragonbox) and define `FMM_USE_DRAGONBOX`.
+For best performance also include:
+ * [fast_float](https://github.com/fastfloat/fast_float) and define `FMM_USE_FAST_FLOAT`.
+ * [Dragonbox](https://github.com/jk-jeon/dragonbox) and define `FMM_USE_DRAGONBOX`.
 
-## Usage
+# Usage
 
 `fast_matrix_market` provides both ready-to-use methods for common data structures and building blocks for your own.
 
@@ -109,7 +102,7 @@ See [examples/](examples).
 
 Bundled integrations include:
 
-### Triplets based on `std::vector`
+## Triplets
 `std::vector`-based triplet sparse matrices, also known as coordinate (COO) matrices. A vector each for row indices, column indices, values.
 
 ```c++
@@ -127,7 +120,7 @@ fast_matrix_market::read_matrix_market_triplet(
 
 Doublet Sparse vectors, composed of index and value vectors, are supported in a similar way.
 
-### Dense arrays
+## Dense arrays
 Both 1D and 2D.
 ```c++
 struct array_matrix {
@@ -141,25 +134,31 @@ fast_matrix_market::read_matrix_market_array(
                 mat.vals);
 ```
 
-### Eigen
+## Eigen
 Both sparse matrices and dense matrices and vectors are supported. See [Eigen README](README.Eigen.md).
 ```c++
 Eigen::SparseMatrix<double> mat;
 fast_matrix_market::read_matrix_market_eigen(input_stream, mat);
 ```
 
-### SuiteSparse CXSparse
+## SuiteSparse CXSparse
 `cs_xx` structures (in both COO and CSC modes) are supported. See [CXSparse README](README.CXSparse.md).
 ```c++
 cs_dl *A;
 fast_matrix_market::read_matrix_market_cxsparse(input_stream, &A, cs_dl_spalloc);
 ```
 
-### Your Own
+## Your Own
 
 Simply provide `parse_handler` and `formatter` classes to read and write from/to any datastructure, respectively. The class you need is likely already in the library.
 
 Follow the example of the triplet and array implementations in [include/fast_matrix_market/app/](include/fast_matrix_market/app).
 
-## 3rd Party Libraries Used
-Thread pool implementation from [thread-pool](https://github.com/bshoshany/thread-pool).
+# 3rd Party Libraries Used
+These are automatically fetched if using CMake.
+
+* [fast_float](https://github.com/fastfloat/fast_float) for floating-point parsing (Optional).
+* [Dragonbox](https://github.com/jk-jeon/dragonbox) for floating-point rendering (Optional).
+* [thread-pool](https://github.com/bshoshany/thread-pool) for a lightweight thread pool using C++11 threads (Bundled). 
+
+Standard library fallbacks for the above libraries are included, but both sequential and parallel performance can suffer without them.

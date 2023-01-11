@@ -12,7 +12,7 @@
 ```c++
 cs_dl *A;
 
-std::ifstream f(path_to_mtx_file);
+std::ifstream f("input.mtx");
 fast_matrix_market::read_matrix_market_cxsparse(f, &A, cs_dl_spalloc);
 ```
 Note the last argument. It is the `cs_spalloc` routine that matches the type
@@ -29,8 +29,8 @@ cs_dl *csc_A = cs_dl_compress(A);
 ```c++
 cs_dl *A;
 
-std::ofstream f(path_to_mtx_file);
+std::ofstream f("output.mtx");
 fast_matrix_market::write_matrix_market_cxsparse(f, A);
 ```
 
-The write method supports both triplet and compressed versions.
+The write method supports both triplet and compressed matrices.
