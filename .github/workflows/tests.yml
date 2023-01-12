@@ -19,7 +19,7 @@ jobs:
 
     - name: Configure
       run: |
-        cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DFAST_MATRIX_MARKET_TEST=ON
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DFAST_MATRIX_MARKET_TEST=ON -DFAST_MATRIX_MARKET_TEST_COVERAGE=ON
 
     - name: Build
       run: |
@@ -29,3 +29,10 @@ jobs:
       run: |
         cd build
         ctest -C Debug --output-on-failure --verbose
+
+    - name: Upload coverage to Codecov
+      if: contains(matrix.os, 'ubuntu')
+      uses: codecov/codecov-action@v3
+      with:
+        gcov: true
+        gcov_include: include/*

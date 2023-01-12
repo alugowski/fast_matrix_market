@@ -1,0 +1,3 @@
+ignore:
+  - "tests"
+  - "include/fast_matrix_market/3rdparty"

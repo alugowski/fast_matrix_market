@@ -4,8 +4,18 @@ cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -pedantic")
 elseif (MSVC)
-    add_compile_options(/bigobj)
-endif ()
+    # MSVC needs this flag if using lots of templates
+    add_compile_options("/bigobj")
+endif()
+
+# Code Coverage
+option(FAST_MATRIX_MARKET_TEST_COVERAGE "Code-coverage" OFF)
+if(FAST_MATRIX_MARKET_TEST_COVERAGE)
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options("--coverage")
+        add_link_options("-lgcov" "--coverage")
+    endif()
+endif()
 
 include(FetchContent)
 
