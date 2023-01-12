@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <functional>
 #include "fast_matrix_market.hpp"
 
 #include "chunking.hpp"
@@ -123,7 +124,7 @@ namespace fast_matrix_market {
                                 handler.handle(col - 1, row - 1, value);
                                 break;
                             case skew_symmetric:
-                                handler.handle(col - 1, row - 1, negate(value));
+                                handler.handle(col - 1, row - 1, std::negate<typename HANDLER::value_type>()(value));
                                 break;
                             case hermitian:
                                 handler.handle(col - 1, row - 1, complex_conjugate(value));

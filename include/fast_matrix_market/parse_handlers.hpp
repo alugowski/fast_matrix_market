@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <charconv>
 #include <complex>
+#include <functional>
 #include <iterator>
 #include <type_traits>
 
@@ -184,7 +185,7 @@ namespace fast_matrix_market {
         explicit dense_2d_call_adding_parse_handler(MAT &mat) : mat(mat) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            mat(row, col) += value;
+            mat(row, col) += std::plus<value_type>()(mat(row, col), value);
         }
 
         dense_2d_call_adding_parse_handler<MAT, IT, VT> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
@@ -208,7 +209,7 @@ namespace fast_matrix_market {
         explicit dense_row_major_adding_parse_handler(const VT_ITER& values, int64_t nrows) : values(values), nrows(nrows) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            values[col * nrows + row] = static_cast<value_type>(values[col * nrows + row] + value);
+            values[col * nrows + row] = std::plus<value_type>()(values[col * nrows + row], value);
         }
 
         dense_row_major_adding_parse_handler<VT_ITER> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
