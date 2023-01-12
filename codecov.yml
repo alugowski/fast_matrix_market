@@ -1,3 +1,10 @@
+coverage:
+  range: 70..90
+parsers:
+  gcov:
+    branch_detection:
+      conditional: no
+      loop: no
 ignore:
   - "tests"
   - "include/fast_matrix_market/3rdparty"

@@ -69,7 +69,7 @@ namespace fast_matrix_market {
 
         char* value_end;
         long long parsed_value = std::strtoll(pos, &value_end, 10);
-        if (errno != 0) {
+        if (errno != 0 || pos == value_end) {
             throw invalid_mm("Invalid integer value.");
         }
         out = static_cast<T>(parsed_value);
@@ -111,7 +111,7 @@ namespace fast_matrix_market {
 
         char* value_end;
         out = std::strtod(pos, &value_end);
-        if (errno != 0) {
+        if (errno != 0 || pos == value_end) {
             throw invalid_mm("Invalid floating-point value.");
         }
         return value_end;
@@ -125,7 +125,7 @@ namespace fast_matrix_market {
 
         char* value_end;
         out = std::strtof(pos, &value_end);
-        if (errno != 0) {
+        if (errno != 0 || pos == value_end) {
             throw invalid_mm("Invalid floating-point value.");
         }
         return value_end;
@@ -155,7 +155,7 @@ namespace fast_matrix_market {
 
         char* value_end;
         out = std::strtold(pos, &value_end);
-        if (errno != 0) {
+        if (errno != 0 || pos == value_end) {
             throw invalid_mm("Invalid floating-point value.");
         }
         return value_end;

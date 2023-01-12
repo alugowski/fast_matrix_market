@@ -89,7 +89,7 @@ namespace fast_matrix_market {
         const char *pos = chunk.c_str();
         const char *end = pos + chunk.size();
 
-        while (pos != end && pos != nullptr) {
+        while (pos != end) {
             try {
                 if ((line_num - header.header_line_count) >= header.nnz) {
                     throw invalid_mm("Too many lines in file (file too long)");
@@ -128,8 +128,7 @@ namespace fast_matrix_market {
                             case hermitian:
                                 handler.handle(col - 1, row - 1, complex_conjugate(value));
                                 break;
-                            case general:
-                                break;
+                            case general: break;
                         }
                     } else {
                         if (!test_flag(HANDLER::flags, kAppending)) {
@@ -163,7 +162,7 @@ namespace fast_matrix_market {
         const char *pos = chunk.c_str();
         const char *end = pos + chunk.size();
 
-        while (pos != end && pos != nullptr) {
+        while (pos != end) {
             try {
                 if ((line_num - header.header_line_count) >= header.nnz) {
                     throw invalid_mm("Too many lines in file (file too long)");
@@ -203,7 +202,7 @@ namespace fast_matrix_market {
         const char *pos = chunk.c_str();
         const char *end = pos + chunk.size();
 
-        while (pos != end && pos != nullptr) {
+        while (pos != end) {
             try {
                 if (col >= header.ncols) {
                     throw invalid_mm("Too many values in array (file too long)");
@@ -292,10 +291,10 @@ namespace fast_matrix_market {
         // Verify generalize symmetry is compatible with this file.
         if (header.symmetry != general && options.generalize_symmetry) {
             if (header.object != matrix) {
-                throw not_implemented("Symmetry generalization for vectors not implemented.");
+                throw invalid_mm("Invalid Symmetry: vectors cannot have symmetry. Set generalize_symmetry=false to disregard this symmetry.");
             }
             if (header.format != coordinate) {
-                throw not_implemented("Symmetry generalization for array matrices not implemented.");
+                throw invalid_mm("Invalid Symmetry: array matrices cannot have symmetry. Set generalize_symmetry=false to disregard this symmetry.");
             }
         }
 

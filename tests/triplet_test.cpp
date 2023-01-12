@@ -62,6 +62,7 @@ public:
         construct_triplet(mat, nnz);
 
         roptions.chunk_size_bytes = chunk_size;
+        woptions.chunk_size_values = chunk_size;
         roptions.num_threads = p;
         woptions.num_threads = p;
     }

@@ -126,14 +126,6 @@ namespace fast_matrix_market {
     };
 
     /**
-     * Thrown when a certain part of the Matrix Market spec has not been implemented yet.
-     */
-    class not_implemented : public fmm_error {
-    public:
-        explicit not_implemented(std::string msg): fmm_error(std::move(msg)) {}
-    };
-
-    /**
      * A value type to use for pattern matrices. Pattern Matrix Market files do not write a value column, only the
      * coordinates. Setting this as the value type signals the parser to not attempt to read a column that isn't there.
      */

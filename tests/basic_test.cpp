@@ -117,6 +117,21 @@ bool expected(const ARRAY& mat, int64_t nrows, int64_t ncols, typename ARRAY::va
     return true;
 }
 
+/**
+ * Utilities
+ */
+TEST(Utils, misc) {
+    EXPECT_FALSE(fast_matrix_market::ends_with("foo", "bar"));
+    EXPECT_TRUE(fast_matrix_market::ends_with("foobar", "bar"));
+    EXPECT_FALSE(fast_matrix_market::ends_with("", "bar"));
+
+    std::string msg("error");
+    EXPECT_EQ(fast_matrix_market::fmm_error(msg).what(), msg);
+}
+
+/**
+ * Invalid matrices
+ */
 class InvalidSuite : public testing::TestWithParam<std::string> {
 public:
     static std::vector<std::string> get_invalid_matrix_files() {
@@ -134,6 +149,7 @@ public:
 
     triplet_matrix<int64_t, double> triplet_ld;
     triplet_matrix<int64_t, std::complex<double>> triplet_lc;
+    triplet_matrix<int64_t, long double> triplet_lld;
 };
 
 TEST_P(InvalidSuite, Small) {
@@ -144,6 +160,7 @@ TEST_P(InvalidSuite, Small) {
     // Also verify sequential
     options.parallel_ok = false;
     EXPECT_THROW(read_triplet_file(GetParam(), triplet_lc, options), fast_matrix_market::invalid_mm);
+    EXPECT_THROW(read_triplet_file(GetParam(), triplet_lld, options), fast_matrix_market::invalid_mm);
 }
 
 INSTANTIATE_TEST_SUITE_P(Invalid, InvalidSuite, testing::ValuesIn(InvalidSuite::get_invalid_matrix_files()));
@@ -279,7 +296,6 @@ TEST(PlainVectorSuite, Complex) {
 /**
  * Simple header tests
  */
-
 TEST(Header, Comment) {
     // Create a vector
     sparse_vector<int64_t, double> vec;

@@ -5,6 +5,10 @@
 
 #include "fmm_tests.hpp"
 
+std::string empty = "";
+
+std::string newline_only = "\n";
+
 std::string one_line_no_newline = "1 2 3";
 
 std::string one_line_newline = "1 2 3\n";
@@ -41,6 +45,8 @@ public:
 };
 
 TEST_P(ChunkingSuite, Small) {
+    EXPECT_EQ(empty, chunk_and_recombine(empty, GetParam()));
+    EXPECT_EQ(newline_only, chunk_and_recombine(newline_only, GetParam()));
     EXPECT_EQ(one_line_no_newline, chunk_and_recombine(one_line_no_newline, GetParam()));
     EXPECT_EQ(one_line_newline, chunk_and_recombine(one_line_newline, GetParam()));
     EXPECT_EQ(short_s, chunk_and_recombine(short_s, GetParam()));
