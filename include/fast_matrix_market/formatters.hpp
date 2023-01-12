@@ -217,46 +217,56 @@ namespace fast_matrix_market {
     };
 
     /**
-     * Format dense row-major arrays.
+     * Format dense arrays.
      */
-    template<typename VT>
-    class row_major_array_formatter {
+    template<typename VT_ITER>
+    class array_formatter {
     public:
-        explicit row_major_array_formatter(const std::vector<VT> &values, int64_t nrows) : values(values), nrows(nrows), ncols(values.size() / nrows) {}
+        explicit array_formatter(const VT_ITER& values, storage_order order, int64_t nrows, int64_t ncols) :
+                values(values), order(order), nrows(nrows), ncols(ncols) {}
 
         [[nodiscard]] bool has_next() const {
-            return cur_row != nrows;
+            return cur_col != ncols;
         }
 
         class chunk {
         public:
-            explicit chunk(const std::vector<VT> &values, int64_t nrows, int64_t ncols, int64_t cur_row) :
-            values(values), nrows(nrows), ncols(ncols), cur_row(cur_row) {}
+            explicit chunk(const VT_ITER& values, storage_order order, int64_t nrows, int64_t ncols, int64_t cur_col) :
+            values(values), order(order), nrows(nrows), ncols(ncols), cur_col(cur_col) {}
 
             std::string operator()() {
                 std::string c;
                 c.reserve(ncols * 15);
 
-                for (int64_t i = 0; i < ncols; ++i) {
-                    c += value_to_string(values[(cur_row * ncols) + i]);
+                for (int64_t row = 0; row < nrows; ++row) {
+                    int64_t offset;
+                    if (order == row_major) {
+                        offset = row * ncols + cur_col;
+                    } else {
+                        offset = cur_col * nrows + row;
+                    }
+
+                    c += value_to_string(*(values + offset));
                     c += kNewline;
                 }
 
                 return c;
             }
 
-            const std::vector<VT>& values;
+            const VT_ITER values;
+            storage_order order;
             int64_t nrows, ncols;
-            int64_t cur_row;
+            int64_t cur_col;
         };
 
         chunk next_chunk([[maybe_unused]] const write_options& options) {
-            return chunk(values, nrows, ncols, cur_row++);
+            return chunk(values, order, nrows, ncols, cur_col++);
         }
 
     protected:
-        const std::vector<VT>& values;
+        const VT_ITER values;
+        storage_order order;
         int64_t nrows, ncols;
-        int64_t cur_row = 0;
+        int64_t cur_col = 0;
     };
 }

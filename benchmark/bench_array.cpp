@@ -36,7 +36,7 @@ static void array_read(benchmark::State& state) {
         array_matrix<VT> array;
 
         std::istringstream iss(string_to_read);
-        fast_matrix_market::read_matrix_market_array(iss, header, array.vals, options);
+        fast_matrix_market::read_matrix_market_array(iss, header, array.vals, fast_matrix_market::row_major, options);
         num_bytes += string_to_read.size();
         benchmark::ClobberMemory();
     }
@@ -64,6 +64,7 @@ static void array_write(benchmark::State& state) {
         fast_matrix_market::write_matrix_market_array(oss,
                                                       {array_to_write.nrows, array_to_write.ncols},
                                                       array_to_write.vals,
+                                                      fast_matrix_market::row_major,
                                                       options);
 
         num_bytes += oss.str().size();

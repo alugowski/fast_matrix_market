@@ -38,6 +38,15 @@ struct array_matrix {
 
     int64_t nrows = 0, ncols = 0;
     std::vector<VT> vals;
+    fast_matrix_market::storage_order order = fast_matrix_market::row_major;
+
+    typename std::vector<VT>::reference operator()(int64_t row, int64_t col) {
+        if (order == fast_matrix_market::row_major) {
+            return vals[row * ncols + col];
+        } else {
+            return vals[col * nrows + row];
+        }
+    }
 };
 
 template <typename IT, typename VT>

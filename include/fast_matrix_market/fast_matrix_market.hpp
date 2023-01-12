@@ -17,11 +17,13 @@
 namespace fast_matrix_market {
 
 #define FAST_MATRIX_MARKET_VERSION_MAJOR 1
-#define FAST_MATRIX_MARKET_VERSION_MINOR 0
-#define FAST_MATRIX_MARKET_VERSION_PATCH 7
+#define FAST_MATRIX_MARKET_VERSION_MINOR 1
+#define FAST_MATRIX_MARKET_VERSION_PATCH 0
 
     constexpr std::string_view kSpace = " ";
     constexpr std::string_view kNewline = "\n";
+
+    enum storage_order {row_major = 1, col_major = 2};
 
     struct read_options {
         /**

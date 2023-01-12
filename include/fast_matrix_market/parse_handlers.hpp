@@ -200,24 +200,33 @@ namespace fast_matrix_market {
      * Dense array handler (row-major).
      */
     template <typename VT_ITER>
-    class dense_row_major_adding_parse_handler {
+    class dense_adding_parse_handler {
     public:
         using coordinate_type = int64_t;
         using value_type = typename std::iterator_traits<VT_ITER>::value_type;
         static constexpr int flags = kParallelOk | kDense;
 
-        explicit dense_row_major_adding_parse_handler(const VT_ITER& values, int64_t nrows) : values(values), nrows(nrows) {}
+        explicit dense_adding_parse_handler(const VT_ITER& values, storage_order order, int64_t nrows, int64_t ncols) :
+        values(values), order(order), nrows(nrows), ncols(ncols) {}
 
         void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-            values[col * nrows + row] = std::plus<value_type>()(values[col * nrows + row], value);
+            int64_t offset;
+            if (order == row_major) {
+                offset = row * ncols + col;
+            } else {
+                offset = col * nrows + row;
+            }
+            values[offset] = std::plus<value_type>()(values[offset], value);
         }
 
-        dense_row_major_adding_parse_handler<VT_ITER> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
+        dense_adding_parse_handler<VT_ITER> get_chunk_handler([[maybe_unused]] int64_t offset_from_begin) {
             return *this;
         }
 
     protected:
         VT_ITER values;
+        storage_order order;
         int64_t nrows;
+        int64_t ncols;
     };
 }

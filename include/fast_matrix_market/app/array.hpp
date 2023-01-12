@@ -12,13 +12,17 @@ namespace fast_matrix_market {
     template <typename VT>
     void read_matrix_market_array(std::istream &instream,
                                   matrix_market_header& header,
-                                  std::vector<VT>& row_major_values,
+                                  std::vector<VT>& values,
+                                  storage_order order = row_major,
                                   const read_options& options = {}) {
         read_header(instream, header);
 
-        row_major_values.resize(header.nrows * header.ncols);
+        if (!values.empty()) {
+            values.resize(0);
+        }
+        values.resize(header.nrows * header.ncols);
 
-        auto handler = dense_row_major_adding_parse_handler(row_major_values.begin(), header.nrows);
+        auto handler = dense_adding_parse_handler(values.begin(), order, header.nrows, header.ncols);
         read_matrix_market_body(instream, header, handler, 1, options);
     }
 
@@ -28,10 +32,11 @@ namespace fast_matrix_market {
     template <typename VT, typename DIM>
     void read_matrix_market_array(std::istream &instream,
                                   DIM& nrows, DIM& ncols,
-                                  std::vector<VT>& row_major_values,
+                                  std::vector<VT>& values,
+                                  storage_order order = row_major,
                                   const read_options& options = {}) {
         matrix_market_header header;
-        read_matrix_market_array(instream, header, row_major_values, options);
+        read_matrix_market_array(instream, header, values, order, options);
         nrows = header.nrows;
         ncols = header.ncols;
     }
@@ -42,13 +47,14 @@ namespace fast_matrix_market {
     template <typename VT>
     void write_matrix_market_array(std::ostream &os,
                                    matrix_market_header header,
-                                   const std::vector<VT>& row_major_array,
+                                   const std::vector<VT>& values,
+                                   storage_order order = row_major,
                                    const write_options& options = {}) {
-        if (header.nrows * header.ncols != (int64_t)row_major_array.size()) {
+        if (header.nrows * header.ncols != (int64_t)values.size()) {
             throw invalid_argument("Array length does not match matrix dimensions.");
         }
 
-        header.nnz = row_major_array.size();
+        header.nnz = values.size();
 
         header.object = matrix;
         header.field = get_field_type::value<VT>();
@@ -57,7 +63,7 @@ namespace fast_matrix_market {
 
         write_header(os, header);
 
-        auto formatter = row_major_array_formatter(row_major_array, header.nrows);
+        auto formatter = array_formatter(values.cbegin(), order, header.nrows, header.ncols);
         write_body(os, formatter, options);
     }
 }

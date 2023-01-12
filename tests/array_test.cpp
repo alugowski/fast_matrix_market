@@ -34,6 +34,7 @@ std::string write_mtx(MatType& array, const fast_matrix_market::write_options& o
     fast_matrix_market::write_matrix_market_array(oss,
                                                   {array.nrows, array.ncols},
                                                   array.vals,
+                                                  fast_matrix_market::row_major,
                                                   options);
     return oss.str();
 }
@@ -42,7 +43,7 @@ template <typename MatType>
 MatType read_mtx(const std::string& source, const fast_matrix_market::read_options& options) {
     std::istringstream iss(source);
     MatType array;
-    fast_matrix_market::read_matrix_market_array(iss, array.nrows, array.ncols, array.vals, options);
+    fast_matrix_market::read_matrix_market_array(iss, array.nrows, array.ncols, array.vals, fast_matrix_market::row_major, options);
     return array;
 }
 

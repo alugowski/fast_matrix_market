@@ -82,6 +82,7 @@ INSTANTIATE_TEST_SUITE_P(
         CSCTest,
         CSCTest,
         ::testing::Values("eye3.mtx"
+                          , "row_3by4.mtx"
                           , "kepner_gilbert_graph.mtx"
                           , "vector_array.mtx"
                           , "vector_coordinate.mtx"

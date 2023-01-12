@@ -56,9 +56,9 @@ namespace fast_matrix_market {
 
         write_header(os, header);
 
-        auto formatter = triplet_formatter(rows.begin(), rows.end(),
-                                           cols.begin(), cols.end(),
-                                           values.begin(), header.field == pattern ? values.begin() : values.end());
+        auto formatter = triplet_formatter(rows.cbegin(), rows.cend(),
+                                           cols.cbegin(), cols.cend(),
+                                           values.cbegin(), header.field == pattern ? values.cbegin() : values.cend());
         write_body(os, formatter, options);
     }
 }

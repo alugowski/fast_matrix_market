@@ -27,7 +27,24 @@ void read_array_file(const std::string& matrix_filename, ARRAY& array, fast_matr
     std::ifstream f(kTestMatrixDir + "/" + matrix_filename);
     options.chunk_size_bytes = 1;
 
-    fast_matrix_market::read_matrix_market_array(f, array.nrows, array.ncols, array.vals, options);
+    fast_matrix_market::read_matrix_market_array(f, array.nrows, array.ncols, array.vals, array.order, options);
+}
+
+template <typename ARRAY>
+void read_array_string(const std::string& s, ARRAY& array, fast_matrix_market::read_options options = {}) {
+    std::istringstream f(s);
+    options.chunk_size_bytes = 1;
+
+    fast_matrix_market::read_matrix_market_array(f, array.nrows, array.ncols, array.vals, array.order, options);
+}
+
+template <typename ARRAY>
+std::string write_array_string(ARRAY& array, fast_matrix_market::write_options options = {}) {
+    std::ostringstream f;
+    options.chunk_size_values = 1;
+
+    fast_matrix_market::write_matrix_market_array(f, {array.nrows, array.ncols}, array.vals, array.order, options);
+    return f.str();
 }
 
 template <typename VECTOR>
@@ -209,7 +226,23 @@ TEST(PlainTripletSuite, Complex) {
  */
 template <typename MAT>
 class PlainArraySuite : public testing::Test {
-    MAT ignored;
+public:
+    MAT swap_storage_order(MAT& src) {
+        MAT dst;
+        dst.nrows = src.nrows;
+        dst.ncols = src.ncols;
+        dst.vals.resize(src.vals.size());
+
+        dst.order = (src.order == fast_matrix_market::row_major ? fast_matrix_market::col_major : fast_matrix_market::row_major);
+
+        for (int64_t row = 0; row < dst.nrows; row++) {
+            for (int64_t col = 0; col < dst.ncols; col++) {
+                dst(row, col) = src(row, col);
+            }
+        }
+
+        return dst;
+    }
 };
 
 using PlainArrayTypes = ::testing::Types<
@@ -244,6 +277,35 @@ TEST(PlainArraySuite, Complex) {
 
     array_matrix<double> non_complex;
     EXPECT_THROW(read_array_file("eye3_complex.mtx", non_complex), fast_matrix_market::complex_incompatible);
+}
+
+TYPED_TEST(PlainArraySuite, StorageOrder) {
+    TypeParam array_rm, array_cm, array;
+    array_rm.order = fast_matrix_market::row_major;
+    array_cm.order = fast_matrix_market::col_major;
+    read_array_file("row_3by4.mtx", array_rm);
+    read_array_file("row_3by4.mtx", array_cm);
+    EXPECT_TRUE(expected(array_rm, 3, 4, 10));
+    EXPECT_TRUE(expected(array_cm, 3, 4, 10));
+
+    // ensure transposed values work as expected
+    TypeParam rm_swapped = PlainArraySuite<TypeParam>::swap_storage_order(array_cm);
+    EXPECT_EQ(array_rm, rm_swapped);
+    TypeParam cm_swapped = PlainArraySuite<TypeParam>::swap_storage_order(array_rm);
+    EXPECT_EQ(array_cm, cm_swapped);
+
+    // ensure read/write works as expected
+    array.order = fast_matrix_market::row_major;
+    read_array_string(write_array_string(array_rm), array);
+    EXPECT_EQ(array_rm, array);
+    read_array_string(write_array_string(array_cm), array);
+    EXPECT_EQ(array_rm, array);
+
+    array.order = fast_matrix_market::col_major;
+    read_array_string(write_array_string(array_cm), array);
+    EXPECT_EQ(array_cm, array);
+    read_array_string(write_array_string(array_rm), array);
+    EXPECT_EQ(array_cm, array);
 }
 
 /**
