@@ -135,7 +135,14 @@ namespace fast_matrix_market {
      * Negation of a pattern_placeholder_type needed to support symmetry generalization.
      * Skew-symmetric symmetry negates values.
      */
-    inline pattern_placeholder_type operator-(const pattern_placeholder_type& o) { return o; }
+    inline pattern_placeholder_type negate(const pattern_placeholder_type& o) { return o; }
+
+    inline bool negate(const bool o) { return !o; }
+
+    template <typename T>
+    T negate(const T o) {
+        return -o;
+    }
 
     /**
      * Zero generator for generalize symmetry with ExtraZeroElement.
