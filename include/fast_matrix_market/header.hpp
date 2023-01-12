@@ -17,36 +17,6 @@ namespace fast_matrix_market {
      */
     const std::string kMatrixMarketBanner2 = "%MatrixMarket";
 
-
-    enum object_type {matrix, vector};
-    const std::map<object_type, const std::string> object_map = {
-            {matrix, "matrix"},
-            {vector, "vector"},
-    };
-
-    enum format_type {array, coordinate};
-    const std::map<format_type, const std::string> format_map = {
-            {array, "array"},
-            {coordinate, "coordinate"},
-    };
-
-    enum field_type {real, double_, complex, integer, pattern};
-    const std::map<field_type, const std::string> field_map = {
-            {real, "real"},
-            {double_, "double"},
-            {complex, "complex"},
-            {integer, "integer"},
-            {pattern, "pattern"},
-    };
-
-    enum symmetry_type {general, symmetric, skew_symmetric, hermitian};
-    const std::map<symmetry_type, const std::string> symmetry_map = {
-            {general, "general"},
-            {symmetric, "symmetric"},
-            {skew_symmetric, "skew-symmetric"},
-            {hermitian, "hermitian"},
-    };
-
     template <typename ENUM>
     ENUM parse_enum(const std::string& s, std::map<ENUM, const std::string> mp) {
         // Make s lowercase for a case-insensitive match
@@ -61,35 +31,6 @@ namespace fast_matrix_market {
         }
         throw invalid_argument(std::string("Invalid value: ") + s);
     }
-
-    /**
-     * Matrix Market header
-     */
-    struct matrix_market_header {
-        matrix_market_header() = default;
-        matrix_market_header(int64_t nrows, int64_t ncols) : nrows(nrows), ncols(ncols) {}
-
-        object_type object = matrix;
-        format_type format = coordinate;
-        field_type field = real;
-        symmetry_type symmetry = general;
-
-        // Matrix dimensions
-        int64_t nrows = 0;
-        int64_t ncols = 0;
-
-        // Vector dimensions
-        int64_t vector_length = 0;
-
-        // Number of non-zeros for sparse objects
-        int64_t nnz = 0;
-
-        // Comment written in the file header
-        std::string comment;
-
-        // Number of lines the header takes up. This is populated by read_header().
-        int64_t header_line_count = 1;
-    };
 
     /**
      * Calculate how many nonzero elements will need to be stored.

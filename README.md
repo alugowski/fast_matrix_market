@@ -42,7 +42,9 @@ The benchmarks are fully automated and intended for you to run on your system. T
 
 * All `field` types supported: `integer`, `real`, `double`, `complex`, `pattern`.
 
-  * Support all C++ integer types, `bool`, `float`, `double`, `long double`, and `std::complex<>`.
+  * Support all C++ types.
+    * `float`, `double`, `long double`, `std::complex<>`, integer types, `bool`.
+    * Arbitrary types. [Example using `std::string`](tests/user_type_test.cpp).
 
   * Automatic `std::complex` up-cast. For example, `real` files can be read into `std::complex<double>` arrays.
 

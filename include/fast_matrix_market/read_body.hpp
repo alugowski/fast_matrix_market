@@ -124,7 +124,7 @@ namespace fast_matrix_market {
                                 handler.handle(col - 1, row - 1, value);
                                 break;
                             case skew_symmetric:
-                                handler.handle(col - 1, row - 1, std::negate<typename HANDLER::value_type>()(value));
+                                handler.handle(col - 1, row - 1, negate(value));
                                 break;
                             case hermitian:
                                 handler.handle(col - 1, row - 1, complex_conjugate(value));

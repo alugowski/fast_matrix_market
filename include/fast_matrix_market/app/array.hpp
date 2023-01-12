@@ -57,7 +57,7 @@ namespace fast_matrix_market {
         header.nnz = values.size();
 
         header.object = matrix;
-        header.field = get_field_type::value<VT>();
+        header.field = get_field_type((const VT*)nullptr);
         header.format = array;
         header.symmetry = general;
 

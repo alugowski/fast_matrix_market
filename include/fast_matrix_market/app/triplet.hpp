@@ -21,7 +21,7 @@ namespace fast_matrix_market {
         values.resize(get_storage_nnz(header, options));
 
         auto handler = triplet_parse_handler(rows.begin(), cols.begin(), values.begin());
-        read_matrix_market_body(instream, header, handler, 1, options);
+        read_matrix_market_body(instream, header, handler, pattern_default_value((const VT*)nullptr), options);
     }
 
     /**
@@ -51,7 +51,7 @@ namespace fast_matrix_market {
         header.nnz = values.size();
 
         header.object = matrix;
-        header.field = get_field_type::value<VT>();
+        header.field = get_field_type((const VT*)nullptr);
         header.format = coordinate;
 
         write_header(os, header);

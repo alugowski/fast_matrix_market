@@ -14,10 +14,12 @@
 #include <sstream>
 #include <utility>
 
+#include "types.hpp"
+
 namespace fast_matrix_market {
 
 #define FAST_MATRIX_MARKET_VERSION_MAJOR 1
-#define FAST_MATRIX_MARKET_VERSION_MINOR 1
+#define FAST_MATRIX_MARKET_VERSION_MINOR 2
 #define FAST_MATRIX_MARKET_VERSION_PATCH 0
 
     constexpr std::string_view kSpace = " ";
@@ -138,6 +140,16 @@ namespace fast_matrix_market {
      * Skew-symmetric symmetry negates values.
      */
     inline pattern_placeholder_type operator-(const pattern_placeholder_type& o) { return o; }
+
+    template <typename T>
+    T negate(const T& o) {
+        return std::negate<T>()(o);
+    }
+
+    template <typename T>
+    T pattern_default_value([[maybe_unused]] const T* type) {
+        return 1;
+    }
 
     /**
      * Zero generator for generalize symmetry with ExtraZeroElement.

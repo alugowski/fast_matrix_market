@@ -11,27 +11,34 @@ namespace fast_matrix_market {
     /**
      * Get header field type based on the C++ type of the values to be written.
      */
-    struct get_field_type {
-        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
-        static field_type value() {
-            return integer;
-        }
+    template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+    field_type get_field_type([[maybe_unused]] const T* type) {
+        return integer;
+    }
 
-        template <typename T, typename std::enable_if<std::is_floating_point<T>::value, int>::type = 0>
-        static field_type value() {
-            return real;
-        }
+    /**
+     * Get header field type based on the C++ type of the values to be written.
+     */
+    template <typename T, typename std::enable_if<std::is_floating_point<T>::value, int>::type = 0>
+    field_type get_field_type([[maybe_unused]] const T* type) {
+        return real;
+    }
 
-        template <typename T, typename std::enable_if<is_complex<T>::value, int>::type = 0>
-        static field_type value() {
-            return complex;
-        }
+    /**
+     * Get header field type based on the C++ type of the values to be written.
+     */
+    template <typename T, typename std::enable_if<is_complex<T>::value, int>::type = 0>
+    field_type get_field_type([[maybe_unused]] const T* type) {
+        return complex;
+    }
 
-        template <typename T, typename std::enable_if<std::is_same<T, pattern_placeholder_type>::value, int>::type = 0>
-        static field_type value() {
-            return pattern;
-        }
-    };
+    /**
+     * Get header field type based on the C++ type of the values to be written.
+     */
+    template <typename T, typename std::enable_if<std::is_same<T, pattern_placeholder_type>::value, int>::type = 0>
+    field_type get_field_type([[maybe_unused]] const T* type) {
+        return pattern;
+    }
 
     /**
      * Write Matrix Market body sequentially.

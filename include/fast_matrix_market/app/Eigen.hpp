@@ -223,7 +223,7 @@ namespace fast_matrix_market {
 
         header.object = matrix;
         if (header.field != pattern) {
-            header.field = get_field_type::value<typename SparseType::Scalar>();
+            header.field = get_field_type((const typename SparseType::Scalar*)nullptr);
         }
         header.format = coordinate;
 
@@ -246,7 +246,7 @@ namespace fast_matrix_market {
         header.nnz = mat.rows() * mat.cols();
 
         header.object = matrix;
-        header.field = get_field_type::value<typename DenseType::Scalar>();
+        header.field = get_field_type((const typename DenseType::Scalar*)nullptr);
         header.format = array;
 
         write_header(os, header);

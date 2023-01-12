@@ -54,7 +54,7 @@ namespace fast_matrix_market {
         if (cs->x == nullptr) {
             header.field = pattern;
         } else {
-            header.field = get_field_type::value<typename std::remove_reference<decltype(*(cs->x))>::type>();
+            header.field = get_field_type(cs->x);
         }
         header.format = coordinate;
 
