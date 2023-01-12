@@ -157,8 +157,11 @@ namespace fast_matrix_market {
                     // iterate over rows in column
                     IND_ITER row_end = ind_begin + *(ptr_iter+1);
                     IND_ITER row_iter = ind_begin + *ptr_iter;
-                    VAL_ITER val_iter = val_begin + *ptr_iter;
-                    for (; row_iter != row_end; ++row_iter, ++val_iter) {
+                    VAL_ITER val_iter = val_begin;
+                    if (val_begin != val_end) {
+                        val_iter = val_begin + *ptr_iter;
+                    }
+                    for (; row_iter != row_end; ++row_iter) {
                         auto row = int_to_string(*row_iter + 1);
 
                         if (transpose) {

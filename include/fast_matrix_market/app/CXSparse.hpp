@@ -64,7 +64,7 @@ namespace fast_matrix_market {
             // compressed
             auto formatter = csc_formatter(cs->p, cs->p + cs->n, // explicitly no +1
                                            cs->i, cs->i + cs->nzmax,
-                                           cs->x, header.field == pattern ? nullptr : cs->x + cs->nzmax,
+                                           cs->x, header.field == pattern ? cs->x : cs->x + cs->nzmax,
                                            false);
             write_body(os, formatter, options);
         } else {

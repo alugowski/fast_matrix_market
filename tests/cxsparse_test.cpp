@@ -58,10 +58,10 @@ TEST(CXSparse, WritePattern) {
 }
 
 
-class CSCTest : public ::testing::Test {
+class CSCTest : public ::testing::TestWithParam<std::string> {
 protected:
-    void SetUp() override {
-        triplet = read_mtx(kTestMatrixDir + "/eye3.mtx");
+    void load(const std::string& fname) {
+        triplet = read_mtx(kTestMatrixDir + fname);
         csc = cs_dl_compress(triplet);
     }
 
@@ -69,11 +69,23 @@ protected:
     cs_dl* csc = nullptr;
 };
 
-TEST_F(CSCTest, ReadSmall) {
-    EXPECT_EQ(-1, csc->nz);
-    EXPECT_EQ(3, csc->nzmax);
-}
+TEST_P(CSCTest, ReadSmall) {
+    load(GetParam());
 
-TEST_F(CSCTest, WriteSmall) {
+    EXPECT_EQ(-1, csc->nz);
+    EXPECT_GT(csc->nzmax, 0);
+
     EXPECT_EQ(write_mtx(triplet), write_mtx(csc));
 }
+
+INSTANTIATE_TEST_SUITE_P(
+        CSCTest,
+        CSCTest,
+        ::testing::Values("eye3.mtx"
+                          , "kepner_gilbert_graph.mtx"
+                          , "vector_array.mtx"
+                          , "vector_coordinate.mtx"
+                          , "vector_array.mtx"
+                          , "vector_coordinate.mtx"
+                          , "eye3_pattern.mtx"
+        ));
