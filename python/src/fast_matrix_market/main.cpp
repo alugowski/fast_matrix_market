@@ -2,6 +2,7 @@
 // Use of this source code is governed by the BSD 2-clause license found in the LICENSE.txt file.
 
 #include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 
 #include <fstream>
 #include <fast_matrix_market/fast_matrix_market.hpp>
@@ -102,8 +103,6 @@ py::dict header_to_dict(fmm::matrix_market_header& header) {
     dict["format"] = get_header_format(header);
     dict["field"] = get_header_field(header);
     dict["symmetry"] = get_header_symmetry(header);
-    dict["nrows"] = header.nrows;
-    dict["ncols"] = header.ncols;
 
     return dict;
 }
@@ -123,8 +122,102 @@ std::string header_repr(const fmm::matrix_market_header& header) {
 }
 
 
-int add(int i, int j) {
-    return i + j;
+struct read_cursor {
+    read_cursor(const std::string& filename): stream(std::make_unique<std::ifstream>(filename)) {}
+    read_cursor(const std::string& str, bool string_source): stream(std::make_unique<std::istringstream>(str)) {}
+
+    std::unique_ptr<std::istream> stream;
+
+    fmm::matrix_market_header header{};
+    fmm::read_options options{};
+};
+
+void open_read_rest(read_cursor& cursor) {
+    // This is done later in Python to match SciPy behavior
+    cursor.options.generalize_symmetry = false;
+
+    // read header
+    fmm::read_header(*cursor.stream, cursor.header);
+}
+
+read_cursor open_read_file(const std::string& filename, int num_threads) {
+    read_cursor cursor(filename);
+    // Set options
+    cursor.options.num_threads = num_threads;
+
+    open_read_rest(cursor);
+    return cursor;
+}
+
+read_cursor open_read_string(const std::string& str, int num_threads) {
+    read_cursor cursor(str, true);
+    // Set options
+    cursor.options.num_threads = num_threads;
+
+    open_read_rest(cursor);
+    return cursor;
+}
+
+/**
+ * Read Matrix Market body into a numpy array.
+ *
+ * @param cursor Opened by open_read().
+ * @param array NumPy array. Assumed to be the correct size and zeroed out.
+ */
+template <typename T>
+void read_body_array(read_cursor& cursor, py::array_t<T>& array) {
+    auto unchecked = array.mutable_unchecked();
+    auto handler = fmm::dense_2d_call_adding_parse_handler<decltype(unchecked), int64_t, T>(unchecked);
+    fmm::read_matrix_market_body(*cursor.stream, cursor.header, handler, 1, cursor.options);
+}
+
+
+/**
+ * Triplet handler. Separate row, column, value iterators.
+ */
+template<typename IT, typename VT, typename IT_ARR, typename VT_ARR>
+class triplet_numpy_parse_handler {
+public:
+    using coordinate_type = IT;
+    using value_type = VT;
+    static constexpr int flags = fmm::kParallelOk;
+
+    explicit triplet_numpy_parse_handler(IT_ARR& rows,
+                                         IT_ARR& cols,
+                                         VT_ARR& values,
+                                         int64_t offset = 0) : rows(rows), cols(cols), values(values), offset(offset) {}
+
+    void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
+        rows(offset) = row;
+        cols(offset) = col;
+        values(offset) = value;
+
+        ++offset;
+    }
+
+    triplet_numpy_parse_handler<IT, VT, IT_ARR, VT_ARR> get_chunk_handler(int64_t offset_from_begin) {
+        return triplet_numpy_parse_handler(rows, cols, values, offset_from_begin);
+    }
+
+protected:
+    IT_ARR& rows;
+    IT_ARR& cols;
+    VT_ARR& values;
+
+    int64_t offset;
+};
+
+
+template <typename IT, typename VT>
+void read_body_triplet(read_cursor& cursor, py::array_t<IT>& row, py::array_t<IT>& col, py::array_t<VT>& data) {
+    if (row.size() != cursor.header.nnz || col.size() != cursor.header.nnz || data.size() != cursor.header.nnz) {
+        throw std::invalid_argument("NumPy Array sizes need to equal matrix nnz");
+    }
+    auto row_unchecked = row.mutable_unchecked();
+    auto col_unchecked = col.mutable_unchecked();
+    auto data_unchecked = data.mutable_unchecked();
+    auto handler = triplet_numpy_parse_handler<IT, VT, decltype(row_unchecked), decltype(data_unchecked)>(row_unchecked, col_unchecked, data_unchecked);
+    fmm::read_matrix_market_body(*cursor.stream, cursor.header, handler, 1, cursor.options);
 }
 
 
@@ -156,19 +249,36 @@ PYBIND11_MODULE(_core, m) {
     )pbdoc")
     .def("__repr__", [](const fmm::matrix_market_header& header) { return header_repr(header); });
 
-    m.def("_read_header_file", &read_header_file, R"pbdoc(
+    m.def("read_header_file", &read_header_file, R"pbdoc(
         Read Matrix Market header from a file.
     )pbdoc");
-    m.def("_read_header_string", &read_header_string, R"pbdoc(
+    m.def("read_header_string", &read_header_string, R"pbdoc(
         Read Matrix Market header from a string.
     )pbdoc");
-    m.def("_write_header_file", &write_header_file, R"pbdoc(
+    m.def("write_header_file", &write_header_file, R"pbdoc(
         Write Matrix Market header to a file.
     )pbdoc");
-    m.def("_write_header_string", &write_header_string, R"pbdoc(
+    m.def("write_header_string", &write_header_string, R"pbdoc(
         Write Matrix Market header to a string.
     )pbdoc");
 
+    py::class_<read_cursor>(m, "_read_cursor")
+    .def_readonly("header", &read_cursor::header);
+
+    m.def("open_read_file", &open_read_file, py::arg("path"), py::arg("num_threads")=0);
+    m.def("open_read_string", &open_read_string, py::arg("str"), py::arg("num_threads")=0);
+
+    m.def("read_body_array", &read_body_array<int64_t>);
+    m.def("read_body_array", &read_body_array<double>);
+    m.def("read_body_array", &read_body_array<std::complex<double>>);
+
+    m.def("read_body_triplet", &read_body_triplet<int32_t, double>);
+    m.def("read_body_triplet", &read_body_triplet<int32_t, int64_t>);
+    m.def("read_body_triplet", &read_body_triplet<int32_t, std::complex<double>>);
+
+    m.def("read_body_triplet", &read_body_triplet<int64_t, double>);
+    m.def("read_body_triplet", &read_body_triplet<int64_t, int64_t>);
+    m.def("read_body_triplet", &read_body_triplet<int64_t, std::complex<double>>);
 
 #ifdef VERSION_INFO
 #define STRINGIFY(x) #x

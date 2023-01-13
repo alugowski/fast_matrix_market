@@ -60,7 +60,8 @@ class TestHeader(unittest.TestCase):
                        object="matrix", format="coordinate", field="real", symmetry="general")
 
         s = fmm.write_header(h, None)
-        h2 = fmm.read_header(s=s)
+        p = Path(s)
+        h2 = fmm.read_header(s)
         self.assertEqual(h.to_dict(), h2.to_dict())
 
 
