@@ -8,11 +8,6 @@ execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_version.sh include
 project(fast_matrix_market VERSION ${FMM_VERSION} LANGUAGES CXX)
 message("Fast Matrix Market version ${PROJECT_VERSION}")
 
-# These options get switched on if compiler support demands it.
-# You may force their use to override compiler-provided routines.
-option(FMM_USE_FAST_FLOAT "Whether or not to use the fast_float library" OFF)
-option(FMM_USE_DRAGONBOX "Whether or not to use the Dragonbox library" OFF)
-
 # Main
 add_library(fast_matrix_market INTERFACE)
 # add alias so the project can be used with add_subdirectory
@@ -40,7 +35,7 @@ if (from_chars_double_supported)
     target_compile_definitions(fast_matrix_market INTERFACE FMM_FROM_CHARS_DOUBLE_SUPPORTED)
 else()
     message("std::from_chars<double> not detected. Need fast_float.")
-    set(FMM_USE_FAST_FLOAT ON)
+    option(FMM_USE_FAST_FLOAT "Whether or not to use the fast_float library" ON)
 endif()
 
 if (from_chars_long_double_supported)
@@ -64,7 +59,7 @@ if (to_chars_double_supported)
     target_compile_definitions(fast_matrix_market INTERFACE FMM_TO_CHARS_DOUBLE_SUPPORTED)
 else()
     message("std::to_chars<double> not detected. Need Dragonbox.")
-    set(FMM_USE_DRAGONBOX ON)
+    option(FMM_USE_DRAGONBOX "Whether or not to use the Dragonbox library" ON)
 endif()
 
 if (to_chars_long_double_supported)
