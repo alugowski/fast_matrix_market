@@ -166,7 +166,7 @@ namespace fast_matrix_market {
         return lines_read;
     }
 
-    inline bool write_header(std::ostream& os, matrix_market_header& header) {
+    inline bool write_header(std::ostream& os, const matrix_market_header& header) {
         // Write the banner
         os << kMatrixMarketBanner << kSpace;
         os << object_map.at(header.object) << kSpace;

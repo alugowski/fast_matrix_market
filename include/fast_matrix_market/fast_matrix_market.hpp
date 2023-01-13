@@ -20,7 +20,7 @@ namespace fast_matrix_market {
 
 #define FAST_MATRIX_MARKET_VERSION_MAJOR 1
 #define FAST_MATRIX_MARKET_VERSION_MINOR 2
-#define FAST_MATRIX_MARKET_VERSION_PATCH 0
+#define FAST_MATRIX_MARKET_VERSION_PATCH 1
 
     constexpr std::string_view kSpace = " ";
     constexpr std::string_view kNewline = "\n";
