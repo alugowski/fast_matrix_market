@@ -1,6 +1,6 @@
 # Copyright (C) 2022-2023 Adam Lugowski. All rights reserved.
 # Use of this source code is governed by the BSD 2-clause license found in the LICENSE.txt file.
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 import unittest
 
@@ -35,17 +35,17 @@ class TestSciPy(unittest.TestCase):
 
                 m = scipy.io.mmread(mtx)
                 header = fmm.read_header(mtx)
-                m_ffm = fmm.read_scipy(mtx)
+                m_fmm = fmm.read_scipy(mtx)
                 self.assertEqual(m.shape, header.shape)
-                self.assertEqual(m.shape, m_ffm.shape)
+                self.assertEqual(m.shape, m_fmm.shape)
 
                 if "array" in mtx_name:
-                    np.testing.assert_almost_equal(m, m_ffm)
+                    np.testing.assert_almost_equal(m, m_fmm)
                 else:
-                    self.assertEqual(m.shape, m_ffm.shape)
-                    np.testing.assert_almost_equal(m.row, m_ffm.row)
-                    np.testing.assert_almost_equal(m.col, m_ffm.col)
-                    np.testing.assert_almost_equal(m.data, m_ffm.data)
+                    self.assertEqual(m.shape, m_fmm.shape)
+                    np.testing.assert_almost_equal(m.row, m_fmm.row)
+                    np.testing.assert_almost_equal(m.col, m_fmm.col)
+                    np.testing.assert_almost_equal(m.data, m_fmm.data)
 
     def test_scipy_crashes(self):
         for mtx in sorted(list((matrices / "scipy_crashes").glob("*.mtx*"))):
@@ -58,24 +58,37 @@ class TestSciPy(unittest.TestCase):
                     _ = scipy.io.mmread(mtx)
 
                 # Verify fast_matrix_market can read the file
-                m_ffm = fmm.read_scipy(mtx)
-                self.assertGreater(m_ffm.shape[0], 0)
-                self.assertGreater(m_ffm.shape[1], 0)
+                m_fmm = fmm.read_scipy(mtx)
+                self.assertGreater(m_fmm.shape[0], 0)
+                self.assertGreater(m_fmm.shape[1], 0)
 
     def test_scipy_write(self):
         for mtx in sorted(list(matrices.glob("*.mtx"))):
             mtx_name = str(mtx.stem)
             with self.subTest(msg=mtx_name):
                 m = scipy.io.mmread(mtx)
-                m_ffm = fmm.read_scipy(mtx)
+                m_fmm = fmm.read_scipy(mtx)
+                # m_fmm = m_fmm.tocsc()
+                fmms = fmm.write_scipy(None, m_fmm, field=("pattern" if "pattern" in mtx_name else None))
+
+                if "pattern" in mtx_name:
+                    # Make sure pattern header is written
+                    self.assertIn("pattern", fmms)
+
+                m2 = scipy.io.mmread(StringIO(fmms))
 
                 if "array" in mtx.stem:
-                    fmms = fmm.write_scipy(None, m_ffm)
-                    m2 = scipy.io.mmread(BytesIO(fmms.encode('latin1')))
-
                     np.testing.assert_almost_equal(m, m2)
                 else:
-                    self.skipTest("only array")
+                    self.assertEqual(m.shape, m2.shape)
+                    self.assertEqual(m.data.dtype, m2.data.dtype)
+                    np.testing.assert_almost_equal(m.row, m2.row)
+                    np.testing.assert_almost_equal(m.col, m2.col)
+                    np.testing.assert_almost_equal(m.data, m2.data)
+        # TODO: writing symmetry
+        # TODO: casting types to particular field
+        # TODO: write CSC/CSR tests
+        # TODO: write other scipy matrix types
 
 
 if __name__ == '__main__':

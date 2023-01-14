@@ -280,6 +280,116 @@ void write_array(write_cursor& cursor, py::array_t<T>& array) {
     fmm::write_body(*cursor.stream, formatter, cursor.options);
 }
 
+
+template<typename ARR, typename T>
+class py_array_iterator
+{
+public:
+    using value_type = T;
+    using difference_type = int64_t;
+
+    py_array_iterator(ARR& array) : array(array), index(0) {}
+    py_array_iterator(ARR& array, int64_t index) : array(array), index(index) {}
+    py_array_iterator(const py_array_iterator &rhs) : array(rhs.array), index(rhs.index) {}
+    /* py_array_iterator& operator=(Type* rhs) {index = rhs; return *this;} */
+    py_array_iterator& operator=(const py_array_iterator &rhs) {index = rhs.index; return *this;}
+    py_array_iterator& operator+=(difference_type rhs) {index += rhs; return *this;}
+    py_array_iterator& operator-=(difference_type rhs) {index -= rhs; return *this;}
+    T operator*() const {return array(index);}
+//    T* operator->() const {return index;}
+    T operator[](difference_type rhs) const {return array(index + rhs);}
+
+    py_array_iterator& operator++() {++index; return *this;}
+    py_array_iterator& operator--() {--index; return *this;}
+    py_array_iterator operator++(int) {py_array_iterator tmp(*this); ++index; return tmp;}
+    py_array_iterator operator--(int) {py_array_iterator tmp(*this); --index; return tmp;}
+    /* py_array_iterator operator+(const py_array_iterator& rhs) {return py_array_iterator(array, index+rhs.index);} */
+    difference_type operator-(const py_array_iterator& rhs) const {return index-rhs.index;}
+    py_array_iterator operator+(difference_type rhs) const {return py_array_iterator(array, index+rhs);}
+    py_array_iterator operator-(difference_type rhs) const {return py_array_iterator(array, index-rhs);}
+    friend py_array_iterator operator+(difference_type lhs, const py_array_iterator& rhs) {return py_array_iterator(rhs.array, lhs+rhs.index);}
+    friend py_array_iterator operator-(difference_type lhs, const py_array_iterator& rhs) {return py_array_iterator(rhs.array, lhs-rhs.index);}
+
+    bool operator==(const py_array_iterator& rhs) const {return index == rhs.index;}
+    bool operator!=(const py_array_iterator& rhs) const {return index != rhs.index;}
+    bool operator>(const py_array_iterator& rhs) const {return index > rhs.index;}
+    bool operator<(const py_array_iterator& rhs) const {return index < rhs.index;}
+    bool operator>=(const py_array_iterator& rhs) const {return index >= rhs.index;}
+    bool operator<=(const py_array_iterator& rhs) const {return index <= rhs.index;}
+private:
+    ARR& array;
+    int64_t index;
+};
+
+
+template <typename IT, typename VT>
+void write_triplet(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
+                   py::array_t<IT>& rows, py::array_t<IT>& cols, py::array_t<VT>& data) {
+    if (rows.size() != cols.size()) {
+        throw std::invalid_argument("len(row) must equal len(col).");
+    }
+    if (rows.size() != data.size() && data.size() != 0) {
+        throw std::invalid_argument("len(row) must equal len(data).");
+    }
+
+    cursor.header.nrows = std::get<0>(shape);
+    cursor.header.ncols = std::get<1>(shape);
+    cursor.header.nnz = rows.size();
+
+    cursor.header.object = fmm::matrix;
+    cursor.header.field = data.size() == 0 ? fmm::pattern : fmm::get_field_type((const VT*)nullptr);
+    cursor.header.format = fmm::coordinate;
+    cursor.header.symmetry = fmm::general;
+
+    fmm::write_header(*cursor.stream, cursor.header);
+
+    auto rows_unchecked = rows.unchecked();
+    auto cols_unchecked = cols.unchecked();
+    auto data_unchecked = data.unchecked();
+    auto formatter = fmm::triplet_formatter(py_array_iterator<decltype(rows_unchecked), IT>(rows_unchecked),
+                                            py_array_iterator<decltype(rows_unchecked), IT>(rows_unchecked, rows_unchecked.size()),
+                                            py_array_iterator<decltype(cols_unchecked), IT>(cols_unchecked),
+                                            py_array_iterator<decltype(cols_unchecked), IT>(cols_unchecked, cols_unchecked.size()),
+                                            py_array_iterator<decltype(data_unchecked), VT>(data_unchecked),
+                                            py_array_iterator<decltype(data_unchecked), VT>(data_unchecked, data_unchecked.size()));
+    fmm::write_body(*cursor.stream, formatter, cursor.options);
+}
+
+template <typename IT, typename VT>
+void write_csc(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
+                   py::array_t<IT>& indptr, py::array_t<IT>& indices, py::array_t<VT>& data, bool is_csr) {
+    if (indptr.size() != std::get<1>(shape) + 1) {
+        throw std::invalid_argument("indptr length does not match matrix shape.");
+    }
+    if (indices.size() != data.size() && data.size() != 0) {
+        throw std::invalid_argument("len(indices) must equal len(data).");
+    }
+
+    cursor.header.nrows = std::get<0>(shape);
+    cursor.header.ncols = std::get<1>(shape);
+    cursor.header.nnz = indices.size();
+
+    cursor.header.object = fmm::matrix;
+    cursor.header.field = data.size() == 0 ? fmm::pattern : fmm::get_field_type((const VT*)nullptr);
+    cursor.header.format = fmm::coordinate;
+    cursor.header.symmetry = fmm::general;
+
+    fmm::write_header(*cursor.stream, cursor.header);
+
+    auto indptr_unchecked = indptr.unchecked();
+    auto indices_unchecked = indices.unchecked();
+    auto data_unchecked = data.unchecked();
+    auto formatter = fmm::csc_formatter(py_array_iterator<decltype(indptr_unchecked), IT>(indptr_unchecked),
+                                        py_array_iterator<decltype(indptr_unchecked), IT>(indptr_unchecked, indptr_unchecked.size() - 1),
+                                        py_array_iterator<decltype(indices_unchecked), IT>(indices_unchecked),
+                                        py_array_iterator<decltype(indices_unchecked), IT>(indices_unchecked, indices_unchecked.size()),
+                                        py_array_iterator<decltype(data_unchecked), VT>(data_unchecked),
+                                        py_array_iterator<decltype(data_unchecked), VT>(data_unchecked, data_unchecked.size()),
+                                        is_csr);
+    fmm::write_body(*cursor.stream, formatter, cursor.options);
+}
+
+
 PYBIND11_MODULE(_core, m) {
     m.doc() = R"pbdoc(
         fast_matrix_market
@@ -331,12 +441,12 @@ PYBIND11_MODULE(_core, m) {
     m.def("read_body_array", &read_body_array<double>);
     m.def("read_body_array", &read_body_array<std::complex<double>>);
 
-    m.def("read_body_triplet", &read_body_triplet<int32_t, double>);
     m.def("read_body_triplet", &read_body_triplet<int32_t, int64_t>);
+    m.def("read_body_triplet", &read_body_triplet<int32_t, double>);
     m.def("read_body_triplet", &read_body_triplet<int32_t, std::complex<double>>);
 
-    m.def("read_body_triplet", &read_body_triplet<int64_t, double>);
     m.def("read_body_triplet", &read_body_triplet<int64_t, int64_t>);
+    m.def("read_body_triplet", &read_body_triplet<int64_t, double>);
     m.def("read_body_triplet", &read_body_triplet<int64_t, std::complex<double>>);
 
     // Write methods
@@ -348,10 +458,28 @@ PYBIND11_MODULE(_core, m) {
     m.def("open_write_string", &open_write_string);
     m.def("write_header_only", &write_header_only);
 
+    // Write arrays
     m.def("write_array", &write_array<int64_t>);
     m.def("write_array", &write_array<double>);
     m.def("write_array", &write_array<std::complex<double>>);
 
+    // Write triplets
+    m.def("write_triplet", &write_triplet<int32_t, int64_t>);
+    m.def("write_triplet", &write_triplet<int32_t, double>);
+    m.def("write_triplet", &write_triplet<int32_t, std::complex<double>>);
+
+    m.def("write_triplet", &write_triplet<int64_t, int64_t>);
+    m.def("write_triplet", &write_triplet<int64_t, double>);
+    m.def("write_triplet", &write_triplet<int64_t, std::complex<double>>);
+
+    // Write CSC/CSR
+    m.def("write_csc", &write_csc<int32_t, int64_t>);
+    m.def("write_csc", &write_csc<int32_t, double>);
+    m.def("write_csc", &write_csc<int32_t, std::complex<double>>);
+
+    m.def("write_csc", &write_csc<int64_t, int64_t>);
+    m.def("write_csc", &write_csc<int64_t, double>);
+    m.def("write_csc", &write_csc<int64_t, std::complex<double>>);
 #ifdef VERSION_INFO
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)

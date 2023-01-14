@@ -146,8 +146,21 @@ def read_array(source, parallelism=None) -> numpy.ndarray:
     return _read_body_array(_get_read_cursor(source, parallelism))
 
 
+def write_array(target, a, comment='', parallelism=None):
+    import numpy as np
+    a = np.asarray(a)
+    cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
+    _core.write_array(cursor, a)
+
+
 def read_triplet(source, parallelism=None):
     return _read_body_triplet(_get_read_cursor(source, parallelism))
+
+
+def write_triplet(target, a, shape, comment='', parallelism=None):
+    data, row, col = a
+    cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
+    _core.write_triplet(cursor, shape, row, col, data)
 
 
 def read_scipy(source, parallelism=None):
@@ -167,14 +180,44 @@ def write_scipy(target, a, comment='', field=None, precision=None, symmetry=None
 
     cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
 
+    if isinstance(a, list) or isinstance(a, tuple) or hasattr(a, '__array__'):
+        a = np.asarray(a)
+
     if isinstance(a, np.ndarray):
+        # Write dense numpy arrays
         _core.write_array(cursor, a)
         # TODO: remove this:
         if target is None:
             return cursor.get_string()
+        return
 
-    if isinstance(a, scipy.sparse.coo_matrix):
-        raise
+    if scipy.sparse.isspmatrix(a):
+        # Write sparse scipy matrices
+
+        is_compressed = (isinstance(a, scipy.sparse.csc_matrix) or isinstance(a, scipy.sparse.csr_matrix))
+
+        if not is_compressed:
+            # convert everything except CSC/CSR to triplet
+            a = a.tocoo()
+
+        data = a.data
+        if field == "pattern":
+            # _core writes a pattern matrix if the values are left empty
+            data = np.zeros(0)
+
+        if is_compressed:
+            # CSC and CSR can be written directly
+            is_csr = isinstance(a, scipy.sparse.csr_matrix)
+            _core.write_csc(cursor, a.shape, a.indptr, a.indices, data, is_csr)
+        else:
+            _core.write_triplet(cursor, a.shape, a.row, a.col, data)
+
+        # TODO: remove this:
+        if target is None:
+            return cursor.get_string()
+        return
+
+    raise ValueError("unknown matrix type: %s" % type(a))
 
 
 mmread = read_scipy
