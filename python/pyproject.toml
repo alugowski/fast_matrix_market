@@ -25,7 +25,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest"]
+test = ["pytest", "scipy"]
 
 
 [tool.scikit-build]

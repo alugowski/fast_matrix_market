@@ -21,3 +21,5 @@ As of SciPy version 1.10.0:
 * On most machines SciPy can only handle 32-bit row/column indices.
 * By default `mmwrite()` searches for any symmetries in the matrix. This can be very slow, though can be disabled with `symmetry="general"`
 * `mmwrite()` converts to `coo_matrix` first. `fast_matrix_market` can write directly from CSC/CSR without conversion.
+* Defined size types. 
+* Load complex96

@@ -40,7 +40,7 @@ The benchmarks are fully automated and intended for you to run on your system. T
 
 * `coordinate` and `array`, each readable into either sparse or dense structures.
 
-* All `field` types supported: `integer`, `real`, `double`, `complex`, `pattern`.
+* All `field` types supported: `integer`, `real`, `complex`, `pattern`.
 
   * Support all C++ types.
     * `float`, `double`, `long double`, `std::complex<>`, integer types, `bool`.

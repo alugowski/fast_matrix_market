@@ -461,25 +461,35 @@ PYBIND11_MODULE(_core, m) {
     // Write arrays
     m.def("write_array", &write_array<int64_t>);
     m.def("write_array", &write_array<double>);
+    m.def("write_array", &write_array<long double>);
     m.def("write_array", &write_array<std::complex<double>>);
+    m.def("write_array", &write_array<std::complex<long double>>);
 
     // Write triplets
     m.def("write_triplet", &write_triplet<int32_t, int64_t>);
     m.def("write_triplet", &write_triplet<int32_t, double>);
+    m.def("write_triplet", &write_triplet<int32_t, long double>);
     m.def("write_triplet", &write_triplet<int32_t, std::complex<double>>);
+    m.def("write_triplet", &write_triplet<int32_t, std::complex<long double>>);
 
     m.def("write_triplet", &write_triplet<int64_t, int64_t>);
     m.def("write_triplet", &write_triplet<int64_t, double>);
+    m.def("write_triplet", &write_triplet<int64_t, long double>);
     m.def("write_triplet", &write_triplet<int64_t, std::complex<double>>);
+    m.def("write_triplet", &write_triplet<int64_t, std::complex<long double>>);
 
     // Write CSC/CSR
     m.def("write_csc", &write_csc<int32_t, int64_t>);
     m.def("write_csc", &write_csc<int32_t, double>);
+    m.def("write_csc", &write_csc<int32_t, long double>);
     m.def("write_csc", &write_csc<int32_t, std::complex<double>>);
+    m.def("write_csc", &write_csc<int32_t, std::complex<long double>>);
 
     m.def("write_csc", &write_csc<int64_t, int64_t>);
     m.def("write_csc", &write_csc<int64_t, double>);
+    m.def("write_csc", &write_csc<int64_t, long double>);
     m.def("write_csc", &write_csc<int64_t, std::complex<double>>);
+    m.def("write_csc", &write_csc<int64_t, std::complex<long double>>);
 #ifdef VERSION_INFO
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
