@@ -221,6 +221,64 @@ void read_body_triplet(read_cursor& cursor, py::array_t<IT>& row, py::array_t<IT
 }
 
 
+struct write_cursor {
+    write_cursor(const std::string& filename): stream(std::make_unique<std::ofstream>(filename)) {}
+    write_cursor(): stream(std::make_unique<std::ostringstream>()), is_string(true) {}
+
+    std::unique_ptr<std::ostream> stream;
+    bool is_string = false;
+
+    fmm::matrix_market_header header{};
+    fmm::write_options options{};
+
+    std::string get_string() {
+        if (!is_string) {
+            return "";
+        }
+        return static_cast<std::ostringstream*>(stream.get())->str();
+    }
+};
+
+write_cursor open_write_file(const std::string& filename, const fmm::matrix_market_header& header, int num_threads) {
+    write_cursor cursor(filename);
+    // Set options
+    cursor.options.num_threads = num_threads;
+    cursor.header = header;
+    return cursor;
+}
+
+write_cursor open_write_string(fmm::matrix_market_header& header, int num_threads) {
+    write_cursor cursor;
+    // Set options
+    cursor.options.num_threads = num_threads;
+    cursor.header = header;
+    return cursor;
+}
+
+void write_header_only(write_cursor& cursor) {
+    fmm::write_header(*cursor.stream, cursor.header);
+}
+
+template <typename T>
+void write_array(write_cursor& cursor, py::array_t<T>& array) {
+    if (array.ndim() != 2) {
+        throw std::invalid_argument("Only 2D arrays supported.");
+    }
+
+    cursor.header.nrows = array.shape(0);
+    cursor.header.ncols = array.shape(1);
+
+    cursor.header.object = fmm::matrix;
+    cursor.header.field = fmm::get_field_type((const T*)nullptr);
+    cursor.header.format = fmm::array;
+    cursor.header.symmetry = fmm::general;
+
+    fmm::write_header(*cursor.stream, cursor.header);
+
+    auto unchecked = array.unchecked();
+    auto formatter = fmm::dense_2d_call_formatter<decltype(unchecked), int64_t>(unchecked, cursor.header.nrows, cursor.header.ncols);
+    fmm::write_body(*cursor.stream, formatter, cursor.options);
+}
 
 PYBIND11_MODULE(_core, m) {
     m.doc() = R"pbdoc(
@@ -262,6 +320,7 @@ PYBIND11_MODULE(_core, m) {
         Write Matrix Market header to a string.
     )pbdoc");
 
+    // Read methods
     py::class_<read_cursor>(m, "_read_cursor")
     .def_readonly("header", &read_cursor::header);
 
@@ -279,6 +338,19 @@ PYBIND11_MODULE(_core, m) {
     m.def("read_body_triplet", &read_body_triplet<int64_t, double>);
     m.def("read_body_triplet", &read_body_triplet<int64_t, int64_t>);
     m.def("read_body_triplet", &read_body_triplet<int64_t, std::complex<double>>);
+
+    // Write methods
+    py::class_<write_cursor>(m, "_write_cursor")
+    .def_readwrite("header", &write_cursor::header)
+    .def("get_string", &write_cursor::get_string);
+
+    m.def("open_write_file", &open_write_file);
+    m.def("open_write_string", &open_write_string);
+    m.def("write_header_only", &write_header_only);
+
+    m.def("write_array", &write_array<int64_t>);
+    m.def("write_array", &write_array<double>);
+    m.def("write_array", &write_array<std::complex<double>>);
 
 #ifdef VERSION_INFO
 #define STRINGIFY(x) #x

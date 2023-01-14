@@ -269,4 +269,63 @@ namespace fast_matrix_market {
         int64_t nrows, ncols;
         int64_t cur_col = 0;
     };
+
+    /**
+     * Formats any structure that has:
+     * operator(row, col) - returns the value at (row, col)
+     *
+     * Includes Eigen Dense Matrix/Vector and NumPy arrays.
+     */
+    template<typename DenseType, typename DIM>
+    class dense_2d_call_formatter {
+    public:
+        explicit dense_2d_call_formatter(const DenseType& mat, DIM nrows, DIM ncols) : mat(mat), nrows(nrows), ncols(ncols) {}
+
+        [[nodiscard]] bool has_next() const {
+            return col_iter < ncols;
+        }
+
+        class chunk {
+        public:
+            explicit chunk(const DenseType& mat, DIM nrows, DIM col_iter, DIM col_end) :
+                    mat(mat), nrows(nrows), col_iter(col_iter), col_end(col_end) {}
+
+            std::string operator()() {
+                std::string chunk;
+                chunk.reserve((col_end - col_iter) * nrows * 15);
+
+                // iterate over assigned columns
+                for (; col_iter != col_end; ++col_iter) {
+
+                    for (DIM row = 0; row < nrows; ++row)
+                    {
+                        chunk += value_to_string(mat(row, col_iter));
+                        chunk += kNewline;
+                    }
+                }
+
+                return chunk;
+            }
+
+            const DenseType& mat;
+            DIM nrows;
+            DIM col_iter, col_end;
+        };
+
+        chunk next_chunk(const write_options& options) {
+            auto num_columns = (DIM)(nrows * (double)options.chunk_size_values + 1);
+            num_columns = std::min(num_columns, ncols - col_iter);
+
+            DIM col_end = col_iter + num_columns;
+            chunk c(mat, nrows, col_iter, col_end);
+            col_iter = col_end;
+
+            return c;
+        }
+
+    protected:
+        const DenseType& mat;
+        DIM nrows, ncols;
+        DIM col_iter = 0;
+    };
 }

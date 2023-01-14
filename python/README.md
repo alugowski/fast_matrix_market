@@ -18,4 +18,4 @@ header.to_dict()
 
 As of SciPy version 1.10.0:
 * `scipy.io.mmread` throws a `ValueError` on `object=vector` files.
-* `coordinate` files use `intc` indices, which are usually `int32`. This limits row/column index range.
+* On most machines SciPy can only handle 32-bit row/column indices.

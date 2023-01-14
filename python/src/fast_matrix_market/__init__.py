@@ -62,7 +62,7 @@ def _read_body_triplet(cursor, generalize_symmetry=True):
     return (data, (i, j)), cursor.header.shape
 
 
-def _get_cursor(source, parallelism=None):
+def _get_read_cursor(source, parallelism=None):
     if parallelism is None:
         parallelism = PARALLELISM
 
@@ -78,6 +78,30 @@ def _get_cursor(source, parallelism=None):
     return _core.open_read_file(str(source), parallelism)
 
 
+def _get_write_cursor(source, h=None, comment=None, parallelism=None):
+    if parallelism is None:
+        parallelism = PARALLELISM
+
+    if not h:
+        if comment is not None:
+            h = header(comment=comment)
+        else:
+            h = header()
+
+    if not source:
+        # string
+        # TODO: REMOVE
+        return _core.open_write_string(h, parallelism)
+
+    try:
+        source = os.fspath(source)
+    except TypeError:
+        # Stream object. Not supported yet.
+        raise
+
+    return _core.open_write_file(str(source), comment, parallelism)
+
+
 def read_header(source=None) -> header:
     """
     Read a Matrix Market header from a file or from a string.
@@ -85,7 +109,7 @@ def read_header(source=None) -> header:
     :param source: filename or string
     :return: parsed header object
     """
-    return _get_cursor(source, 1).header
+    return _get_read_cursor(source, 1).header
 
 
 def write_header(h: header, target=None):
@@ -105,7 +129,9 @@ def write_header(h: header, target=None):
             raise
         _core.write_header_file(h, str(target))
     else:
-        return _core.write_header_string(h)
+        cursor = _get_write_cursor(None, h, parallelism=1)
+        _core.write_header_only(cursor)
+        return cursor.get_string()
 
 
 def read_array(source, parallelism=None) -> numpy.ndarray:
@@ -117,15 +143,15 @@ def read_array(source, parallelism=None) -> numpy.ndarray:
     :return: numpy array
     """
 
-    return _read_body_array(_get_cursor(source, parallelism))
+    return _read_body_array(_get_read_cursor(source, parallelism))
 
 
 def read_triplet(source, parallelism=None):
-    return _read_body_triplet(_get_cursor(source, parallelism))
+    return _read_body_triplet(_get_read_cursor(source, parallelism))
 
 
 def read_scipy(source, parallelism=None):
-    cursor = _get_cursor(source, parallelism)
+    cursor = _get_read_cursor(source, parallelism)
 
     if cursor.header.format == "array":
         return _read_body_array(cursor)
@@ -135,8 +161,20 @@ def read_scipy(source, parallelism=None):
         return coo_matrix(triplet, shape=shape)
 
 
-def write_scipy():
-    pass
+def write_scipy(target, a, comment='', field=None, precision=None, symmetry=None, parallelism=None):
+    import numpy as np
+    import scipy.sparse
+
+    cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
+
+    if isinstance(a, np.ndarray):
+        _core.write_array(cursor, a)
+        # TODO: remove this:
+        if target is None:
+            return cursor.get_string()
+
+    if isinstance(a, scipy.sparse.coo_matrix):
+        raise
 
 
 mmread = read_scipy

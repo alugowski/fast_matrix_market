@@ -151,66 +151,6 @@ namespace fast_matrix_market {
     };
 
     /**
-     * Format Eigen Dense Matrix/Vector.
-     *
-     * Supports any structure that has:
-     * .cols() - returns number of columns
-     * .rows() - returns number of rows
-     * .operator(row, col) - returns the value at (row, col)
-     */
-    template<typename DenseType>
-    class dense_Eigen_formatter {
-    public:
-        typedef typename DenseType::Index MatIndex;
-        explicit dense_Eigen_formatter(const DenseType& mat) : mat(mat) {}
-
-        [[nodiscard]] bool has_next() const {
-            return col_iter < mat.cols();
-        }
-
-        class chunk {
-        public:
-            explicit chunk(const DenseType& mat, MatIndex col_iter, MatIndex col_end) :
-                    mat(mat), col_iter(col_iter), col_end(col_end) {}
-
-            std::string operator()() {
-                std::string chunk;
-                chunk.reserve((col_end - col_iter) * mat.rows() * 15);
-
-                // iterate over assigned columns
-                for (; col_iter != col_end; ++col_iter) {
-
-                    for (MatIndex row = 0; row < mat.rows(); ++row)
-                    {
-                        chunk += value_to_string(mat(row, col_iter));
-                        chunk += kNewline;
-                    }
-                }
-
-                return chunk;
-            }
-
-            const DenseType& mat;
-            MatIndex col_iter, col_end;
-        };
-
-        chunk next_chunk(const write_options& options) {
-            auto num_columns = (MatIndex)(mat.rows() * (double)options.chunk_size_values + 1);
-            num_columns = std::min(num_columns, mat.cols() - col_iter);
-
-            MatIndex col_end = col_iter + num_columns;
-            chunk c(mat, col_iter, col_end);
-            col_iter = col_end;
-
-            return c;
-        }
-
-    protected:
-        const DenseType& mat;
-        MatIndex col_iter = 0;
-    };
-
-    /**
      * Write an Eigen sparse matrix to MatrixMarket.
      */
     template <typename SparseType>
@@ -251,7 +191,7 @@ namespace fast_matrix_market {
 
         write_header(os, header);
 
-        auto formatter = dense_Eigen_formatter(mat);
+        auto formatter = dense_2d_call_formatter(mat, mat.rows(), mat.cols());
         write_body(os, formatter, options);
     }
 }
