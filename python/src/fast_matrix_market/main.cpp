@@ -59,24 +59,16 @@ std::string get_header_symmetry(const fmm::matrix_market_header& header) {
 }
 
 void set_header_object(fmm::matrix_market_header& header, const std::string& value) {
-    try {
-        header.object = fmm::parse_enum<fmm::object_type>(value, fmm::object_map);
-    } catch (fmm::invalid_argument e) { throw std::invalid_argument(e.what()); }
+    header.object = fmm::parse_enum<fmm::object_type>(value, fmm::object_map);
 }
 void set_header_format(fmm::matrix_market_header& header, const std::string& value) {
-    try {
-        header.format = fmm::parse_enum<fmm::format_type>(value, fmm::format_map);
-    } catch (fmm::invalid_argument e) { throw std::invalid_argument(e.what()); }
+    header.format = fmm::parse_enum<fmm::format_type>(value, fmm::format_map);
 }
 void set_header_field(fmm::matrix_market_header& header, const std::string& value) {
-    try {
-        header.field = fmm::parse_enum<fmm::field_type>(value, fmm::field_map);
-    } catch (fmm::invalid_argument e) { throw std::invalid_argument(e.what()); }
+    header.field = fmm::parse_enum<fmm::field_type>(value, fmm::field_map);
 }
 void set_header_symmetry(fmm::matrix_market_header& header, const std::string& value) {
-    try {
-        header.symmetry = fmm::parse_enum<fmm::symmetry_type>(value, fmm::symmetry_map);
-    } catch (fmm::invalid_argument e) { throw std::invalid_argument(e.what()); }
+    header.symmetry = fmm::parse_enum<fmm::symmetry_type>(value, fmm::symmetry_map);
 }
 
 fmm::matrix_market_header create_header(const std::tuple<int64_t, int64_t>& shape, int64_t nnz,
@@ -396,7 +388,17 @@ PYBIND11_MODULE(_core, m) {
         -----------------------
     )pbdoc";
 
-    py::register_exception<fmm::invalid_mm>(m, "InvalidMatrixMarket");
+    // translate exceptions
+    py::register_local_exception_translator([](std::exception_ptr p) {
+        try {
+            if (p) {
+                std::rethrow_exception(p);
+            }
+        } catch (const fmm::fmm_error &e) {
+            // Everything we throw maps best to ValueError
+            PyErr_SetString(PyExc_ValueError, e.what());
+        }
+    });
 
     py::class_<fmm::matrix_market_header>(m, "header")
     .def(py::init<>())

@@ -177,6 +177,14 @@ class TestSciPy(unittest.TestCase):
             # fast_matrix_market throws if value is out of range
             _ = fmm.read_scipy(mtx, long_type=True)
 
+    def test_invalid(self):
+        # use the invalid matrices from the C++ tests
+        for mtx in sorted(list((matrices / ".." / ".." / ".." / "tests" / "matrices" / "invalid").glob("*.mtx"))):
+            mtx_name = str(mtx.stem)
+            with self.subTest(msg=mtx_name):
+                with self.assertRaises(ValueError):
+                    fmm.read_scipy(mtx)
+
 
 if __name__ == '__main__':
     unittest.main()
