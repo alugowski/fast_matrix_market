@@ -14,6 +14,14 @@
 #endif
 
 
+fast_matrix_market::matrix_market_header read_header_file(const std::string& matrix_filename) {
+    std::ifstream f(kTestMatrixDir + "/" + matrix_filename);
+
+    fast_matrix_market::matrix_market_header header;
+    fast_matrix_market::read_header(f, header);
+    return header;
+}
+
 template <typename TRIPLET>
 void read_triplet_file(const std::string& matrix_filename, TRIPLET& triplet, fast_matrix_market::read_options options = {}) {
     std::ifstream f(kTestMatrixDir + "/" + matrix_filename);
@@ -399,8 +407,6 @@ std::ostream& operator<<(std::ostream& os, const symmetry_problem& p) {
  */
 class SymmetrySuite : public testing::TestWithParam<symmetry_problem> {
 public:
-
-
     static std::vector<symmetry_problem> get_symmetry_problems() {
         const std::string kSymmetrySubdir = "symmetry/";
         const std::string kSymmetryMatrixDir = kTestMatrixDir + kSymmetrySubdir;
@@ -422,10 +428,31 @@ public:
         std::sort(ret.begin(), ret.end());
         return ret;
     }
+
+    static std::vector<symmetry_problem> get_array_symmetry_problems() {
+        const std::string kSymmetrySubdir = "symmetry_array/";
+        const std::string kSymmetryMatrixDir = kTestMatrixDir + kSymmetrySubdir;
+
+        std::vector<symmetry_problem> ret;
+        for (const auto & mtx : std::filesystem::directory_iterator(kSymmetryMatrixDir)) {
+            auto filename = mtx.path().filename().string();
+            if (!fast_matrix_market::ends_with(filename, "_general.mtx")) {
+                continue;
+            }
+
+            symmetry_problem p{};
+            p.symmetric = kSymmetrySubdir + std::regex_replace(filename, std::regex("_general"), "");
+            p.general = kSymmetrySubdir + filename;
+            ret.push_back(p);
+        }
+
+        std::sort(ret.begin(), ret.end());
+        return ret;
+    }
 };
 
 using SymMat = triplet_matrix<int64_t, std::complex<double>>;
-TEST_P(SymmetrySuite, Small) {
+TEST_P(SymmetrySuite, SmallTripletCoordinate) {
     SymMat symmetric, sym_zero, sym_dup, general_zero, general_dup;
 
     fast_matrix_market::read_options ro_no_gen{};
@@ -454,4 +481,67 @@ TEST_P(SymmetrySuite, Small) {
     EXPECT_EQ(sym_dup, general_dup);
 }
 
+class SymmetryTripletArraySuite : public SymmetrySuite {};
+
+TEST_P(SymmetryTripletArraySuite, SmallTripletArray) {
+    SymMat symmetric, symmetric_no_gen, general;
+
+    fast_matrix_market::read_options options_no_gen{};
+    options_no_gen.generalize_symmetry = false;
+
+    fast_matrix_market::read_options options_gen{};
+    options_gen.generalize_symmetry = true;
+
+    symmetry_problem p = GetParam();
+    fast_matrix_market::matrix_market_header header = read_header_file(p.symmetric);
+    read_triplet_file(p.symmetric, symmetric, options_gen);
+    read_triplet_file(p.symmetric, symmetric_no_gen, options_no_gen);
+    read_triplet_file(p.general, general, options_gen);
+
+    EXPECT_EQ(symmetric.nrows, general.nrows);
+    EXPECT_EQ(symmetric.ncols, general.ncols);
+    EXPECT_EQ(symmetric.vals.size(), fast_matrix_market::get_storage_nnz(header, options_gen));
+    EXPECT_GT(symmetric.vals.size(), symmetric_no_gen.vals.size());
+
+    if (header.symmetry == fast_matrix_market::skew_symmetric) {
+        // skew symmetric matrices have zero main diagonals and the loader does not emit these zeros.
+        // The general matrix does have them set, however.
+        // Manually add them back in so equality can be checked.
+        for (int64_t i = 0; i < header.nrows; ++i) {
+            symmetric.rows.emplace_back(i);
+            symmetric.cols.emplace_back(i);
+            symmetric.vals.emplace_back(0);
+        }
+    }
+    EXPECT_EQ(symmetric.vals.size(), general.vals.size());
+    EXPECT_EQ(symmetric, general);
+}
+
+class SymmetryArraySuite : public SymmetrySuite {};
+
+using SymDenseMat = array_matrix<std::complex<double>>;
+TEST_P(SymmetryArraySuite, SmallArray) {
+    SymDenseMat symmetric, symmetric_no_gen, general;
+
+    fast_matrix_market::read_options options_no_gen{};
+    options_no_gen.generalize_symmetry = false;
+
+    fast_matrix_market::read_options options_gen{};
+    options_gen.generalize_symmetry = true;
+
+    symmetry_problem p = GetParam();
+    read_array_file(p.symmetric, symmetric, options_gen);
+    read_array_file(p.symmetric, symmetric_no_gen, options_no_gen);
+    read_array_file(p.general, general, options_gen);
+
+    EXPECT_EQ(symmetric.nrows, general.nrows);
+    EXPECT_EQ(symmetric.ncols, general.ncols);
+    EXPECT_EQ(symmetric.vals.size(), symmetric_no_gen.vals.size());
+    EXPECT_EQ(symmetric.vals.size(), general.vals.size());
+    EXPECT_FALSE(symmetric == symmetric_no_gen);
+    EXPECT_EQ(symmetric, general);
+}
+
 INSTANTIATE_TEST_SUITE_P(SymmetrySuite, SymmetrySuite, testing::ValuesIn(SymmetrySuite::get_symmetry_problems()));
+INSTANTIATE_TEST_SUITE_P(TripletLoadsArray, SymmetryTripletArraySuite, testing::ValuesIn(SymmetrySuite::get_array_symmetry_problems()));
+INSTANTIATE_TEST_SUITE_P(Array, SymmetryArraySuite, testing::ValuesIn(SymmetrySuite::get_array_symmetry_problems()));

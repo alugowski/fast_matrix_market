@@ -1,0 +1,12 @@
+%%MatrixMarket matrix array real general
+% 3-by-3. Skew-symmetric matrices must have diagonal = 0
+3 3
+0
+22
+33
+-22
+0
+44
+-33
+-44
+0

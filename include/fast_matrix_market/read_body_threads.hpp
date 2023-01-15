@@ -106,7 +106,7 @@ namespace fast_matrix_market {
                 typename HANDLER::coordinate_type col = body_line / header.nrows;
 
                 parse_futures.push(pool.submit([=]() mutable {
-                    read_chunk_array(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, row, col);
+                    read_chunk_array(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, options, row, col);
                 }));
             } else if (header.object == matrix) {
                 parse_futures.push(pool.submit([=]() mutable {

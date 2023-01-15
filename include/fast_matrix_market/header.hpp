@@ -38,10 +38,40 @@ namespace fast_matrix_market {
      * generalize symmetry is selected then this function will calculate the total needed.
      */
     inline int64_t get_storage_nnz(const matrix_market_header& header, const read_options options) {
-        if (header.symmetry != general && options.generalize_symmetry) {
-            return 2 * header.nnz;
-        } else {
+        if (header.object == vector) {
             return header.nnz;
+        }
+
+        if (header.format == coordinate) {
+            if (header.symmetry != general && options.generalize_symmetry) {
+                return 2 * header.nnz;
+            } else {
+                return header.nnz;
+            }
+        } else {
+            auto diag_count = header.nrows;
+            auto off_diag_count = header.nrows * header.ncols - diag_count;
+            auto off_diag_half = off_diag_count / 2;
+
+            if (options.generalize_symmetry) {
+                if (header.symmetry == skew_symmetric) {
+                    // skew-symmetric diagonals must be zero
+                    return off_diag_count;
+                } else {
+                    return header.nnz;
+                }
+            } else {
+                switch (header.symmetry) {
+                    case symmetric:
+                        return off_diag_half + diag_count;
+                    case skew_symmetric:
+                        return off_diag_half;
+                    case hermitian:
+                        return off_diag_half + diag_count;
+                    case general:
+                        return header.nnz;
+                }
+            }
         }
     }
 

@@ -197,11 +197,21 @@ namespace fast_matrix_market {
 
     template<typename HANDLER>
     int64_t read_chunk_array(const std::string &chunk, const matrix_market_header &header, int64_t line_num,
-                             HANDLER &handler,
+                             HANDLER &handler, const read_options &options,
                              typename HANDLER::coordinate_type &row,
                              typename HANDLER::coordinate_type &col) {
         const char *pos = chunk.c_str();
         const char *end = pos + chunk.size();
+
+        if (header.symmetry == skew_symmetric) {
+            if (row == 0 && col == 0 && header.nrows > 0) {
+                // skew-symmetric matrices have zero diagonals
+//                if (test_flag(HANDLER::flags, kDense)) {
+//                    handler.handle(row, col, get_zero<typename HANDLER::value_type>());
+//                }
+                row = 1;
+            }
+        }
 
         while (pos != end) {
             try {
@@ -217,11 +227,40 @@ namespace fast_matrix_market {
 
                 handler.handle(row, col, value);
 
-                // Matrix Market is column-major.
+                if (row != col && options.generalize_symmetry) {
+                    switch (header.symmetry) {
+                        case symmetric:
+                            handler.handle(col, row, value);
+                            break;
+                        case skew_symmetric:
+                            handler.handle(col, row, negate(value));
+                            break;
+                        case hermitian:
+                            handler.handle(col, row, complex_conjugate(value));
+                            break;
+                        case general:
+                            break;
+                    }
+                }
+
+                // Matrix Market is column-major, advance down the column
                 ++row;
                 if (row == header.nrows) {
                     ++col;
-                    row = 0;
+                    if (header.symmetry == general) {
+                        row = 0;
+                    } else {
+                        row = col;
+                        if (header.symmetry == skew_symmetric) {
+                            // skew-symmetric matrices have zero diagonals
+//                            if (test_flag(HANDLER::flags, kDense)) {
+//                                handler.handle(row, col, get_zero<typename HANDLER::value_type>());
+//                            }
+                            if (row < header.nrows-1) {
+                                ++row;
+                            }
+                        }
+                    }
                 }
 
                 ++line_num;
@@ -277,7 +316,7 @@ namespace fast_matrix_market {
             std::string chunk = get_next_chunk(instream, options);
 
             // parse the chunk
-            line_num = read_chunk_array(chunk, header, line_num, handler, row, col);
+            line_num = read_chunk_array(chunk, header, line_num, handler, options, row, col);
         }
 
         return line_num;
@@ -294,9 +333,6 @@ namespace fast_matrix_market {
             if (header.object != matrix) {
                 throw invalid_mm("Invalid Symmetry: vectors cannot have symmetry. Set generalize_symmetry=false to disregard this symmetry.");
             }
-            if (header.format != coordinate) {
-                throw invalid_mm("Invalid Symmetry: array matrices cannot have symmetry. Set generalize_symmetry=false to disregard this symmetry.");
-            }
         }
 
         // compute how many lines we expect to see
@@ -306,6 +342,11 @@ namespace fast_matrix_market {
         bool threads = options.parallel_ok && options.num_threads != 1 && test_flag(HANDLER::flags, kParallelOk);
 
         threads = limit_parallelism_for_value_type<typename HANDLER::value_type>(threads);
+
+        if (header.symmetry != general && header.format == array) {
+            // Parallel array loader does not handle symmetry
+            threads = false;
+        }
 
         if (header.format == coordinate && test_flag(HANDLER::flags, kDense)) {
             // Potential race condition if the file contains duplicates.
@@ -324,7 +365,10 @@ namespace fast_matrix_market {
 
         // verify the file is not truncated
         if (line_num < expected_line_count) {
-            throw invalid_mm(std::string("Truncated file. Expected another ") + std::to_string(expected_line_count - line_num) + " lines.");
+            if (!(header.symmetry != general && header.format == array)) {
+                throw invalid_mm(std::string("Truncated file. Expected another ") +
+                                 std::to_string(expected_line_count - line_num) + " lines.");
+            }
         }
     }
 

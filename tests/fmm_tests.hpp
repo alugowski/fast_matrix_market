@@ -49,6 +49,40 @@ struct array_matrix {
     }
 };
 
+/**
+ * Sort the elements of a triplet matrix for consistent equality checks.
+ */
+template <typename TRIPLET>
+TRIPLET sorted_triplet(const TRIPLET& triplet) {
+    TRIPLET ret;
+    ret.nrows = triplet.nrows;
+    ret.ncols = triplet.ncols;
+    ret.rows.resize(triplet.rows.size());
+    ret.cols.resize(triplet.cols.size());
+    ret.vals.resize(triplet.vals.size());
+
+    // Find sort permutation
+    std::vector<std::size_t> p(triplet.rows.size());
+    std::iota(p.begin(), p.end(), 0);
+    std::sort(p.begin(), p.end(),
+              [&](std::size_t i, std::size_t j) {
+        if (triplet.rows[i] != triplet.rows[j])
+            return triplet.rows[i] < triplet.rows[j];
+        if (triplet.cols[i] != triplet.cols[j])
+            return triplet.cols[i] < triplet.cols[j];
+
+        // do not compare values because std::complex does not have an operator<
+        return false;
+    });
+
+    // Permute rows, cols, vals
+    std::transform(p.begin(), p.end(), ret.rows.begin(), [&](std::size_t i){ return triplet.rows[i]; });
+    std::transform(p.begin(), p.end(), ret.cols.begin(), [&](std::size_t i){ return triplet.cols[i]; });
+    std::transform(p.begin(), p.end(), ret.vals.begin(), [&](std::size_t i){ return triplet.vals[i]; });
+
+    return ret;
+}
+
 template <typename IT, typename VT>
 bool operator==(const triplet_matrix<IT, VT>& a, const triplet_matrix<IT, VT>& b) {
     if (a.nrows != b.nrows) {
@@ -58,15 +92,18 @@ bool operator==(const triplet_matrix<IT, VT>& a, const triplet_matrix<IT, VT>& b
         return false;
     }
 
-    if (a.rows != b.rows) {
+    auto a_sorted = sorted_triplet(a);
+    auto b_sorted = sorted_triplet(b);
+
+    if (a_sorted.rows != b_sorted.rows) {
         return false;
     }
 
-    if (a.cols != b.cols) {
+    if (a_sorted.cols != b_sorted.cols) {
         return false;
     }
 
-    if (a.vals != b.vals) {
+    if (a_sorted.vals != b_sorted.vals) {
         return false;
     }
 

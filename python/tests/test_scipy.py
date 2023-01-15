@@ -11,6 +11,7 @@ import scipy.io
 import fast_matrix_market as fmm
 
 matrices = Path("matrices")
+cpp_matrices = matrices / ".." / ".." / ".." / "tests" / "matrices"
 
 
 class TestSciPy(unittest.TestCase):
@@ -39,9 +40,9 @@ class TestSciPy(unittest.TestCase):
             self.assertEqual(lhs_csc.indptr.dtype, rhs_csc.indptr.dtype)
             self.assertEqual(lhs_csc.indices.dtype, rhs_csc.indices.dtype)
             self.assertEqual(lhs_csc.data.dtype, rhs_csc.data.dtype)
-        np.testing.assert_almost_equal(lhs_csc.indptr, rhs_csc.indptr)
-        np.testing.assert_almost_equal(lhs_csc.indices, rhs_csc.indices)
-        np.testing.assert_almost_equal(lhs_csc.data, rhs_csc.data)
+        np.testing.assert_almost_equal(lhs_csc.indptr, rhs_csc.indptr, err_msg="indptr")
+        np.testing.assert_almost_equal(lhs_csc.indices, rhs_csc.indices, err_msg="indices")
+        np.testing.assert_almost_equal(lhs_csc.data, rhs_csc.data, err_msg="data")
 
     def test_read(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
@@ -173,11 +174,32 @@ class TestSciPy(unittest.TestCase):
 
     def test_invalid(self):
         # use the invalid matrices from the C++ tests
-        for mtx in sorted(list((matrices / ".." / ".." / ".." / "tests" / "matrices" / "invalid").glob("*.mtx"))):
-            mtx_name = str(mtx.stem)
-            with self.subTest(msg=mtx_name):
+        for mtx in sorted(list((cpp_matrices / "invalid").glob("*.mtx"))):
+            with self.subTest(msg=mtx.stem):
                 with self.assertRaises(ValueError):
                     fmm.read_scipy(mtx)
+
+    def test_symmetry_read(self):
+        # use the symmetry matrices from the C++ tests
+        paths = list((cpp_matrices / "symmetry").glob("*.mtx")) + list((cpp_matrices / "symmetry_array").glob("*.mtx"))
+        for mtx in sorted(paths):
+            if "_general" in mtx.stem:
+                continue
+            mtx_general = str(mtx).replace(".mtx", "_general.mtx")
+
+            with self.subTest(msg=mtx.stem):
+                m = scipy.io.mmread(mtx)
+                m_gen = scipy.io.mmread(mtx_general)
+                m_fmm = fmm.read_scipy(mtx)
+                m_fmm_gen = fmm.read_scipy(mtx_general)
+
+                self.assertMatrixEqual(m, m_gen)
+                self.assertMatrixEqual(m, m_fmm)
+                self.assertMatrixEqual(m_gen, m_fmm_gen)
+                self.assertMatrixEqual(m_fmm, m_fmm_gen)
+
+    def test_symmetry_write(self):
+        pass
 
 
 if __name__ == '__main__':

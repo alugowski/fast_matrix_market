@@ -171,6 +171,7 @@ read_cursor open_read_stream(std::shared_ptr<pystream::istream>& external, int n
  */
 template <typename T>
 void read_body_array(read_cursor& cursor, py::array_t<T>& array) {
+    cursor.options.generalize_symmetry = true;
     auto unchecked = array.mutable_unchecked();
     auto handler = fmm::dense_2d_call_adding_parse_handler<decltype(unchecked), int64_t, T>(unchecked);
     fmm::read_matrix_market_body(cursor.stream(), cursor.header, handler, 1, cursor.options);
