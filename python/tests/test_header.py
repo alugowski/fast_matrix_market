@@ -1,6 +1,6 @@
 # Copyright (C) 2022-2023 Adam Lugowski. All rights reserved.
 # Use of this source code is governed by the BSD 2-clause license found in the LICENSE.txt file.
-
+from io import BytesIO, StringIO
 import unittest
 from pathlib import Path
 
@@ -59,8 +59,12 @@ class TestHeader(unittest.TestCase):
         h = fmm.header(shape=(3, 3), nnz=3, comment="3-by-3 identity matrix",
                        object="matrix", format="coordinate", field="real", symmetry="general")
 
-        s = fmm.write_header(h, None)
-        h2 = fmm.read_header(s)
+        # Write to a buffer
+        bio = BytesIO()
+        fmm.write_header(bio, h)
+        s = bio.getvalue().decode()
+
+        h2 = fmm.read_header(StringIO(s))
         self.assertEqual(h.to_dict(), h2.to_dict())
 
 

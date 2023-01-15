@@ -1,8 +1,7 @@
 # Copyright (C) 2022-2023 Adam Lugowski. All rights reserved.
 # Use of this source code is governed by the BSD 2-clause license found in the LICENSE.txt file.
-import numpy
+import io
 import os
-from pathlib import Path
 
 from . import _core
 from ._core import __doc__, __version__, header
@@ -25,6 +24,29 @@ PARALLELISM = 0
 """
 Number of threads to use. 0 means number of threads in the system.
 """
+
+
+class TextToBytesWrapper(io.BufferedReader):
+    """Convert a TextIOBase string stream to a byte stream."""
+
+    def __init__(self, text_io_buffer, encoding=None, errors=None, **kwargs):
+        super(TextToBytesWrapper, self).__init__(text_io_buffer, **kwargs)
+        self.encoding = encoding or text_io_buffer.encoding or 'utf-8'
+        self.errors = errors or text_io_buffer.errors or 'strict'
+
+    def _encoding_call(self, method_name, *args, **kwargs):
+        raw_method = getattr(self.raw, method_name)
+        val = raw_method(*args, **kwargs)
+        return val.encode(self.encoding, errors=self.errors)
+
+    def read(self, size=-1):
+        return self._encoding_call('read', size)
+
+    def read1(self, size=-1):
+        return self._encoding_call('read1', size)
+
+    def peek(self, size=-1):
+        return self._encoding_call('peek', size)
 
 
 def _read_body_array(cursor, long_type):
@@ -72,17 +94,32 @@ def _get_read_cursor(source, parallelism=None):
 
     try:
         source = os.fspath(source)
+        # It's a file path
+        is_path = True
     except TypeError:
-        # Stream object. Not supported yet.
-        raise
+        is_path = False
 
-    if isinstance(source, str) and (source.startswith("%%MatrixMarket") or source.startswith("%MatrixMarket")):
-        return _core.open_read_string(str(source), parallelism)
+    if is_path:
+        path = str(source)
+        if path.endswith('.gz'):
+            import gzip
+            source = gzip.open(path, 'r')
+        elif path.endswith('.bz2'):
+            import bz2
+            source = bz2.BZ2File(path, 'rb')
+        else:
+            return _core.open_read_file(path, parallelism)
 
-    return _core.open_read_file(str(source), parallelism)
+    # Stream object.
+    if hasattr(source, "read"):
+        if isinstance(source, io.TextIOBase):
+            source = TextToBytesWrapper(source)
+        return _core.open_read_stream(source, parallelism)
+    else:
+        raise TypeError("Unknown source type")
 
 
-def _get_write_cursor(source, h=None, comment=None, parallelism=None):
+def _get_write_cursor(target, h=None, comment=None, parallelism=None):
     if parallelism is None:
         parallelism = PARALLELISM
 
@@ -92,21 +129,21 @@ def _get_write_cursor(source, h=None, comment=None, parallelism=None):
         else:
             h = header()
 
-    if not source:
-        # string
-        # TODO: REMOVE
-        return _core.open_write_string(h, parallelism)
-
     try:
-        source = os.fspath(source)
+        target = os.fspath(target)
+        # It's a file path
+        return _core.open_write_file(str(target), h, parallelism)
     except TypeError:
-        # Stream object. Not supported yet.
-        raise
+        pass
 
-    return _core.open_write_file(str(source), comment, parallelism)
+    if hasattr(target, "write"):
+        # Stream object.
+        return _core.open_write_stream(target, h, parallelism)
+    else:
+        raise TypeError("Unknown source object")
 
 
-def read_header(source=None) -> header:
+def read_header(source) -> header:
     """
     Read a Matrix Market header from a file or from a string.
 
@@ -116,7 +153,7 @@ def read_header(source=None) -> header:
     return _get_read_cursor(source, 1).header
 
 
-def write_header(h: header, target=None):
+def write_header(target, h: header):
     """
     Write a Matrix Market header to a file or a string.
 
@@ -125,20 +162,10 @@ def write_header(h: header, target=None):
     :return: if target is None then returns a string containing h as if it was written to a file
     """
 
-    if target:
-        try:
-            target = os.fspath(target)
-        except TypeError:
-            # Stream object. Not supported yet.
-            raise
-        _core.write_header_file(h, str(target))
-    else:
-        cursor = _get_write_cursor(None, h, parallelism=1)
-        _core.write_header_only(cursor)
-        return cursor.get_string()
+    _core.write_header_only(_get_write_cursor(target, h, parallelism=1))
 
 
-def read_array(source, parallelism=None, long_type=False) -> numpy.ndarray:
+def read_array(source, parallelism=None, long_type=False):
     """
     Read MatrixMarket file into dense NumPy Array, regardless if the file is sparse or dense.
 
@@ -214,14 +241,12 @@ def write_scipy(target, a, comment='', field=None, precision=None, symmetry=None
         # Write dense numpy arrays
         a = _apply_field(a, field, no_pattern=True)
         _core.write_array(cursor, a)
-        # TODO: remove this:
-        if target is None:
-            return cursor.get_string()
         return
 
     if scipy.sparse.isspmatrix(a):
         # Write sparse scipy matrices
 
+        # CSC and CSR have specialized writers.
         is_compressed = (isinstance(a, scipy.sparse.csc_matrix) or isinstance(a, scipy.sparse.csr_matrix))
 
         if not is_compressed:
@@ -236,10 +261,6 @@ def write_scipy(target, a, comment='', field=None, precision=None, symmetry=None
             _core.write_csc(cursor, a.shape, a.indptr, a.indices, data, is_csr)
         else:
             _core.write_triplet(cursor, a.shape, a.row, a.col, data)
-
-        # TODO: remove this:
-        if target is None:
-            return cursor.get_string()
         return
 
     raise ValueError("unknown matrix type: %s" % type(a))

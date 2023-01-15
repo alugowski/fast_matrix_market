@@ -1,10 +1,13 @@
 // Copyright (C) 2022-2023 Adam Lugowski. All rights reserved.
 // Use of this source code is governed by the BSD 2-clause license found in the LICENSE.txt file.
 
+#include <fstream>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 
-#include <fstream>
+#include "pystreambuf.h"
+
 #include <fast_matrix_market/fast_matrix_market.hpp>
 
 namespace py = pybind11;
@@ -115,13 +118,23 @@ std::string header_repr(const fmm::matrix_market_header& header) {
 
 
 struct read_cursor {
-    read_cursor(const std::string& filename): stream(std::make_unique<std::ifstream>(filename)) {}
-    read_cursor(const std::string& str, bool string_source): stream(std::make_unique<std::istringstream>(str)) {}
+    read_cursor(const std::string& filename): stream_ptr(std::make_shared<std::ifstream>(filename)) {}
+    read_cursor(std::shared_ptr<pystream::istream>& external): stream_external(external), use_external(true) {}
 
-    std::unique_ptr<std::istream> stream;
+    std::shared_ptr<std::istream> stream_ptr;
+    std::shared_ptr<pystream::istream> stream_external;
+    bool use_external = false;
 
     fmm::matrix_market_header header{};
     fmm::read_options options{};
+
+    std::istream& stream() {
+        if (use_external) {
+            return *stream_external;
+        } else {
+            return *stream_ptr;
+        }
+    }
 };
 
 void open_read_rest(read_cursor& cursor) {
@@ -129,7 +142,7 @@ void open_read_rest(read_cursor& cursor) {
     cursor.options.generalize_symmetry = false;
 
     // read header
-    fmm::read_header(*cursor.stream, cursor.header);
+    fmm::read_header(cursor.stream(), cursor.header);
 }
 
 read_cursor open_read_file(const std::string& filename, int num_threads) {
@@ -141,8 +154,8 @@ read_cursor open_read_file(const std::string& filename, int num_threads) {
     return cursor;
 }
 
-read_cursor open_read_string(const std::string& str, int num_threads) {
-    read_cursor cursor(str, true);
+read_cursor open_read_stream(std::shared_ptr<pystream::istream>& external, int num_threads) {
+    read_cursor cursor(external);
     // Set options
     cursor.options.num_threads = num_threads;
 
@@ -160,7 +173,7 @@ template <typename T>
 void read_body_array(read_cursor& cursor, py::array_t<T>& array) {
     auto unchecked = array.mutable_unchecked();
     auto handler = fmm::dense_2d_call_adding_parse_handler<decltype(unchecked), int64_t, T>(unchecked);
-    fmm::read_matrix_market_body(*cursor.stream, cursor.header, handler, 1, cursor.options);
+    fmm::read_matrix_market_body(cursor.stream(), cursor.header, handler, 1, cursor.options);
 }
 
 
@@ -209,25 +222,27 @@ void read_body_triplet(read_cursor& cursor, py::array_t<IT>& row, py::array_t<IT
     auto col_unchecked = col.mutable_unchecked();
     auto data_unchecked = data.mutable_unchecked();
     auto handler = triplet_numpy_parse_handler<IT, VT, decltype(row_unchecked), decltype(data_unchecked)>(row_unchecked, col_unchecked, data_unchecked);
-    fmm::read_matrix_market_body(*cursor.stream, cursor.header, handler, 1, cursor.options);
+    fmm::read_matrix_market_body(cursor.stream(), cursor.header, handler, 1, cursor.options);
 }
 
 
 struct write_cursor {
-    write_cursor(const std::string& filename): stream(std::make_unique<std::ofstream>(filename)) {}
-    write_cursor(): stream(std::make_unique<std::ostringstream>()), is_string(true) {}
+    write_cursor(const std::string& filename): stream_ptr(std::make_unique<std::ofstream>(filename)) {}
+    write_cursor(std::shared_ptr<pystream::ostream>& external): stream_external(external), use_external(true) {}
 
-    std::unique_ptr<std::ostream> stream;
-    bool is_string = false;
+    std::shared_ptr<std::ostream> stream_ptr;
+    std::shared_ptr<pystream::ostream> stream_external;
+    bool use_external = false;
 
     fmm::matrix_market_header header{};
     fmm::write_options options{};
 
-    std::string get_string() {
-        if (!is_string) {
-            return "";
+    std::ostream& stream() {
+        if (use_external) {
+            return *stream_external;
+        } else {
+            return *stream_ptr;
         }
-        return static_cast<std::ostringstream*>(stream.get())->str();
     }
 };
 
@@ -239,8 +254,8 @@ write_cursor open_write_file(const std::string& filename, const fmm::matrix_mark
     return cursor;
 }
 
-write_cursor open_write_string(fmm::matrix_market_header& header, int num_threads) {
-    write_cursor cursor;
+write_cursor open_write_stream(std::shared_ptr<pystream::ostream>& stream, fmm::matrix_market_header& header, int num_threads) {
+    write_cursor cursor(stream);
     // Set options
     cursor.options.num_threads = num_threads;
     cursor.header = header;
@@ -248,7 +263,7 @@ write_cursor open_write_string(fmm::matrix_market_header& header, int num_thread
 }
 
 void write_header_only(write_cursor& cursor) {
-    fmm::write_header(*cursor.stream, cursor.header);
+    fmm::write_header(cursor.stream(), cursor.header);
 }
 
 template <typename T>
@@ -265,11 +280,11 @@ void write_array(write_cursor& cursor, py::array_t<T>& array) {
     cursor.header.format = fmm::array;
     cursor.header.symmetry = fmm::general;
 
-    fmm::write_header(*cursor.stream, cursor.header);
+    fmm::write_header(cursor.stream(), cursor.header);
 
     auto unchecked = array.unchecked();
     auto formatter = fmm::dense_2d_call_formatter<decltype(unchecked), int64_t>(unchecked, cursor.header.nrows, cursor.header.ncols);
-    fmm::write_body(*cursor.stream, formatter, cursor.options);
+    fmm::write_body(cursor.stream(), formatter, cursor.options);
 }
 
 
@@ -333,7 +348,7 @@ void write_triplet(write_cursor& cursor, const std::tuple<int64_t, int64_t>& sha
     cursor.header.format = fmm::coordinate;
     cursor.header.symmetry = fmm::general;
 
-    fmm::write_header(*cursor.stream, cursor.header);
+    fmm::write_header(cursor.stream(), cursor.header);
 
     auto rows_unchecked = rows.unchecked();
     auto cols_unchecked = cols.unchecked();
@@ -344,7 +359,7 @@ void write_triplet(write_cursor& cursor, const std::tuple<int64_t, int64_t>& sha
                                             py_array_iterator<decltype(cols_unchecked), IT>(cols_unchecked, cols_unchecked.size()),
                                             py_array_iterator<decltype(data_unchecked), VT>(data_unchecked),
                                             py_array_iterator<decltype(data_unchecked), VT>(data_unchecked, data_unchecked.size()));
-    fmm::write_body(*cursor.stream, formatter, cursor.options);
+    fmm::write_body(cursor.stream(), formatter, cursor.options);
 }
 
 template <typename IT, typename VT>
@@ -366,7 +381,7 @@ void write_csc(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
     cursor.header.format = fmm::coordinate;
     cursor.header.symmetry = fmm::general;
 
-    fmm::write_header(*cursor.stream, cursor.header);
+    fmm::write_header(cursor.stream(), cursor.header);
 
     auto indptr_unchecked = indptr.unchecked();
     auto indices_unchecked = indices.unchecked();
@@ -378,14 +393,13 @@ void write_csc(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
                                         py_array_iterator<decltype(data_unchecked), VT>(data_unchecked),
                                         py_array_iterator<decltype(data_unchecked), VT>(data_unchecked, data_unchecked.size()),
                                         is_csr);
-    fmm::write_body(*cursor.stream, formatter, cursor.options);
+    fmm::write_body(cursor.stream(), formatter, cursor.options);
 }
 
 
 PYBIND11_MODULE(_core, m) {
     m.doc() = R"pbdoc(
         fast_matrix_market
-        -----------------------
     )pbdoc";
 
     // translate exceptions
@@ -436,8 +450,8 @@ PYBIND11_MODULE(_core, m) {
     py::class_<read_cursor>(m, "_read_cursor")
     .def_readonly("header", &read_cursor::header);
 
-    m.def("open_read_file", &open_read_file, py::arg("path"), py::arg("num_threads")=0);
-    m.def("open_read_string", &open_read_string, py::arg("str"), py::arg("num_threads")=0);
+    m.def("open_read_file", &open_read_file);
+    m.def("open_read_stream", &open_read_stream);
 
     m.def("read_body_array", &read_body_array<int64_t>);
     m.def("read_body_array", &read_body_array<double>);
@@ -453,11 +467,10 @@ PYBIND11_MODULE(_core, m) {
 
     // Write methods
     py::class_<write_cursor>(m, "_write_cursor")
-    .def_readwrite("header", &write_cursor::header)
-    .def("get_string", &write_cursor::get_string);
+    .def_readwrite("header", &write_cursor::header);
 
     m.def("open_write_file", &open_write_file);
-    m.def("open_write_string", &open_write_string);
+    m.def("open_write_stream", &open_write_stream);
     m.def("write_header_only", &write_header_only);
 
     // Write arrays
@@ -492,6 +505,8 @@ PYBIND11_MODULE(_core, m) {
     m.def("write_csc", &write_csc<int64_t, long double>);
     m.def("write_csc", &write_csc<int64_t, std::complex<double>>);
     m.def("write_csc", &write_csc<int64_t, std::complex<long double>>);
+
+    // Module version
 #ifdef VERSION_INFO
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)

@@ -47,19 +47,6 @@ class TestSciPy(unittest.TestCase):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
             mtx_name = str(mtx.stem)
             with self.subTest(msg=mtx_name):
-                if str(mtx).endswith(".gz"):
-                    # TODO: fmm does not handle GZip files yet
-                    # import gzip
-                    # stream = gzip.open(filespec, mode)
-                    continue
-                    # self.skipTest("no gz")
-                if str(mtx).endswith(".bz2"):
-                    # TODO: fmm does not handle BZ2 files yet
-                    # import bz2
-                    # stream = bz2.BZ2File(filespec, 'rb')
-                    continue
-                    # self.skipTest("no bz2")
-
                 m = scipy.io.mmread(mtx)
                 header = fmm.read_header(mtx)
                 m_fmm = fmm.read_scipy(mtx)
@@ -89,7 +76,10 @@ class TestSciPy(unittest.TestCase):
             with self.subTest(msg=mtx.stem):
                 m = scipy.io.mmread(mtx)
                 m_fmm = fmm.read_scipy(mtx)
-                fmms = fmm.write_scipy(None, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None))
+
+                bio = BytesIO()
+                fmm.write_scipy(bio, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None))
+                fmms = bio.getvalue().decode()
 
                 if mtx_header.field == "pattern":
                     # Make sure pattern header is written
@@ -119,7 +109,9 @@ class TestSciPy(unittest.TestCase):
             }
             for name, m_fmm in formats.items():
                 with self.subTest(msg=f"{mtx.stem} - {name}"):
-                    fmms = fmm.write_scipy(None, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None))
+                    bio = BytesIO()
+                    fmm.write_scipy(bio, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None))
+                    fmms = bio.getvalue().decode()
 
                     if mtx_header.field == "pattern":
                         # Make sure pattern header is written
@@ -152,12 +144,14 @@ class TestSciPy(unittest.TestCase):
                             continue
 
                     # Write FMM with this field
-                    fmms = fmm.write_scipy(None, mat, field=field)
+                    bio = BytesIO()
+                    fmm.write_scipy(bio, mat, field=field)
+                    fmms = bio.getvalue().decode()
 
                     # verify the reads come up with the same types
                     m = scipy.io.mmread(StringIO(scipys))
 
-                    m2 = fmm.read_scipy(fmms)
+                    m2 = fmm.read_scipy(StringIO(fmms))
 
                     self.assertMatrixEqual(m, m2)
 
