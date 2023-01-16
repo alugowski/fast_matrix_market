@@ -2,7 +2,6 @@
 // Use of this source code is governed by the BSD 2-clause license found in the LICENSE.txt file.
 
 #include <filesystem>
-#include <numeric>
 #include <fstream>
 #include <regex>
 

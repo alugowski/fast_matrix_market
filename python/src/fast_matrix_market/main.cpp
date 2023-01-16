@@ -279,12 +279,13 @@ void write_array(write_cursor& cursor, py::array_t<T>& array) {
     cursor.header.object = fmm::matrix;
     cursor.header.field = fmm::get_field_type((const T*)nullptr);
     cursor.header.format = fmm::array;
-    cursor.header.symmetry = fmm::general;
 
     fmm::write_header(cursor.stream(), cursor.header);
 
     auto unchecked = array.unchecked();
-    auto formatter = fmm::dense_2d_call_formatter<decltype(unchecked), int64_t>(unchecked, cursor.header.nrows, cursor.header.ncols);
+    fmm::line_formatter<int64_t, T> lf(cursor.header, cursor.options);
+    auto formatter = fmm::dense_2d_call_formatter<decltype(lf), decltype(unchecked), int64_t>(
+            lf, unchecked, cursor.header.nrows, cursor.header.ncols);
     fmm::write_body(cursor.stream(), formatter, cursor.options);
 }
 
@@ -347,14 +348,16 @@ void write_triplet(write_cursor& cursor, const std::tuple<int64_t, int64_t>& sha
     cursor.header.object = fmm::matrix;
     cursor.header.field = data.size() == 0 ? fmm::pattern : fmm::get_field_type((const VT*)nullptr);
     cursor.header.format = fmm::coordinate;
-    cursor.header.symmetry = fmm::general;
 
     fmm::write_header(cursor.stream(), cursor.header);
 
     auto rows_unchecked = rows.unchecked();
     auto cols_unchecked = cols.unchecked();
     auto data_unchecked = data.unchecked();
-    auto formatter = fmm::triplet_formatter(py_array_iterator<decltype(rows_unchecked), IT>(rows_unchecked),
+
+    fmm::line_formatter<IT, VT> lf(cursor.header, cursor.options);
+    auto formatter = fmm::triplet_formatter(lf,
+                                            py_array_iterator<decltype(rows_unchecked), IT>(rows_unchecked),
                                             py_array_iterator<decltype(rows_unchecked), IT>(rows_unchecked, rows_unchecked.size()),
                                             py_array_iterator<decltype(cols_unchecked), IT>(cols_unchecked),
                                             py_array_iterator<decltype(cols_unchecked), IT>(cols_unchecked, cols_unchecked.size()),
@@ -387,7 +390,10 @@ void write_csc(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
     auto indptr_unchecked = indptr.unchecked();
     auto indices_unchecked = indices.unchecked();
     auto data_unchecked = data.unchecked();
-    auto formatter = fmm::csc_formatter(py_array_iterator<decltype(indptr_unchecked), IT>(indptr_unchecked),
+
+    fmm::line_formatter<IT, VT> lf(cursor.header, cursor.options);
+    auto formatter = fmm::csc_formatter(lf,
+                                        py_array_iterator<decltype(indptr_unchecked), IT>(indptr_unchecked),
                                         py_array_iterator<decltype(indptr_unchecked), IT>(indptr_unchecked, indptr_unchecked.size() - 1),
                                         py_array_iterator<decltype(indices_unchecked), IT>(indices_unchecked),
                                         py_array_iterator<decltype(indices_unchecked), IT>(indices_unchecked, indices_unchecked.size()),

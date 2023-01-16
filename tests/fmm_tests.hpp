@@ -2,6 +2,8 @@
 // Use of this source code is governed by the BSD 2-clause license found in the LICENSE.txt file.
 #pragma once
 
+#include <numeric>
+
 #if defined(__clang__)
 // Disable pedantic GTest warnings
 #pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"

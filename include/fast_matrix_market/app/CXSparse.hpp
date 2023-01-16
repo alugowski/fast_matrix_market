@@ -62,14 +62,18 @@ namespace fast_matrix_market {
 
         if (cs->nz == -1) {
             // compressed
-            auto formatter = csc_formatter(cs->p, cs->p + cs->n, // explicitly no +1
+            line_formatter<decltype(*cs->i), decltype(*cs->x)> lf(header, options);
+            auto formatter = csc_formatter(lf,
+                                           cs->p, cs->p + cs->n, // explicitly no +1
                                            cs->i, cs->i + cs->nzmax,
                                            cs->x, header.field == pattern ? cs->x : cs->x + cs->nzmax,
                                            false);
             write_body(os, formatter, options);
         } else {
             // triplet
-            auto formatter = triplet_formatter(cs->i, cs->i + cs->nz,
+            line_formatter<decltype(*cs->i), decltype(*cs->x)> lf(header, options);
+            auto formatter = triplet_formatter(lf,
+                                               cs->i, cs->i + cs->nz,
                                                cs->p, cs->p + cs->nz,
                                                cs->x, header.field == pattern ? cs->x : cs->x + cs->nz);
             write_body(os, formatter, options);

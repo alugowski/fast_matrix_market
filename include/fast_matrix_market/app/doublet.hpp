@@ -58,12 +58,11 @@ namespace fast_matrix_market {
 
         write_header(os, header);
 
-        auto formatter = triplet_formatter<decltype(indices.begin()),
-                                           decltype(values.begin()),
-                                           decltype(values.begin()), true>(
-                                                   indices.begin(), indices.end(),
-                                                   values.begin(), values.end(),
-                                                   values.end(), values.end());
+        vector_line_formatter<IT, VT> lf(header, options);
+        auto formatter = triplet_formatter(lf,
+                                          indices.begin(), indices.end(),
+                                          indices.begin(), indices.end(),
+                                          values.begin(), values.end());
         write_body(os, formatter, options);
     }
 }

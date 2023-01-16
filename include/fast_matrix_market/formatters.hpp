@@ -4,20 +4,100 @@
 #pragma once
 
 #include <algorithm>
+#include <utility>
 
 #include "fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
 
-    template <typename T, bool is_value, typename std::enable_if<is_value, int>::type = 0>
-    std::string column_to_str(const T& c) {
-        return value_to_string(c);
-    }
+    /**
+     * Format individual lines (matrix version).
+     */
+    template <typename IT, typename VT>
+    class line_formatter {
+    public:
+        line_formatter(const matrix_market_header &header, const write_options &options) : header(header),
+                                                                                           options(options) {}
 
-    template <typename T, bool is_value, typename std::enable_if<!is_value, int>::type = 0>
-    std::string column_to_str(const T& c) {
-        return int_to_string(c + 1);
-    }
+        std::string coord_matrix(const IT& row, const IT& col, const VT& val) {
+            std::string line{};
+            line += int_to_string(row + 1);
+            line += kSpace;
+            line += int_to_string(col + 1);
+
+            if (header.field != pattern) {
+                line += kSpace;
+                line += value_to_string(val);
+            }
+            line += kNewline;
+
+            return line;
+        }
+
+        std::string coord_matrix_pattern(const IT& row, const IT& col) {
+            std::string line{};
+            line += int_to_string(row + 1);
+            line += kSpace;
+            line += int_to_string(col + 1);
+            line += kNewline;
+
+            return line;
+        }
+
+        std::string array_matrix(const IT& row, const IT& col, const VT& val) {
+            if (header.symmetry != general) {
+                if (row < col) {
+                    // omit upper triangle
+                    return {};
+                }
+                if (header.symmetry == skew_symmetric && row == col) {
+                    // omit diagonal for skew-symmetric
+                    return {};
+                }
+            }
+
+            std::string ret = value_to_string(val);
+            ret += kNewline;
+            return ret;
+        }
+    protected:
+        const matrix_market_header& header;
+        const write_options& options;
+    };
+
+    /**
+     * Format individual lines (vector version).
+     */
+    template <typename IT, typename VT>
+    class vector_line_formatter {
+    public:
+        vector_line_formatter(const matrix_market_header &header, const write_options &options) : header(header),
+                                                                                                  options(options) {}
+        std::string coord_matrix(const IT& row, [[maybe_unused]] const IT& col, const VT& val) {
+            std::string line{};
+            line += int_to_string(row + 1);
+
+            if (header.field != pattern) {
+                line += kSpace;
+                line += value_to_string(val);
+            }
+            line += kNewline;
+
+            return line;
+        }
+
+        std::string coord_matrix_pattern(const IT& row, [[maybe_unused]] const IT& col) {
+            std::string line{};
+            line += int_to_string(row + 1);
+            line += kNewline;
+
+            return line;
+        }
+
+    protected:
+        const matrix_market_header& header;
+        const write_options& options;
+    };
 
     /**
      * Format row, column, value vectors.
@@ -27,14 +107,16 @@ namespace fast_matrix_market {
      * @tparam A_ITER
      * @tparam B_ITER
      * @tparam C_ITER Must be a valid iterator, but if begin==end then the values are not written.
-     * @tparam COLUMN_IS_VALUE if true then the B_ITER values are not incremented.
+     * @tparam COLUMN_IS_VALUE
      */
-    template<typename A_ITER, typename B_ITER, typename C_ITER, bool COLUMN_IS_VALUE = false>
+    template<typename LF, typename A_ITER, typename B_ITER, typename C_ITER>
     class triplet_formatter {
     public:
-        explicit triplet_formatter(const A_ITER row_begin, const A_ITER row_end,
+        explicit triplet_formatter(LF lf,
+                                   const A_ITER row_begin, const A_ITER row_end,
                                    const B_ITER col_begin, const B_ITER col_end,
                                    const C_ITER val_begin, const C_ITER val_end) :
+                                   line_formatter(lf),
                                    row_iter(row_begin), row_end(row_end),
                                    col_iter(col_begin),
                                    val_iter(val_begin), val_end(val_end) {
@@ -50,9 +132,11 @@ namespace fast_matrix_market {
 
         class chunk {
         public:
-            explicit chunk(const A_ITER row_begin, const A_ITER row_end,
+            explicit chunk(LF lf,
+                           const A_ITER row_begin, const A_ITER row_end,
                            const B_ITER col_begin,
                            const C_ITER val_begin, const C_ITER val_end) :
+                    line_formatter(lf),
                     row_iter(row_begin), row_end(row_end),
                     col_iter(col_begin),
                     val_iter(val_begin), val_end(val_end) {}
@@ -62,21 +146,18 @@ namespace fast_matrix_market {
                 chunk.reserve((row_end - row_iter)*25);
 
                 for (; row_iter != row_end; ++row_iter, ++col_iter) {
-                    chunk += int_to_string(*row_iter + 1);
-                    chunk += kSpace;
-                    chunk += column_to_str<decltype(*col_iter), COLUMN_IS_VALUE>(*col_iter);
-
                     if (val_iter != val_end) {
-                        chunk += kSpace;
-                        chunk += value_to_string(*val_iter);
+                        chunk += line_formatter.coord_matrix(*row_iter, *col_iter, *val_iter);
                         ++val_iter;
+                    } else {
+                        chunk += line_formatter.coord_matrix_pattern(*row_iter, *col_iter);
                     }
-                    chunk += kNewline;
                 }
 
                 return chunk;
             }
 
+            LF line_formatter;
             A_ITER row_iter, row_end;
             B_ITER col_iter;
             C_ITER val_iter, val_end;
@@ -88,7 +169,8 @@ namespace fast_matrix_market {
             B_ITER col_chunk_end = col_iter + chunk_size;
             C_ITER val_chunk_end = (val_iter != val_end) ? val_iter + chunk_size: val_end;
 
-            chunk c(row_iter, row_chunk_end,
+            chunk c(line_formatter,
+                    row_iter, row_chunk_end,
                     col_iter,
                     val_iter, val_chunk_end);
 
@@ -100,6 +182,7 @@ namespace fast_matrix_market {
         }
 
     protected:
+        LF line_formatter;
         A_ITER row_iter, row_end;
         B_ITER col_iter;
         C_ITER val_iter, val_end;
@@ -108,13 +191,15 @@ namespace fast_matrix_market {
     /**
      * Format CSC structures.
      */
-    template<typename PTR_ITER, typename IND_ITER, typename VAL_ITER>
+    template<typename LF, typename PTR_ITER, typename IND_ITER, typename VAL_ITER>
     class csc_formatter {
     public:
-        explicit csc_formatter(const PTR_ITER ptr_begin, const PTR_ITER ptr_end,
+        explicit csc_formatter(LF lf,
+                               const PTR_ITER ptr_begin, const PTR_ITER ptr_end,
                                const IND_ITER ind_begin, const IND_ITER ind_end,
                                const VAL_ITER val_begin, const VAL_ITER val_end,
                                bool transpose = false) :
+                line_formatter(lf),
                 ptr_begin(ptr_begin), ptr_iter(ptr_begin), ptr_end(ptr_end),
                 ind_begin(ind_begin),
                 val_begin(val_begin), val_end(val_end),
@@ -134,10 +219,12 @@ namespace fast_matrix_market {
 
         class chunk {
         public:
-            explicit chunk(const PTR_ITER ptr_begin, const PTR_ITER ptr_iter, const PTR_ITER ptr_end,
+            explicit chunk(LF lf,
+                           const PTR_ITER ptr_begin, const PTR_ITER ptr_iter, const PTR_ITER ptr_end,
                            const IND_ITER ind_begin,
                            const VAL_ITER val_begin, const VAL_ITER val_end,
                            bool transpose) :
+                    line_formatter(lf),
                     ptr_begin(ptr_begin), ptr_iter(ptr_iter), ptr_end(ptr_end),
                     ind_begin(ind_begin),
                     val_begin(val_begin), val_end(val_end),
@@ -152,7 +239,6 @@ namespace fast_matrix_market {
                 // iterate over assigned columns
                 for (; ptr_iter != ptr_end; ++ptr_iter) {
                     auto column_number = (int64_t)(ptr_iter - ptr_begin);
-                    std::string col = int_to_string(column_number + 1);
 
                     // iterate over rows in column
                     IND_ITER row_end = ind_begin + *(ptr_iter+1);
@@ -162,30 +248,26 @@ namespace fast_matrix_market {
                         val_iter = val_begin + *ptr_iter;
                     }
                     for (; row_iter != row_end; ++row_iter) {
-                        auto row = int_to_string(*row_iter + 1);
 
+                        int64_t lf_row = *row_iter;
+                        int64_t lf_col = column_number;
                         if (transpose) {
-                            chunk += col;
-                            chunk += kSpace;
-                            chunk += row;
-                        } else {
-                            chunk += row;
-                            chunk += kSpace;
-                            chunk += col;
+                            std::swap(lf_row, lf_col);
                         }
 
                         if (val_iter != val_end) {
-                            chunk += kSpace;
-                            chunk += value_to_string(*val_iter);
+                            chunk += line_formatter.coord_matrix(lf_row, lf_col, *val_iter);
                             ++val_iter;
+                        } else {
+                            chunk += line_formatter.coord_matrix_pattern(lf_row, lf_col);
                         }
-                        chunk += kNewline;
                     }
                 }
 
                 return chunk;
             }
 
+            LF line_formatter;
             PTR_ITER ptr_begin, ptr_iter, ptr_end;
             IND_ITER ind_begin;
             VAL_ITER val_begin, val_end;
@@ -198,7 +280,8 @@ namespace fast_matrix_market {
             num_columns = std::min(num_columns, (int64_t)(ptr_end - ptr_iter));
             PTR_ITER ptr_chunk_end = ptr_iter + num_columns;
 
-            chunk c(ptr_begin, ptr_iter, ptr_chunk_end,
+            chunk c(line_formatter,
+                    ptr_begin, ptr_iter, ptr_chunk_end,
                     ind_begin,
                     val_begin, val_end,
                     transpose);
@@ -209,6 +292,7 @@ namespace fast_matrix_market {
         }
 
     protected:
+        LF line_formatter;
         PTR_ITER ptr_begin, ptr_iter, ptr_end;
         IND_ITER ind_begin;
         VAL_ITER val_begin, val_end;
@@ -219,11 +303,11 @@ namespace fast_matrix_market {
     /**
      * Format dense arrays.
      */
-    template<typename VT_ITER>
+    template<typename LF, typename VT_ITER>
     class array_formatter {
     public:
-        explicit array_formatter(const VT_ITER& values, storage_order order, int64_t nrows, int64_t ncols) :
-                values(values), order(order), nrows(nrows), ncols(ncols) {}
+        explicit array_formatter(LF lf, const VT_ITER& values, storage_order order, int64_t nrows, int64_t ncols) :
+                line_formatter(lf), values(values), order(order), nrows(nrows), ncols(ncols) {}
 
         [[nodiscard]] bool has_next() const {
             return cur_col != ncols;
@@ -231,8 +315,8 @@ namespace fast_matrix_market {
 
         class chunk {
         public:
-            explicit chunk(const VT_ITER& values, storage_order order, int64_t nrows, int64_t ncols, int64_t cur_col) :
-            values(values), order(order), nrows(nrows), ncols(ncols), cur_col(cur_col) {}
+            explicit chunk(LF lf, const VT_ITER& values, storage_order order, int64_t nrows, int64_t ncols, int64_t cur_col) :
+                    line_formatter(lf), values(values), order(order), nrows(nrows), ncols(ncols), cur_col(cur_col) {}
 
             std::string operator()() {
                 std::string c;
@@ -246,13 +330,13 @@ namespace fast_matrix_market {
                         offset = cur_col * nrows + row;
                     }
 
-                    c += value_to_string(*(values + offset));
-                    c += kNewline;
+                    c += line_formatter.array_matrix(row, cur_col, *(values + offset));
                 }
 
                 return c;
             }
 
+            LF line_formatter;
             const VT_ITER values;
             storage_order order;
             int64_t nrows, ncols;
@@ -260,10 +344,11 @@ namespace fast_matrix_market {
         };
 
         chunk next_chunk([[maybe_unused]] const write_options& options) {
-            return chunk(values, order, nrows, ncols, cur_col++);
+            return chunk(line_formatter, values, order, nrows, ncols, cur_col++);
         }
 
     protected:
+        LF line_formatter;
         const VT_ITER values;
         storage_order order;
         int64_t nrows, ncols;
@@ -276,10 +361,11 @@ namespace fast_matrix_market {
      *
      * Includes Eigen Dense Matrix/Vector and NumPy arrays.
      */
-    template<typename DenseType, typename DIM>
+    template<typename LF, typename DenseType, typename DIM>
     class dense_2d_call_formatter {
     public:
-        explicit dense_2d_call_formatter(const DenseType& mat, DIM nrows, DIM ncols) : mat(mat), nrows(nrows), ncols(ncols) {}
+        explicit dense_2d_call_formatter(LF lf, const DenseType& mat, DIM nrows, DIM ncols) :
+        line_formatter(lf), mat(mat), nrows(nrows), ncols(ncols) {}
 
         [[nodiscard]] bool has_next() const {
             return col_iter < ncols;
@@ -287,8 +373,8 @@ namespace fast_matrix_market {
 
         class chunk {
         public:
-            explicit chunk(const DenseType& mat, DIM nrows, DIM col_iter, DIM col_end) :
-                    mat(mat), nrows(nrows), col_iter(col_iter), col_end(col_end) {}
+            explicit chunk(LF lf, const DenseType& mat, DIM nrows, DIM col_iter, DIM col_end) :
+                    line_formatter(lf), mat(mat), nrows(nrows), col_iter(col_iter), col_end(col_end) {}
 
             std::string operator()() {
                 std::string chunk;
@@ -299,14 +385,14 @@ namespace fast_matrix_market {
 
                     for (DIM row = 0; row < nrows; ++row)
                     {
-                        chunk += value_to_string(mat(row, col_iter));
-                        chunk += kNewline;
+                        chunk += line_formatter.array_matrix(row, col_iter, mat(row, col_iter));
                     }
                 }
 
                 return chunk;
             }
 
+            LF line_formatter;
             const DenseType& mat;
             DIM nrows;
             DIM col_iter, col_end;
@@ -317,13 +403,14 @@ namespace fast_matrix_market {
             num_columns = std::min(num_columns, ncols - col_iter);
 
             DIM col_end = col_iter + num_columns;
-            chunk c(mat, nrows, col_iter, col_end);
+            chunk c(line_formatter, mat, nrows, col_iter, col_end);
             col_iter = col_end;
 
             return c;
         }
 
     protected:
+        LF line_formatter;
         const DenseType& mat;
         DIM nrows, ncols;
         DIM col_iter = 0;

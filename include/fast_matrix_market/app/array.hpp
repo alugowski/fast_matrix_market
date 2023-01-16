@@ -63,7 +63,8 @@ namespace fast_matrix_market {
 
         write_header(os, header);
 
-        auto formatter = array_formatter(values.cbegin(), order, header.nrows, header.ncols);
+        line_formatter<int64_t, VT> lf(header, options);
+        auto formatter = array_formatter(lf, values.cbegin(), order, header.nrows, header.ncols);
         write_body(os, formatter, options);
     }
 }

@@ -119,15 +119,12 @@ def _get_read_cursor(source, parallelism=None):
         raise TypeError("Unknown source type")
 
 
-def _get_write_cursor(target, h=None, comment=None, parallelism=None):
+def _get_write_cursor(target, h=None, comment=None, parallelism=None, symmetry="general"):
     if parallelism is None:
         parallelism = PARALLELISM
 
     if not h:
-        if comment is not None:
-            h = header(comment=comment)
-        else:
-            h = header()
+        h = header(comment=comment, symmetry=symmetry)
 
     try:
         target = os.fspath(target)
@@ -228,14 +225,37 @@ def _apply_field(data, field, no_pattern=False):
     raise ValueError("Invalid field name")
 
 
-def write_scipy(target, a, comment='', field=None, precision=None, symmetry=None, parallelism=None):
+def _validate_symmetry(symmetry):
+    if symmetry is None:
+        return "general"
+
+    symmetry = str(symmetry).lower()
+    symmetries = ["general", "symmetric", "skew-symmetric", "hermitian"]
+    if symmetry not in symmetries:
+        raise ValueError("Invalid symmetry. Must be one of: " + ", ".join(symmetries))
+
+    return symmetry
+
+
+def write_scipy(target, a, comment='', field=None, precision=None, symmetry=None,
+                parallelism=None, find_symmetry=False):
     import numpy as np
     import scipy.sparse
 
-    cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
-
     if isinstance(a, list) or isinstance(a, tuple) or hasattr(a, '__array__'):
         a = np.asarray(a)
+
+    if find_symmetry:
+        import scipy.io
+        try:
+            file = scipy.io._mmio.MMFile()
+            # noinspection PyProtectedMember
+            symmetry = file._get_symmetry(a)
+        except AttributeError:
+            symmetry = "general"
+
+    symmetry = _validate_symmetry(symmetry)
+    cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism, symmetry=symmetry)
 
     if isinstance(a, np.ndarray):
         # Write dense numpy arrays
@@ -245,6 +265,15 @@ def write_scipy(target, a, comment='', field=None, precision=None, symmetry=None
 
     if scipy.sparse.isspmatrix(a):
         # Write sparse scipy matrices
+        if symmetry is not None and symmetry != "general":
+            # A symmetric matrix only specifies the elements below the diagonal.
+            # Ensure that the matrix satisfies this requirement.
+            from scipy.sparse import coo_matrix
+            a = a.tocoo()
+            lower_triangle_mask = a.row >= a.col
+            a = coo_matrix((a.data[lower_triangle_mask],
+                            (a.row[lower_triangle_mask],
+                             a.col[lower_triangle_mask])), shape=a.shape)
 
         # CSC and CSR have specialized writers.
         is_compressed = (isinstance(a, scipy.sparse.csc_matrix) or isinstance(a, scipy.sparse.csr_matrix))
@@ -268,6 +297,12 @@ def write_scipy(target, a, comment='', field=None, precision=None, symmetry=None
 
 mmread = read_scipy
 mmwrite = write_scipy
+
+
+def mminfo(source):
+    h = read_header(source)
+    return h.nrows, h.ncols, h.nnz, h.format, h.field, h.symmetry
+
 
 _scipy_mmread = None
 _scipy_mmwrite = None

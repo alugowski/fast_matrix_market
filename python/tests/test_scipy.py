@@ -44,10 +44,16 @@ class TestSciPy(unittest.TestCase):
         np.testing.assert_almost_equal(lhs_csc.indices, rhs_csc.indices, err_msg="indices")
         np.testing.assert_almost_equal(lhs_csc.data, rhs_csc.data, err_msg="data")
 
+    def test_mminfo(self):
+        for mtx in sorted(list(matrices.glob("*.mtx*"))):
+            with self.subTest(msg=mtx.stem):
+                scipy_info = scipy.io.mminfo(mtx)
+                fmm_info = fmm.mminfo(mtx)
+                self.assertEqual(scipy_info, fmm_info)
+
     def test_read(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
-            mtx_name = str(mtx.stem)
-            with self.subTest(msg=mtx_name):
+            with self.subTest(msg=mtx.stem):
                 m = scipy.io.mmread(mtx)
                 header = fmm.read_header(mtx)
                 m_fmm = fmm.read_scipy(mtx)
@@ -58,8 +64,7 @@ class TestSciPy(unittest.TestCase):
 
     def test_scipy_crashes(self):
         for mtx in sorted(list((matrices / "scipy_crashes").glob("*.mtx*"))):
-            mtx_name = str(mtx.stem)
-            with self.subTest(msg=mtx_name):
+            with self.subTest(msg=mtx.stem):
                 # Verify SciPy has not been updated to handle this file
                 # noinspection PyTypeChecker
                 with self.assertRaises((ValueError, TypeError)), warnings.catch_warnings():
@@ -199,7 +204,50 @@ class TestSciPy(unittest.TestCase):
                 self.assertMatrixEqual(m_fmm, m_fmm_gen)
 
     def test_symmetry_write(self):
-        pass
+        # use the symmetry matrices from the C++ tests
+        paths = list((cpp_matrices / "symmetry").glob("*.mtx")) + list((cpp_matrices / "symmetry_array").glob("*.mtx"))
+        for mtx in sorted(paths):
+            if "_general" in mtx.stem:
+                continue
+            mtx_general = str(mtx).replace(".mtx", "_general.mtx")
+            mtx_header = fmm.read_header(mtx)
+
+            with self.subTest(msg=mtx.stem):
+                m = scipy.io.mmread(mtx)
+
+                bio = BytesIO()
+                fmm.write_scipy(bio, m, symmetry=mtx_header.symmetry)
+                fmms = bio.getvalue().decode()
+
+                self.assertIn(mtx_header.symmetry, fmms)
+
+                m2_fmm = fmm.read_scipy(StringIO(fmms))
+                m2_scipy = scipy.io.mmread(mtx)
+                self.assertMatrixEqual(m, m2_fmm)
+                self.assertMatrixEqual(m, m2_scipy)
+
+                general = scipy.io.mmread(mtx_general)
+                self.assertMatrixEqual(m2_fmm, general)
+
+    def test_find_symmetry(self):
+        # use the symmetry matrices from the C++ tests
+        paths = list((cpp_matrices / "symmetry").glob("*.mtx")) + list((cpp_matrices / "symmetry_array").glob("*.mtx"))
+        for mtx in sorted(paths):
+            if "_general" in mtx.stem:
+                continue
+            mtx_header = fmm.read_header(mtx)
+
+            with self.subTest(msg=mtx.stem):
+                m = scipy.io.mmread(mtx)
+
+                bio = BytesIO()
+                fmm.write_scipy(bio, m, find_symmetry=True)
+                fmms = bio.getvalue().decode()
+
+                expected_symmetry = mtx_header.symmetry
+                if mtx_header.field == "real" and mtx_header.symmetry == "hermitian":
+                    expected_symmetry = "symmetric"
+                self.assertIn(expected_symmetry, fmms)
 
 
 if __name__ == '__main__':
