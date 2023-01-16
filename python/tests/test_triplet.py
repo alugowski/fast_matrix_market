@@ -74,7 +74,7 @@ class TestTriplet(unittest.TestCase):
 
         lists = scipy.sparse.coo_matrix((data, (i, j)), shape=(3, 3))
         lists_fmm = scipy.sparse.coo_matrix(lists_fmm_triplet, shape=lists_fmm_shape)
-        self.assertMatrixEqual(lists, lists_fmm)
+        self.assertMatrixEqual(lists, lists_fmm, types=False)
 
 
 if __name__ == '__main__':

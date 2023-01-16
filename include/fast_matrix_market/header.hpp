@@ -80,6 +80,7 @@ namespace fast_matrix_market {
                 }
             }
         }
+        throw fmm_error("Unknown configuration for get_storage_nnz().");
     }
 
     /**

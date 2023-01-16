@@ -198,6 +198,22 @@ def _validate_symmetry(symmetry):
     return symmetry
 
 
+def _has_find_symmetry():
+    """
+    The find_symmetry method borrows scipy's method. This method is private, however, so it may not
+    be reliably available. Skip testing it if it's not available on that platform.
+    """
+    import numpy as np
+    # Attempt to use scipy's method for finding matrix symmetry
+    import scipy.io
+    try:
+        # noinspection PyProtectedMember
+        _ = scipy.io._mmio.MMFile()._get_symmetry(np.zeros(shape=(1, 1)))
+    except AttributeError:
+        return False
+    return True
+
+
 def read_header(source) -> header:
     """
     Read a Matrix Market header from a file or open file-like object.
@@ -359,9 +375,7 @@ def write_scipy(target, a, comment=None, field=None, precision=None, symmetry=No
         import scipy.io
         try:
             # noinspection PyProtectedMember
-            file = scipy.io._mmio.MMFile()
-            # noinspection PyProtectedMember
-            symmetry = file._get_symmetry(a)
+            symmetry = scipy.io._mmio.MMFile()._get_symmetry(a)
         except AttributeError:
             symmetry = "general"
 

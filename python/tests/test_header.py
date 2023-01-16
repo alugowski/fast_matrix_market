@@ -6,6 +6,8 @@ from pathlib import Path
 
 import fast_matrix_market as fmm
 
+matrices = Path("matrices")
+
 
 class TestHeader(unittest.TestCase):
     def test_object(self):
@@ -49,7 +51,10 @@ class TestHeader(unittest.TestCase):
             fmm.header(symmetry="foo")
 
     def test_read_file(self):
-        path = Path("matrices") / "eye3.mtx"
+        path = matrices / "eye3.mtx"
+        if not path.exists():
+            self.skipTest("eye3.mtx is missing. Only happens when testing with cibuildwheel for some reason.")
+
         h = fmm.read_header(path)
         expected = fmm.header(shape=(3, 3), nnz=3, comment="3-by-3 identity matrix",
                               object="matrix", format="coordinate", field="real", symmetry="general")

@@ -82,7 +82,7 @@ class TestSciPy(unittest.TestCase):
             with self.subTest(msg=mtx.stem):
                 # Verify SciPy has not been updated to handle this file
                 # noinspection PyTypeChecker
-                with self.assertRaises((ValueError, TypeError)), warnings.catch_warnings():
+                with self.assertRaises((ValueError, TypeError, OverflowError)), warnings.catch_warnings():
                     warnings.filterwarnings('ignore')
                     _ = scipy.io.mmread(mtx)
 
@@ -99,7 +99,7 @@ class TestSciPy(unittest.TestCase):
                 m_fmm = fmm.read_scipy(mtx)
 
                 bio = BytesIO()
-                fmm.write_scipy(bio, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None))
+                fmm.mmwrite(bio, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None))
                 fmms = bio.getvalue().decode()
 
                 if mtx_header.field == "pattern":
@@ -131,7 +131,7 @@ class TestSciPy(unittest.TestCase):
             for name, m_fmm in formats.items():
                 with self.subTest(msg=f"{mtx.stem} - {name}"):
                     bio = BytesIO()
-                    fmm.write_scipy(bio, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None))
+                    fmm.mmwrite(bio, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None))
                     fmms = bio.getvalue().decode()
 
                     if mtx_header.field == "pattern":
@@ -166,13 +166,13 @@ class TestSciPy(unittest.TestCase):
 
                     # Write FMM with this field
                     bio = BytesIO()
-                    fmm.write_scipy(bio, mat, field=field)
+                    fmm.mmwrite(bio, mat, field=field)
                     fmms = bio.getvalue().decode()
 
                     # verify the reads come up with the same types
                     m = scipy.io.mmread(StringIO(scipys))
 
-                    m2 = fmm.read_scipy(StringIO(fmms))
+                    m2 = fmm.mmread(StringIO(fmms))
 
                     self.assertMatrixEqual(m, m2)
 
@@ -190,14 +190,14 @@ class TestSciPy(unittest.TestCase):
         for mtx in sorted(list((matrices / "long_double").glob("*.mtx*"))):
             # assert no exception
             # fast_matrix_market throws if value is out of range
-            _ = fmm.read_scipy(mtx, long_type=True)
+            _ = fmm.mmread(mtx, long_type=True)
 
     def test_invalid(self):
         # use the invalid matrices from the C++ tests
         for mtx in sorted(list((cpp_matrices / "invalid").glob("*.mtx"))):
             with self.subTest(msg=mtx.stem):
                 with self.assertRaises(ValueError):
-                    fmm.read_scipy(mtx)
+                    fmm.mmread(mtx)
 
     def test_symmetry_read(self):
         # use the symmetry matrices from the C++ tests
@@ -210,8 +210,8 @@ class TestSciPy(unittest.TestCase):
             with self.subTest(msg=mtx.stem):
                 m = scipy.io.mmread(mtx)
                 m_gen = scipy.io.mmread(mtx_general)
-                m_fmm = fmm.read_scipy(mtx)
-                m_fmm_gen = fmm.read_scipy(mtx_general)
+                m_fmm = fmm.mmread(mtx)
+                m_fmm_gen = fmm.mmread(mtx_general)
 
                 self.assertMatrixEqual(m, m_gen)
                 self.assertMatrixEqual(m, m_fmm)
@@ -231,12 +231,12 @@ class TestSciPy(unittest.TestCase):
                 m = scipy.io.mmread(mtx)
 
                 bio = BytesIO()
-                fmm.write_scipy(bio, m, symmetry=mtx_header.symmetry)
+                fmm.mmwrite(bio, m, symmetry=mtx_header.symmetry)
                 fmms = bio.getvalue().decode()
 
                 self.assertIn(mtx_header.symmetry, fmms)
 
-                m2_fmm = fmm.read_scipy(StringIO(fmms))
+                m2_fmm = fmm.mmread(StringIO(fmms))
                 m2_scipy = scipy.io.mmread(mtx)
                 self.assertMatrixEqual(m, m2_fmm)
                 self.assertMatrixEqual(m, m2_scipy)
@@ -245,6 +245,10 @@ class TestSciPy(unittest.TestCase):
                 self.assertMatrixEqual(m2_fmm, general)
 
     def test_find_symmetry(self):
+        # noinspection PyProtectedMember
+        if not fmm._has_find_symmetry():
+            self.skipTest("find_symmetry not available.")
+
         # use the symmetry matrices from the C++ tests
         paths = list((cpp_matrices / "symmetry").glob("*.mtx")) + list((cpp_matrices / "symmetry_array").glob("*.mtx"))
         for mtx in sorted(paths):
@@ -256,7 +260,7 @@ class TestSciPy(unittest.TestCase):
                 m = scipy.io.mmread(mtx)
 
                 bio = BytesIO()
-                fmm.write_scipy(bio, m, find_symmetry=True)
+                fmm.mmwrite(bio, m, find_symmetry=True)
                 fmms = bio.getvalue().decode()
 
                 expected_symmetry = mtx_header.symmetry

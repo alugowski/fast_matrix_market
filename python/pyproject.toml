@@ -5,8 +5,8 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "fast_matrix_market"
-version = "0.0.1"
-description="A fast and full-featured Matrix Market I/O library"
+version = "1.3.0"
+description="Fast and full-featured Matrix Market file I/O"
 readme = "README.md"
 authors = [
     { name = "Adam Lugowski"},
@@ -14,7 +14,7 @@ authors = [
 requires-python = ">=3.7"
 
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable ",
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.7",
@@ -24,16 +24,21 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 
+[project.urls]
+homepage = "https://github.com/alugowski/fast_matrix_market"
+#documentation = "https://github.com/alugowski/fast_matrix_market"
+repository = "https://github.com/alugowski/fast_matrix_market"
+
 [project.optional-dependencies]
 test = ["pytest", "scipy"]
-
 
 [tool.scikit-build]
 wheel.expand-macos-universal-tags = true
 
+# Include .mtx files used by the tests
+[tool.setuptools.packages.find]
+where = ["tests"]
 
-[tool.cibuildwheel]
-test-command = "pytest {project}/tests"
-test-extras = ["test"]
-test-skip = ["*universal2:arm64"]
-build-verbosity = 1
+# Include .mtx files used by the tests
+[tool.setuptools.package-data]
+mypkg = ["*.mtx*"]

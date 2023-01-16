@@ -433,15 +433,21 @@ PYBIND11_MODULE(_core, m) {
 
     m.def("read_body_array", &read_body_array<int64_t>);
     m.def("read_body_array", &read_body_array<double>);
+    m.def("read_body_array", &read_body_array<long double>);
     m.def("read_body_array", &read_body_array<std::complex<double>>);
+    m.def("read_body_array", &read_body_array<std::complex<long double>>);
 
     m.def("read_body_triplet", &read_body_triplet<int32_t, int64_t>);
     m.def("read_body_triplet", &read_body_triplet<int32_t, double>);
+    m.def("read_body_triplet", &read_body_triplet<int32_t, long double>);
     m.def("read_body_triplet", &read_body_triplet<int32_t, std::complex<double>>);
+    m.def("read_body_triplet", &read_body_triplet<int32_t, std::complex<long double>>);
 
     m.def("read_body_triplet", &read_body_triplet<int64_t, int64_t>);
     m.def("read_body_triplet", &read_body_triplet<int64_t, double>);
+    m.def("read_body_triplet", &read_body_triplet<int64_t, long double>);
     m.def("read_body_triplet", &read_body_triplet<int64_t, std::complex<double>>);
+    m.def("read_body_triplet", &read_body_triplet<int64_t, std::complex<long double>>);
 
     // Write methods
     py::class_<write_cursor>(m, "_write_cursor")

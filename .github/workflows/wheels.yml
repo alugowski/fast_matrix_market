@@ -1,0 +1,131 @@
+name: Wheels
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:  # TODO: switch to main
+      - python
+  release:
+    types:
+      - published
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_sdist:
+    name: Build SDist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build SDist
+        # Our Python package is in the python/ subdirectory.
+        # Also, the fast_matrix_market C++ library is symlinked. The build tool ignores the symlinks, so
+        # replace the symlinks with their targets so that they get included in the sdist.
+        run: |
+          cd python/
+          cd fast_matrix_market/
+          for LINK in *; do DEST="$(readlink -f $LINK)"; rm -rf $LINK; cp -r $DEST .; done;
+          cd ..
+          pipx run build --sdist
+          cd ..
+        shell: bash
+
+      - name: Check metadata
+        run: pipx run twine check python/dist/*
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: python/dist/*.tar.gz
+
+
+  build_wheels:
+    name: Wheels on ${{ matrix.platform_id }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Loosely based on scikit-learn's config:
+        # https://github.com/scikit-learn/scikit-learn/blob/main/.github/workflows/wheels.yml
+        include:
+          - os: windows-latest
+            python-version: "3.7"
+            platform_id: win_amd64
+          - os: ubuntu-latest
+            python-version: "3.7"
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+          - os: ubuntu-latest
+            python-version: "3.7"
+            platform_id: manylinux_aarch64
+            manylinux_image: manylinux2014
+          - os: macos-latest
+            python-version: "3.7"
+            platform_id: macosx_x86_64
+            # Switch to cross-compiling macOS ARM wheels on the Intel runner instead.
+#          - os: macos-latest
+#            python-version: "3.8"      # macOS ARM support starts with Python 3.8
+#            platform_id: macosx_arm64
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Build Wheels
+        env:
+          CIBW_BUILD_VERBOSITY: 3
+#          CIBW_BUILD: "cp*"
+          CIBW_ARCHS_MACOS: "x86_64 arm64"
+          # No 32-bit builds. See https://cibuildwheel.readthedocs.io/en/stable/options/#archs
+          CIBW_SKIP: "*-win32 *_i686"
+          # Omit fast_float and Dragonbox on Windows because the Windows builder can't access them after it builds them for an unknown reason.
+          CIBW_ENVIRONMENT_WINDOWS: "FMM_PYTHON_NO_DEPS=1"
+          # make cibuildwheel install test dependencies from pyproject.toml
+          CIBW_TEST_EXTRAS: "test"
+          # run tests in the {package}/tests dir which is python/tests
+          CIBW_TEST_COMMAND: "pytest {package}/tests"
+          # Skip testing on PyPy and musllinux because SciPy fails to install there.
+          # Also skip macOS ARM tests on Intel runner.
+          CIBW_TEST_SKIP: "pp* *musllinux* *-macosx_arm64"
+        run: |
+          python -m pip install cibuildwheel
+          python -m cibuildwheel --output-dir wheelhouse python
+        shell: bash
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: wheelhouse/*.whl
+
+
+  upload_all:
+    name: Upload to PyPI
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+#    if: github.event_name == 'release' && github.event.action == 'published'  # TODO
+
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # PyPI does not allow replacing a file. Without this flag the entire action fails if even a single duplicate exists.
+          skip_existing: true
+          verbose: true
+          # Real PyPI:
+#          password: ${{ secrets.PYPI_API_TOKEN }}    # TODO
+          # Test PyPI:
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
