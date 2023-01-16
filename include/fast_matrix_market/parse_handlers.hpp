@@ -139,6 +139,41 @@ namespace fast_matrix_market {
     };
 
     /**
+     * Triplet handler. Separate row, column, value iterators.
+     */
+    template<typename IT, typename VT, typename IT_ARR, typename VT_ARR>
+    class triplet_calling_parse_handler {
+    public:
+        using coordinate_type = IT;
+        using value_type = VT;
+        static constexpr int flags = kParallelOk;
+
+        explicit triplet_calling_parse_handler(IT_ARR& rows,
+                                               IT_ARR& cols,
+                                               VT_ARR& values,
+                                               int64_t offset = 0) : rows(rows), cols(cols), values(values), offset(offset) {}
+
+        void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
+            rows(offset) = row;
+            cols(offset) = col;
+            values(offset) = value;
+
+            ++offset;
+        }
+
+        triplet_calling_parse_handler<IT, VT, IT_ARR, VT_ARR> get_chunk_handler(int64_t offset_from_begin) {
+            return triplet_calling_parse_handler(rows, cols, values, offset_from_begin);
+        }
+
+    protected:
+        IT_ARR& rows;
+        IT_ARR& cols;
+        VT_ARR& values;
+
+        int64_t offset;
+    };
+
+    /**
      * Doublet handler, for a (index, value) sparse vector.
      */
     template<typename IT_ITER, typename VT_ITER>

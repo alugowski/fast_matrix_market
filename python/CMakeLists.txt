@@ -4,8 +4,6 @@ project(${SKBUILD_PROJECT_NAME} VERSION ${SKBUILD_PROJECT_VERSION})
 
 find_package(pybind11 CONFIG REQUIRED)
 
-set(FMM_USE_FAST_FLOAT OFF CACHE BOOL "" FORCE) # TODO: temp for development
-set(FMM_USE_DRAGONBOX OFF CACHE BOOL "" FORCE) # TODO: temp for development
 add_subdirectory(fast_matrix_market)
 
 pybind11_add_module(_core MODULE src/fast_matrix_market/core.cpp)

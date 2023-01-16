@@ -5,9 +5,12 @@ import unittest
 import fast_matrix_market as fmm
 
 
-class TestVersion(unittest.TestCase):
+class TestModule(unittest.TestCase):
     def test_version(self):
         self.assertTrue(fmm.__version__)
+
+    def test_doc(self):
+        self.assertTrue(fmm.__doc__)
 
 
 if __name__ == '__main__':

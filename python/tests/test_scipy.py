@@ -62,6 +62,21 @@ class TestSciPy(unittest.TestCase):
 
                 self.assertMatrixEqual(m, m_fmm)
 
+    def test_read_array_or_triplet(self):
+        for mtx in sorted(list(matrices.glob("*.mtx*"))):
+            with self.subTest(msg=mtx.stem):
+                m = scipy.io.mmread(mtx)
+                header = fmm.read_header(mtx)
+                dense_or_sparse, shape = fmm.read_array_or_triplet(mtx)
+                if isinstance(dense_or_sparse, np.ndarray):
+                    m_fmm = dense_or_sparse
+                else:
+                    m_fmm = scipy.sparse.coo_matrix(dense_or_sparse, shape)
+                self.assertEqual(m.shape, header.shape)
+                self.assertEqual(m.shape, m_fmm.shape)
+
+                self.assertMatrixEqual(m, m_fmm)
+
     def test_scipy_crashes(self):
         for mtx in sorted(list((matrices / "scipy_crashes").glob("*.mtx*"))):
             with self.subTest(msg=mtx.stem):

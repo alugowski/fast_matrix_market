@@ -1,12 +1,20 @@
 # Copyright (C) 2022-2023 Adam Lugowski. All rights reserved.
 # Use of this source code is governed by the BSD 2-clause license found in the LICENSE.txt file.
+"""
+The ultimate Matrix Market I/O library. Read and write MatrixMarket files.
+
+Supports sparse triplet matrices, sparse scipy matrices, and numpy array dense matrices.
+"""
 import io
 import os
 
 from . import _core
-from ._core import __doc__, __version__, header
+from ._core import __version__, header
 
-__all__ = ["__doc__", "__version__", "header"]
+PARALLELISM = 0
+"""
+Number of threads to use. 0 means number of threads in the system.
+"""
 
 _field_to_dtype = {
     "integer": "int64",
@@ -20,17 +28,14 @@ _field_to_dtype = {
     "long-pattern": "float64",
 }
 
-PARALLELISM = 0
-"""
-Number of threads to use. 0 means number of threads in the system.
-"""
 
-
-class TextToBytesWrapper(io.BufferedReader):
-    """Convert a TextIOBase string stream to a byte stream."""
+class _TextToBytesWrapper(io.BufferedReader):
+    """
+    Convert a TextIOBase string stream to a byte stream.
+    """
 
     def __init__(self, text_io_buffer, encoding=None, errors=None, **kwargs):
-        super(TextToBytesWrapper, self).__init__(text_io_buffer, **kwargs)
+        super(_TextToBytesWrapper, self).__init__(text_io_buffer, **kwargs)
         self.encoding = encoding or text_io_buffer.encoding or 'utf-8'
         self.errors = errors or text_io_buffer.errors or 'strict'
 
@@ -89,6 +94,9 @@ def _read_body_triplet(cursor, long_type, generalize_symmetry=True):
 
 
 def _get_read_cursor(source, parallelism=None):
+    """
+    Open file for reading.
+    """
     if parallelism is None:
         parallelism = PARALLELISM
 
@@ -113,15 +121,24 @@ def _get_read_cursor(source, parallelism=None):
     # Stream object.
     if hasattr(source, "read"):
         if isinstance(source, io.TextIOBase):
-            source = TextToBytesWrapper(source)
+            source = _TextToBytesWrapper(source)
         return _core.open_read_stream(source, parallelism)
     else:
         raise TypeError("Unknown source type")
 
 
-def _get_write_cursor(target, h=None, comment=None, parallelism=None, symmetry="general"):
+def _get_write_cursor(target, h=None, comment=None, parallelism=None, symmetry="general", precision=None):
+    """
+    Open file for writing.
+    """
     if parallelism is None:
         parallelism = PARALLELISM
+    if comment is None:
+        comment = ''
+    if symmetry is None:
+        symmetry = "general"
+    if precision is None:
+        precision = -1
 
     if not h:
         h = header(comment=comment, symmetry=symmetry)
@@ -129,83 +146,25 @@ def _get_write_cursor(target, h=None, comment=None, parallelism=None, symmetry="
     try:
         target = os.fspath(target)
         # It's a file path
-        return _core.open_write_file(str(target), h, parallelism)
+        return _core.open_write_file(str(target), h, parallelism, precision)
     except TypeError:
         pass
 
     if hasattr(target, "write"):
         # Stream object.
-        return _core.open_write_stream(target, h, parallelism)
+        return _core.open_write_stream(target, h, parallelism, precision)
     else:
         raise TypeError("Unknown source object")
 
 
-def read_header(source) -> header:
-    """
-    Read a Matrix Market header from a file or from a string.
-
-    :param source: filename or string
-    :return: parsed header object
-    """
-    return _get_read_cursor(source, 1).header
-
-
-def write_header(target, h: header):
-    """
-    Write a Matrix Market header to a file or a string.
-
-    :param h: header to write
-    :param target: if not None, write to this file.
-    :return: if target is None then returns a string containing h as if it was written to a file
-    """
-
-    _core.write_header_only(_get_write_cursor(target, h, parallelism=1))
-
-
-def read_array(source, parallelism=None, long_type=False):
-    """
-    Read MatrixMarket file into dense NumPy Array, regardless if the file is sparse or dense.
-
-    :param source: path to MatrixMarket file
-    :param parallelism: number of threads to use. 0 means auto.
-    :param long_type: Use long floating point datatypes (if available in your NumPy).
-    This means longdouble and longcomplex instead of float64 and complex64.
-    :return: numpy array
-    """
-
-    return _read_body_array(_get_read_cursor(source, parallelism), long_type=long_type)
-
-
-def write_array(target, a, comment='', parallelism=None):
-    import numpy as np
-    a = np.asarray(a)
-    cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
-    _core.write_array(cursor, a)
-
-
-def read_triplet(source, parallelism=None, long_type=False, generalize_symmetry=True):
-    return _read_body_triplet(_get_read_cursor(source, parallelism),
-                              long_type=long_type, generalize_symmetry=generalize_symmetry)
-
-
-def write_triplet(target, a, shape, comment='', parallelism=None):
-    data, row, col = a
-    cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
-    _core.write_triplet(cursor, shape, row, col, data)
-
-
-def read_scipy(source, parallelism=None, long_type=False):
-    cursor = _get_read_cursor(source, parallelism)
-
-    if cursor.header.format == "array":
-        return _read_body_array(cursor, long_type=long_type)
-    else:
-        from scipy.sparse import coo_matrix
-        triplet, shape = _read_body_triplet(cursor, long_type=long_type, generalize_symmetry=True)
-        return coo_matrix(triplet, shape=shape)
-
-
 def _apply_field(data, field, no_pattern=False):
+    """
+    Ensure that numpy array is of the type specified by the field
+    :param data: array to check
+    :param field: MatrixMarket field
+    :param no_pattern:
+    :return: data if no conversion necessary, or a converted version
+    """
     import numpy as np
 
     if field is None:
@@ -215,17 +174,19 @@ def _apply_field(data, field, no_pattern=False):
             return data
         else:
             return np.zeros(0)
-    if field == "integer" or field == "unsigned-integer":
-        return data.astype('int64')
-    if field == "real" or field == "double":
-        return data.astype('float64')
-    if field == "complex":
-        return data.astype('complex')
 
-    raise ValueError("Invalid field name")
+    import numpy as np
+    dtype = _field_to_dtype.get(field, None)
+    if dtype is None:
+        raise ValueError("Invalid field.")
+
+    return np.asarray(data, dtype=dtype)
 
 
 def _validate_symmetry(symmetry):
+    """
+    Sanitize symmetry parameter.
+    """
     if symmetry is None:
         return "general"
 
@@ -237,8 +198,156 @@ def _validate_symmetry(symmetry):
     return symmetry
 
 
-def write_scipy(target, a, comment='', field=None, precision=None, symmetry=None,
+def read_header(source) -> header:
+    """
+    Read a Matrix Market header from a file or open file-like object.
+
+    :param source: filename or open file-like object
+    :return: parsed header object
+    """
+    return _get_read_cursor(source, 1).header
+
+
+def write_header(target, h: header):
+    """
+    Write a Matrix Market header to a file or open file-like object.
+
+    :param target: filename or open file-like object.
+    :param h: header to write
+    """
+    _core.write_header_only(_get_write_cursor(target, h, parallelism=1))
+
+
+def read_array(source, parallelism=None, long_type=False):
+    """
+    Read MatrixMarket file into dense NumPy Array, regardless if the file is sparse or dense.
+
+    :param source: path to MatrixMarket file or open file-like object
+    :param parallelism: number of threads to use. 0 means auto.
+    :param long_type: Use long floating point datatypes (if available in your NumPy).
+    This means longdouble and longcomplex instead of float64 and complex64.
+    :return: numpy array
+    """
+    return _read_body_array(_get_read_cursor(source, parallelism), long_type=long_type)
+
+
+def write_array(target, a, comment=None, parallelism=None):
+    """
+    Write 2D array to a MatrixMarket file (or file-like object).
+
+    :param target: path to MatrixMarket file or open file-like object
+    :param a: convertible to a Numpy array.
+    :param comment: comment to include in the MatrixMarket header
+    :param parallelism: number of threads to use, None means auto.
+    """
+    import numpy as np
+    a = np.asarray(a)
+    cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
+    _core.write_array(cursor, a)
+
+
+def read_triplet(source, parallelism=None, long_type=False, generalize_symmetry=True):
+    """
+    Read MatrixMarket file to triples, regardless if the file is sparse or dense.
+
+    :param source: path to MatrixMarket file or open file-like object
+    :param parallelism: number of threads to use. 0 means auto.
+    :param long_type: Use long floating point datatypes (if available in your NumPy).
+    This means longdouble and longcomplex instead of float64 and complex64.
+    :param generalize_symmetry: if the MatrixMarket file specifies a symmetry, emit the symmetric entries too.
+    :return: (data, (row_indices, column_indices)) (same as scipy.io.mmread)
+    """
+    (data, (rows, cols)), shape = _read_body_triplet(_get_read_cursor(source, parallelism),
+                                                     long_type=long_type, generalize_symmetry=generalize_symmetry)
+    return (data, (rows, cols)), shape
+
+
+def write_triplet(target, a, shape, comment=None, parallelism=None):
+    """
+
+    :param target:
+    :param a:
+    :param shape:
+    :param comment:
+    :param parallelism:
+    :return:
+    """
+    if len(shape) != 2:
+        raise ValueError("shape needs to be: (# of rows, # of columns)")
+
+    # unpack a
+    data, (row, col) = a
+
+    cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
+    _core.write_triplet(cursor, shape, row, col, data)
+
+
+def read_array_or_triplet(source, parallelism=None, long_type=False, generalize_symmetry=True):
+    """
+    Read MatrixMarket file. If the file is dense, return a 2D numpy array. Else return a triplet matrix.
+
+    This is the same as read_array() if the file is dense, and read_triplet() if the file is sparse.
+
+    :param source: path to MatrixMarket file or open file-like object
+    :param parallelism: number of threads to use. 0 means auto.
+    :param long_type: Use long floating point datatypes (if available in your NumPy).
+    This means longdouble and longcomplex instead of float64 and complex64.
+    :param generalize_symmetry: if the MatrixMarket file specifies a symmetry, emit the symmetric entries too.
+    Always True for dense files.
+    :return: a tuple of (matrix, shape), where matrix is an ndarray if the MatrixMarket file is dense,
+    a triplet tuple if the MatrixMarket file is sparse.
+    """
+    cursor = _get_read_cursor(source, parallelism)
+
+    if cursor.header.format == "array":
+        arr = _read_body_array(cursor, long_type=long_type)
+        return arr, arr.shape
+    else:
+        (data, (rows, cols)), shape = _read_body_triplet(cursor, long_type=long_type,
+                                                         generalize_symmetry=generalize_symmetry)
+        return (data, (rows, cols)), shape
+
+
+def read_scipy(source, parallelism=None, long_type=False):
+    """
+    Read MatrixMarket file. If the file is dense, return a 2D numpy array. Else return a SciPy sparse matrix.
+
+    Interchangeable with scipy.io.mmread() but faster and supports longdouble.
+
+    :param source: path to MatrixMarket file or open file-like object
+    :param parallelism: number of threads to use. 0 means auto.
+    :param long_type: Use long floating point datatypes (if available in your NumPy).
+    This means longdouble and longcomplex instead of float64 and complex64.
+    :return: an ndarray if the MatrixMarket file is dense, a scipy.sparse.coo_matrix if the MatrixMarket file is sparse.
+    """
+    cursor = _get_read_cursor(source, parallelism)
+
+    if cursor.header.format == "array":
+        return _read_body_array(cursor, long_type=long_type)
+    else:
+        from scipy.sparse import coo_matrix
+        triplet, shape = _read_body_triplet(cursor, long_type=long_type, generalize_symmetry=True)
+        return coo_matrix(triplet, shape=shape)
+
+
+def write_scipy(target, a, comment=None, field=None, precision=None, symmetry=None,
                 parallelism=None, find_symmetry=False):
+    """
+    Write a matrix to a MatrixMarket file or file-like object.
+
+    Interchangeable with scipy.io.mmwrite() but faster.
+
+    :param target: path to MatrixMarket file or open file-like object
+    :param a: a 2D ndarray (or an array convertible to one) or a scipy.sparse matrix
+    :param comment: comment to include in the MatrixMarket header
+    :param field: convert matrix values to this MatrixMarket field
+    :param precision: ignored
+    :param symmetry: if not None then the matrix is written as having this MatrixMarket symmetry. "pattern" means write
+    only the nonzero structure and no values.
+    :param parallelism: number of threads to use. 0 means auto.
+    :param find_symmetry: autodetect what symmetry the matrix contains and set the `symmetry` field accordingly. This
+    can be slow. scipy.io.mmwrite always does this if symmetry is not set, but it is very slow on large matrices.
+    """
     import numpy as np
     import scipy.sparse
 
@@ -246,8 +355,10 @@ def write_scipy(target, a, comment='', field=None, precision=None, symmetry=None
         a = np.asarray(a)
 
     if find_symmetry:
+        # Attempt to use scipy's method for finding matrix symmetry
         import scipy.io
         try:
+            # noinspection PyProtectedMember
             file = scipy.io._mmio.MMFile()
             # noinspection PyProtectedMember
             symmetry = file._get_symmetry(a)
@@ -255,7 +366,7 @@ def write_scipy(target, a, comment='', field=None, precision=None, symmetry=None
             symmetry = "general"
 
     symmetry = _validate_symmetry(symmetry)
-    cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism, symmetry=symmetry)
+    cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism, precision=precision, symmetry=symmetry)
 
     if isinstance(a, np.ndarray):
         # Write dense numpy arrays
@@ -300,6 +411,12 @@ mmwrite = write_scipy
 
 
 def mminfo(source):
+    """
+    Same as scipy.io.mminfo()
+
+    :param source: a Matrix Market file path or an open file-like object
+    :return: a tuple of (# of rows, #of columns, #of entries, "coordinate" or "array", field type, symmetry type)
+    """
     h = read_header(source)
     return h.nrows, h.ncols, h.nnz, h.format, h.field, h.symmetry
 

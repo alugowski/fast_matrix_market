@@ -81,6 +81,12 @@ namespace fast_matrix_market {
          * Number of threads to use. 0 means std::thread::hardware_concurrency().
          */
         int num_threads = 0;
+
+        /**
+         * Floating-point formatting precision.
+         * Placeholder. Currently not used due to the various supported float rendering backends.
+         */
+        int precision = -1;
     };
 
     template<class T> struct is_complex : std::false_type {};

@@ -29,7 +29,14 @@ namespace fast_matrix_market {
                 return key;
             }
         }
-        throw invalid_argument(std::string("Invalid value: ") + s);
+
+        std::string acceptable;
+        std::string delim;
+        for (const auto& [key, value] : mp) {
+            acceptable += delim + std::string(value);
+            delim = ", ";
+        }
+        throw invalid_argument(std::string("Invalid value. Must be one of: ") + acceptable);
     }
 
     /**

@@ -14,30 +14,10 @@ namespace py = pybind11;
 using namespace pybind11::literals;
 namespace fmm = fast_matrix_market;
 
-fmm::matrix_market_header read_header_file(const std::string& filename) {
-    std::ifstream f(filename);
-    fmm::matrix_market_header header;
-    fast_matrix_market::read_header(f, header);
-    return header;
-}
 
-fmm::matrix_market_header read_header_string(const std::string& str) {
-    std::istringstream f(str);
-    fmm::matrix_market_header header;
-    fast_matrix_market::read_header(f, header);
-    return header;
-}
-
-void write_header_file(const fmm::matrix_market_header& header, const std::string& filename) {
-    std::ofstream f(filename);
-    fast_matrix_market::write_header(f, header);
-}
-
-std::string write_header_string(const fmm::matrix_market_header& header) {
-    std::ostringstream f;
-    fast_matrix_market::write_header(f, header);
-    return f.str();
-}
+////////////////////////////////////////////////
+//// Header methods
+////////////////////////////////////////////////
 
 std::tuple<int64_t, int64_t> get_header_shape(const fmm::matrix_market_header& header) {
     return std::make_tuple(header.nrows, header.ncols);
@@ -116,24 +96,32 @@ std::string header_repr(const fmm::matrix_market_header& header) {
     return oss.str();
 }
 
+////////////////////////////////////////////////
+//// Read cursor - open files/streams for reading
+////////////////////////////////////////////////
 
+/**
+ * A structure that represents an open MatrixMarket file or stream
+ */
 struct read_cursor {
+    /**
+     * Open a file.
+     */
     read_cursor(const std::string& filename): stream_ptr(std::make_shared<std::ifstream>(filename)) {}
-    read_cursor(std::shared_ptr<pystream::istream>& external): stream_external(external), use_external(true) {}
+
+    /**
+     * Use a Python stream. Needs to be a shared_ptr because this stream object needs to stay alive for the lifetime
+     * of this cursor object.
+     */
+    read_cursor(std::shared_ptr<pystream::istream>& external): stream_ptr(external) {}
 
     std::shared_ptr<std::istream> stream_ptr;
-    std::shared_ptr<pystream::istream> stream_external;
-    bool use_external = false;
 
     fmm::matrix_market_header header{};
     fmm::read_options options{};
 
     std::istream& stream() {
-        if (use_external) {
-            return *stream_external;
-        } else {
-            return *stream_ptr;
-        }
+        return *stream_ptr;
     }
 };
 
@@ -177,43 +165,9 @@ void read_body_array(read_cursor& cursor, py::array_t<T>& array) {
     fmm::read_matrix_market_body(cursor.stream(), cursor.header, handler, 1, cursor.options);
 }
 
-
 /**
- * Triplet handler. Separate row, column, value iterators.
+ * Read Matrix Market body into triplets.
  */
-template<typename IT, typename VT, typename IT_ARR, typename VT_ARR>
-class triplet_numpy_parse_handler {
-public:
-    using coordinate_type = IT;
-    using value_type = VT;
-    static constexpr int flags = fmm::kParallelOk;
-
-    explicit triplet_numpy_parse_handler(IT_ARR& rows,
-                                         IT_ARR& cols,
-                                         VT_ARR& values,
-                                         int64_t offset = 0) : rows(rows), cols(cols), values(values), offset(offset) {}
-
-    void handle(const coordinate_type row, const coordinate_type col, const value_type value) {
-        rows(offset) = row;
-        cols(offset) = col;
-        values(offset) = value;
-
-        ++offset;
-    }
-
-    triplet_numpy_parse_handler<IT, VT, IT_ARR, VT_ARR> get_chunk_handler(int64_t offset_from_begin) {
-        return triplet_numpy_parse_handler(rows, cols, values, offset_from_begin);
-    }
-
-protected:
-    IT_ARR& rows;
-    IT_ARR& cols;
-    VT_ARR& values;
-
-    int64_t offset;
-};
-
-
 template <typename IT, typename VT>
 void read_body_triplet(read_cursor& cursor, py::array_t<IT>& row, py::array_t<IT>& col, py::array_t<VT>& data) {
     if (row.size() != cursor.header.nnz || col.size() != cursor.header.nnz || data.size() != cursor.header.nnz) {
@@ -222,43 +176,54 @@ void read_body_triplet(read_cursor& cursor, py::array_t<IT>& row, py::array_t<IT
     auto row_unchecked = row.mutable_unchecked();
     auto col_unchecked = col.mutable_unchecked();
     auto data_unchecked = data.mutable_unchecked();
-    auto handler = triplet_numpy_parse_handler<IT, VT, decltype(row_unchecked), decltype(data_unchecked)>(row_unchecked, col_unchecked, data_unchecked);
+    auto handler = fmm::triplet_calling_parse_handler<IT, VT, decltype(row_unchecked), decltype(data_unchecked)>(
+            row_unchecked, col_unchecked, data_unchecked);
     fmm::read_matrix_market_body(cursor.stream(), cursor.header, handler, 1, cursor.options);
 }
 
+////////////////////////////////////////////////
+//// Write cursor - open files/streams writing reading
+////////////////////////////////////////////////
 
 struct write_cursor {
+    /**
+     * Open a file
+     * @param filename path
+     */
     write_cursor(const std::string& filename): stream_ptr(std::make_unique<std::ofstream>(filename)) {}
-    write_cursor(std::shared_ptr<pystream::ostream>& external): stream_external(external), use_external(true) {}
+
+    /**
+     * Use a Python stream. Needs to be a shared_ptr because this stream object needs to stay alive for the lifetime
+     * of this cursor object.
+     */
+    write_cursor(std::shared_ptr<pystream::ostream>& external): stream_ptr(external) {}
 
     std::shared_ptr<std::ostream> stream_ptr;
-    std::shared_ptr<pystream::ostream> stream_external;
-    bool use_external = false;
 
     fmm::matrix_market_header header{};
     fmm::write_options options{};
 
     std::ostream& stream() {
-        if (use_external) {
-            return *stream_external;
-        } else {
-            return *stream_ptr;
-        }
+        return *stream_ptr;
     }
 };
 
-write_cursor open_write_file(const std::string& filename, const fmm::matrix_market_header& header, int num_threads) {
+write_cursor open_write_file(const std::string& filename, const fmm::matrix_market_header& header,
+                             int num_threads, int precision) {
     write_cursor cursor(filename);
     // Set options
     cursor.options.num_threads = num_threads;
+    cursor.options.precision = precision;
     cursor.header = header;
     return cursor;
 }
 
-write_cursor open_write_stream(std::shared_ptr<pystream::ostream>& stream, fmm::matrix_market_header& header, int num_threads) {
+write_cursor open_write_stream(std::shared_ptr<pystream::ostream>& stream, fmm::matrix_market_header& header,
+                               int num_threads, int precision) {
     write_cursor cursor(stream);
     // Set options
     cursor.options.num_threads = num_threads;
+    cursor.options.precision = precision;
     cursor.header = header;
     return cursor;
 }
@@ -267,6 +232,9 @@ void write_header_only(write_cursor& cursor) {
     fmm::write_header(cursor.stream(), cursor.header);
 }
 
+/**
+ * Write numpy array to MatrixMarket file
+ */
 template <typename T>
 void write_array(write_cursor& cursor, py::array_t<T>& array) {
     if (array.ndim() != 2) {
@@ -289,7 +257,11 @@ void write_array(write_cursor& cursor, py::array_t<T>& array) {
     fmm::write_body(cursor.stream(), formatter, cursor.options);
 }
 
-
+/**
+ * An iterator adapter over py::array_t numpy arrays.
+ *
+ * This allows using the iterator-based fast_matrix_market methods.
+ */
 template<typename ARR, typename T>
 class py_array_iterator
 {
@@ -330,7 +302,9 @@ private:
     int64_t index;
 };
 
-
+/**
+ * Write Python triplets to MatrixMarket.
+ */
 template <typename IT, typename VT>
 void write_triplet(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
                    py::array_t<IT>& rows, py::array_t<IT>& cols, py::array_t<VT>& data) {
@@ -366,6 +340,9 @@ void write_triplet(write_cursor& cursor, const std::tuple<int64_t, int64_t>& sha
     fmm::write_body(cursor.stream(), formatter, cursor.options);
 }
 
+/**
+ * Write Python CSC/CSR to MatrixMarket.
+ */
 template <typename IT, typename VT>
 void write_csc(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
                    py::array_t<IT>& indptr, py::array_t<IT>& indices, py::array_t<VT>& data, bool is_csr) {
@@ -402,6 +379,11 @@ void write_csc(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
                                         is_csr);
     fmm::write_body(cursor.stream(), formatter, cursor.options);
 }
+
+////////////////////////////////////////////////
+//// pybind11 module definition
+//// Define the _core module here, it is used by __init__.py
+////////////////////////////////////////////////
 
 
 PYBIND11_MODULE(_core, m) {
@@ -440,18 +422,7 @@ PYBIND11_MODULE(_core, m) {
     )pbdoc")
     .def("__repr__", [](const fmm::matrix_market_header& header) { return header_repr(header); });
 
-    m.def("read_header_file", &read_header_file, R"pbdoc(
-        Read Matrix Market header from a file.
-    )pbdoc");
-    m.def("read_header_string", &read_header_string, R"pbdoc(
-        Read Matrix Market header from a string.
-    )pbdoc");
-    m.def("write_header_file", &write_header_file, R"pbdoc(
-        Write Matrix Market header to a file.
-    )pbdoc");
-    m.def("write_header_string", &write_header_string, R"pbdoc(
-        Write Matrix Market header to a string.
-    )pbdoc");
+    m.def("write_header_only", &write_header_only);
 
     // Read methods
     py::class_<read_cursor>(m, "_read_cursor")
@@ -478,7 +449,6 @@ PYBIND11_MODULE(_core, m) {
 
     m.def("open_write_file", &open_write_file);
     m.def("open_write_stream", &open_write_stream);
-    m.def("write_header_only", &write_header_only);
 
     // Write arrays
     m.def("write_array", &write_array<int64_t>);
