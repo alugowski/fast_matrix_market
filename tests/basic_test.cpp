@@ -323,7 +323,7 @@ class PlainVectorSuite : public testing::Test {
     VT ignored{};
 };
 
-using PlainVectorTypes = ::testing::Types<int32_t, float, double, std::complex<double>, long double>;
+using PlainVectorTypes = ::testing::Types<int64_t, float, double, std::complex<double>, long double>;
 TYPED_TEST_SUITE(PlainVectorSuite, PlainVectorTypes);
 
 
