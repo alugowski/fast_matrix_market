@@ -399,7 +399,7 @@ namespace fast_matrix_market {
         };
 
         chunk next_chunk(const write_options& options) {
-            auto num_columns = (DIM)(nrows * (double)options.chunk_size_values + 1);
+            auto num_columns = (DIM)((double)options.chunk_size_values / nrows) + 1;
             num_columns = std::min(num_columns, ncols - col_iter);
 
             DIM col_end = col_iter + num_columns;
