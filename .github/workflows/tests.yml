@@ -1,7 +1,7 @@
 name: tests
 
 on:
-#  push:  # TODO
+  push:
   pull_request:
 
 jobs:
@@ -10,9 +10,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest] # TODO , macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         # Do not test on "pypy-3.8" because scipy fails to install there
-        python-version: ["3.7"] # TODO , "3.11"]
+        python-version: ["3.7", "3.11"]
 
     steps:
     - uses: actions/checkout@v3
