@@ -24,7 +24,7 @@ import fast_matrix_market as fmm
 
 
 # Coordinate/Triplet
->>> (data, (rows, cols)), shape = fmm.read_triplet("eye3.mtx")
+>>> (data, (rows, cols)), shape = fmm.read_coo("eye3.mtx")
 >>> rows, cols, data
 (array([0, 1, 2], dtype=int32), array([0, 1, 2], dtype=int32), array([1., 1., 1.]))
 
@@ -41,7 +41,7 @@ array([[1., 0., 0.],
 >>> fmm.mmwrite("matrix.mtx", a)
 
 
-# Write to streams
+# Write to streams (read from streams too)
 >>> bio = io.BytesIO()
 >>> fmm.mmwrite(bio, a)
 ```

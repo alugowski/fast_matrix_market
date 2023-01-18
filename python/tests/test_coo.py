@@ -36,7 +36,7 @@ class TestTriplet(unittest.TestCase):
 
             with self.subTest(msg=mtx.stem):
                 m = scipy.io.mmread(mtx)
-                triplet, shape = fmm.read_triplet(mtx)
+                triplet, shape = fmm.read_coo(mtx)
                 fmm_scipy = scipy.sparse.coo_matrix(triplet, shape=shape)
                 self.assertMatrixEqual(m, fmm_scipy)
 
@@ -47,14 +47,14 @@ class TestTriplet(unittest.TestCase):
                 continue
 
             with self.subTest(msg=mtx.stem):
-                triplet, shape = fmm.read_triplet(mtx)
+                triplet, shape = fmm.read_coo(mtx)
                 print(triplet)
 
                 bio = BytesIO()
-                fmm.write_triplet(bio, triplet, shape=shape)
+                fmm.write_coo(bio, triplet, shape=shape)
                 fmms = bio.getvalue().decode()
 
-                triplet2, shape2 = fmm.read_triplet(StringIO(fmms))
+                triplet2, shape2 = fmm.read_coo(StringIO(fmms))
 
                 self.assertEqual(shape, shape2)
                 fmm_scipy = scipy.sparse.coo_matrix(triplet, shape=shape)
@@ -67,10 +67,10 @@ class TestTriplet(unittest.TestCase):
         data = [1, 1, 1]
 
         bio = BytesIO()
-        fmm.write_triplet(bio, (data, (i, j)), shape=(3, 3))
+        fmm.write_coo(bio, (data, (i, j)), shape=(3, 3))
         fmms = bio.getvalue().decode()
 
-        lists_fmm_triplet, lists_fmm_shape = fmm.read_triplet(StringIO(fmms))
+        lists_fmm_triplet, lists_fmm_shape = fmm.read_coo(StringIO(fmms))
 
         lists = scipy.sparse.coo_matrix((data, (i, j)), shape=(3, 3))
         lists_fmm = scipy.sparse.coo_matrix(lists_fmm_triplet, shape=lists_fmm_shape)

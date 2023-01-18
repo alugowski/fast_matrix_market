@@ -169,7 +169,7 @@ void read_body_array(read_cursor& cursor, py::array_t<T>& array) {
  * Read Matrix Market body into triplets.
  */
 template <typename IT, typename VT>
-void read_body_triplet(read_cursor& cursor, py::array_t<IT>& row, py::array_t<IT>& col, py::array_t<VT>& data) {
+void read_body_coo(read_cursor& cursor, py::array_t<IT>& row, py::array_t<IT>& col, py::array_t<VT>& data) {
     if (row.size() != cursor.header.nnz || col.size() != cursor.header.nnz || data.size() != cursor.header.nnz) {
         throw std::invalid_argument("NumPy Array sizes need to equal matrix nnz");
     }
@@ -306,8 +306,8 @@ private:
  * Write Python triplets to MatrixMarket.
  */
 template <typename IT, typename VT>
-void write_triplet(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
-                   py::array_t<IT>& rows, py::array_t<IT>& cols, py::array_t<VT>& data) {
+void write_coo(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
+               py::array_t<IT>& rows, py::array_t<IT>& cols, py::array_t<VT>& data) {
     if (rows.size() != cols.size()) {
         throw std::invalid_argument("len(row) must equal len(col).");
     }
@@ -431,23 +431,25 @@ PYBIND11_MODULE(_core, m) {
     m.def("open_read_file", &open_read_file);
     m.def("open_read_stream", &open_read_stream);
 
+    // Write arrays
     m.def("read_body_array", &read_body_array<int64_t>);
     m.def("read_body_array", &read_body_array<double>);
     m.def("read_body_array", &read_body_array<long double>);
     m.def("read_body_array", &read_body_array<std::complex<double>>);
     m.def("read_body_array", &read_body_array<std::complex<long double>>);
 
-    m.def("read_body_triplet", &read_body_triplet<int32_t, int64_t>);
-    m.def("read_body_triplet", &read_body_triplet<int32_t, double>);
-    m.def("read_body_triplet", &read_body_triplet<int32_t, long double>);
-    m.def("read_body_triplet", &read_body_triplet<int32_t, std::complex<double>>);
-    m.def("read_body_triplet", &read_body_triplet<int32_t, std::complex<long double>>);
+    // Write triplets
+    m.def("read_body_coo", &read_body_coo<int32_t, int64_t>);
+    m.def("read_body_coo", &read_body_coo<int32_t, double>);
+    m.def("read_body_coo", &read_body_coo<int32_t, long double>);
+    m.def("read_body_coo", &read_body_coo<int32_t, std::complex<double>>);
+    m.def("read_body_coo", &read_body_coo<int32_t, std::complex<long double>>);
 
-    m.def("read_body_triplet", &read_body_triplet<int64_t, int64_t>);
-    m.def("read_body_triplet", &read_body_triplet<int64_t, double>);
-    m.def("read_body_triplet", &read_body_triplet<int64_t, long double>);
-    m.def("read_body_triplet", &read_body_triplet<int64_t, std::complex<double>>);
-    m.def("read_body_triplet", &read_body_triplet<int64_t, std::complex<long double>>);
+    m.def("read_body_coo", &read_body_coo<int64_t, int64_t>);
+    m.def("read_body_coo", &read_body_coo<int64_t, double>);
+    m.def("read_body_coo", &read_body_coo<int64_t, long double>);
+    m.def("read_body_coo", &read_body_coo<int64_t, std::complex<double>>);
+    m.def("read_body_coo", &read_body_coo<int64_t, std::complex<long double>>);
 
     // Write methods
     py::class_<write_cursor>(m, "_write_cursor")
@@ -464,17 +466,17 @@ PYBIND11_MODULE(_core, m) {
     m.def("write_array", &write_array<std::complex<long double>>);
 
     // Write triplets
-    m.def("write_triplet", &write_triplet<int32_t, int64_t>);
-    m.def("write_triplet", &write_triplet<int32_t, double>);
-    m.def("write_triplet", &write_triplet<int32_t, long double>);
-    m.def("write_triplet", &write_triplet<int32_t, std::complex<double>>);
-    m.def("write_triplet", &write_triplet<int32_t, std::complex<long double>>);
+    m.def("write_coo", &write_coo<int32_t, int64_t>);
+    m.def("write_coo", &write_coo<int32_t, double>);
+    m.def("write_coo", &write_coo<int32_t, long double>);
+    m.def("write_coo", &write_coo<int32_t, std::complex<double>>);
+    m.def("write_coo", &write_coo<int32_t, std::complex<long double>>);
 
-    m.def("write_triplet", &write_triplet<int64_t, int64_t>);
-    m.def("write_triplet", &write_triplet<int64_t, double>);
-    m.def("write_triplet", &write_triplet<int64_t, long double>);
-    m.def("write_triplet", &write_triplet<int64_t, std::complex<double>>);
-    m.def("write_triplet", &write_triplet<int64_t, std::complex<long double>>);
+    m.def("write_coo", &write_coo<int64_t, int64_t>);
+    m.def("write_coo", &write_coo<int64_t, double>);
+    m.def("write_coo", &write_coo<int64_t, long double>);
+    m.def("write_coo", &write_coo<int64_t, std::complex<double>>);
+    m.def("write_coo", &write_coo<int64_t, std::complex<long double>>);
 
     // Write CSC/CSR
     m.def("write_csc", &write_csc<int32_t, int64_t>);

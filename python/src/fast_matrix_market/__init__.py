@@ -3,7 +3,7 @@
 """
 The ultimate Matrix Market I/O library. Read and write MatrixMarket files.
 
-Supports sparse triplet matrices, sparse scipy matrices, and numpy array dense matrices.
+Supports sparse coo/triplet matrices, sparse scipy matrices, and numpy array dense matrices.
 """
 import io
 import os
@@ -61,7 +61,7 @@ def _read_body_array(cursor, long_type):
     return vals
 
 
-def _read_body_triplet(cursor, long_type, generalize_symmetry=True):
+def _read_body_coo(cursor, long_type, generalize_symmetry=True):
     import numpy as np
 
     index_dtype = "int32"  # SciPy uses this size
@@ -73,7 +73,7 @@ def _read_body_triplet(cursor, long_type, generalize_symmetry=True):
     j = np.zeros(cursor.header.nnz, dtype=index_dtype)
     data = np.zeros(cursor.header.nnz, dtype=_field_to_dtype.get(("long-" if long_type else "")+cursor.header.field))
 
-    _core.read_body_triplet(cursor, i, j, data)
+    _core.read_body_coo(cursor, i, j, data)
 
     if generalize_symmetry and cursor.header.symmetry != "general":
         off_diagonal_mask = (i != j)
@@ -262,9 +262,9 @@ def write_array(target, a, comment=None, parallelism=None):
     _core.write_array(cursor, a)
 
 
-def read_triplet(source, parallelism=None, long_type=False, generalize_symmetry=True):
+def read_coo(source, parallelism=None, long_type=False, generalize_symmetry=True):
     """
-    Read MatrixMarket file to triples, regardless if the file is sparse or dense.
+    Read MatrixMarket file to a (data, (i, j)) triplet, regardless if the file is sparse or dense.
 
     :param source: path to MatrixMarket file or open file-like object
     :param parallelism: number of threads to use. 0 means auto.
@@ -273,20 +273,20 @@ def read_triplet(source, parallelism=None, long_type=False, generalize_symmetry=
     :param generalize_symmetry: if the MatrixMarket file specifies a symmetry, emit the symmetric entries too.
     :return: (data, (row_indices, column_indices)) (same as scipy.io.mmread)
     """
-    (data, (rows, cols)), shape = _read_body_triplet(_get_read_cursor(source, parallelism),
-                                                     long_type=long_type, generalize_symmetry=generalize_symmetry)
+    (data, (rows, cols)), shape = _read_body_coo(_get_read_cursor(source, parallelism),
+                                                 long_type=long_type, generalize_symmetry=generalize_symmetry)
     return (data, (rows, cols)), shape
 
 
-def write_triplet(target, a, shape, comment=None, parallelism=None):
+def write_coo(target, a, shape, comment=None, parallelism=None):
     """
+    Write a (data, (i, j)) triplet into a MatrixMarket file or file-like object.
 
-    :param target:
-    :param a:
-    :param shape:
-    :param comment:
-    :param parallelism:
-    :return:
+    :param target: path to MatrixMarket file or open file-like object
+    :param a: (data, (i, j)) triplet of arrays
+    :param shape: tuple of (nrows, ncols)
+    :param comment: any comment to include in the MatrixMarket header
+    :param parallelism: number of threads to use. 0 means auto.
     """
     if len(shape) != 2:
         raise ValueError("shape needs to be: (# of rows, # of columns)")
@@ -295,14 +295,14 @@ def write_triplet(target, a, shape, comment=None, parallelism=None):
     data, (row, col) = a
 
     cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
-    _core.write_triplet(cursor, shape, row, col, data)
+    _core.write_coo(cursor, shape, row, col, data)
 
 
-def read_array_or_triplet(source, parallelism=None, long_type=False, generalize_symmetry=True):
+def read_array_or_coo(source, parallelism=None, long_type=False, generalize_symmetry=True):
     """
-    Read MatrixMarket file. If the file is dense, return a 2D numpy array. Else return a triplet matrix.
+    Read MatrixMarket file. If the file is dense, return a 2D numpy array. Else return a coordinate matrix.
 
-    This is the same as read_array() if the file is dense, and read_triplet() if the file is sparse.
+    This is the same as read_array() if the file is dense, and read_coo() if the file is sparse.
 
     :param source: path to MatrixMarket file or open file-like object
     :param parallelism: number of threads to use. 0 means auto.
@@ -319,8 +319,8 @@ def read_array_or_triplet(source, parallelism=None, long_type=False, generalize_
         arr = _read_body_array(cursor, long_type=long_type)
         return arr, arr.shape
     else:
-        (data, (rows, cols)), shape = _read_body_triplet(cursor, long_type=long_type,
-                                                         generalize_symmetry=generalize_symmetry)
+        (data, (rows, cols)), shape = _read_body_coo(cursor, long_type=long_type,
+                                                     generalize_symmetry=generalize_symmetry)
         return (data, (rows, cols)), shape
 
 
@@ -342,7 +342,7 @@ def read_scipy(source, parallelism=None, long_type=False):
         return _read_body_array(cursor, long_type=long_type)
     else:
         from scipy.sparse import coo_matrix
-        triplet, shape = _read_body_triplet(cursor, long_type=long_type, generalize_symmetry=True)
+        triplet, shape = _read_body_coo(cursor, long_type=long_type, generalize_symmetry=True)
         return coo_matrix(triplet, shape=shape)
 
 
@@ -404,7 +404,7 @@ def write_scipy(target, a, comment=None, field=None, precision=None, symmetry=No
         is_compressed = (isinstance(a, scipy.sparse.csc_matrix) or isinstance(a, scipy.sparse.csr_matrix))
 
         if not is_compressed:
-            # convert everything except CSC/CSR to triplet
+            # convert everything except CSC/CSR to coo
             a = a.tocoo()
 
         data = _apply_field(a.data, field)
@@ -414,7 +414,7 @@ def write_scipy(target, a, comment=None, field=None, precision=None, symmetry=No
             is_csr = isinstance(a, scipy.sparse.csr_matrix)
             _core.write_csc(cursor, a.shape, a.indptr, a.indices, data, is_csr)
         else:
-            _core.write_triplet(cursor, a.shape, a.row, a.col, data)
+            _core.write_coo(cursor, a.shape, a.row, a.col, data)
         return
 
     raise ValueError("unknown matrix type: %s" % type(a))
