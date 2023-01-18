@@ -1,3 +1,5 @@
+[![PyPI version](https://badge.fury.io/py/fast_matrix_market.svg)](https://badge.fury.io/py/fast_matrix_market)
+
 Fast and full-featured Matrix Market file I/O package for Python.
 
 Fastest way to read and write any Matrix Market `.mtx` file into a dense ndarray, sparse coordinate (triplet) arrays, or SciPy sparse matrix.
