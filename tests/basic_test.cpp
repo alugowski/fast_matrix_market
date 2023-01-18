@@ -211,7 +211,7 @@ TYPED_TEST_SUITE(PlainTripletSuite, PlainTripletTypes);
 TYPED_TEST(PlainTripletSuite, Basic) {
     TypeParam triplet, triplet2;
     read_triplet_file("eye3.mtx", triplet);
-    EXPECT_TRUE(expected(triplet, 3, 3, 3, 3, 3));
+    EXPECT_TRUE(expected(triplet, 3, 3, 3, 3, static_cast<typename TypeParam::value_type>(3)));
 
     read_triplet_file("eye3_pattern.mtx", triplet2);
     EXPECT_EQ(triplet, triplet2);
@@ -266,7 +266,7 @@ TYPED_TEST_SUITE(PlainArraySuite, PlainArrayTypes);
 TYPED_TEST(PlainArraySuite, Basic) {
     TypeParam array, array2, array3;
     read_array_file("eye3.mtx", array);
-    EXPECT_TRUE(expected(array, 3, 3, 3));
+    EXPECT_TRUE(expected(array, 3, 3, static_cast<typename TypeParam::value_type>(3)));
 
     read_array_file("eye3_pattern.mtx", array2);
     EXPECT_EQ(array, array2);
@@ -292,8 +292,8 @@ TYPED_TEST(PlainArraySuite, StorageOrder) {
     array_cm.order = fast_matrix_market::col_major;
     read_array_file("row_3by4.mtx", array_rm);
     read_array_file("row_3by4.mtx", array_cm);
-    EXPECT_TRUE(expected(array_rm, 3, 4, 10));
-    EXPECT_TRUE(expected(array_cm, 3, 4, 10));
+    EXPECT_TRUE(expected(array_rm, 3, 4, static_cast<typename TypeParam::value_type>(10)));
+    EXPECT_TRUE(expected(array_cm, 3, 4, static_cast<typename TypeParam::value_type>(10)));
 
     // ensure transposed values work as expected
     TypeParam rm_swapped = PlainArraySuite<TypeParam>::swap_storage_order(array_cm);
@@ -331,19 +331,19 @@ TYPED_TEST(PlainVectorSuite, Basic) {
     // Read a vector file into a triplet
     triplet_matrix<int64_t, TypeParam> triplet;
     read_triplet_file("vector_coordinate.mtx", triplet);
-    EXPECT_TRUE(expected(triplet, 4, 1, 4, 0, 707));
+    EXPECT_TRUE(expected(triplet, 4, 1, 4, 0, static_cast<TypeParam>(707)));
 
     // Read a vector file into an array
     array_matrix<TypeParam> array, array2;
     read_array_file("vector_coordinate.mtx", array);
     read_array_file("vector_array.mtx", array2);
-    EXPECT_TRUE(expected(array, 4, 1, 707));
+    EXPECT_TRUE(expected(array, 4, 1, static_cast<TypeParam>(707)));
     EXPECT_EQ(array, array2);
 
     // Read vectors
     sparse_vector<int64_t, TypeParam> vec;
     read_vector_file("vector_coordinate.mtx", vec);
-    EXPECT_TRUE(expected_vec(vec, 4, 4, 707));
+    EXPECT_TRUE(expected_vec(vec, 4, 4, static_cast<TypeParam>(707)));
 
     sparse_vector<int64_t, TypeParam> vec_from_triplet;
     vec_from_triplet.length = triplet.nrows;
