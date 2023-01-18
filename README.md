@@ -1,7 +1,7 @@
 [![tests](https://github.com/alugowski/fast_matrix_market/actions/workflows/tests.yml/badge.svg)](https://github.com/alugowski/fast_matrix_market/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/alugowski/fast_matrix_market/branch/main/graph/badge.svg?token=s1G9zG4sDS)](https://codecov.io/gh/alugowski/fast_matrix_market)
 
-A fast and full-featured Matrix Market I/O library.
+A fast and full-featured Matrix Market I/O library for C++ and [Python](python).
 
 [Matrix Market](https://math.nist.gov/MatrixMarket/formats.html) is a simple, human-readable, and widely used sparse matrix file format that looks like this:
 ```
@@ -22,25 +22,23 @@ However, included routines are typically slow and/or are missing format features
 
 This lets us reach **>1GB/s** read and write speeds on a laptop (about 25x improvement over IOStreams).
 
-![read](benchmark_plots/parallel-scaling-read.svg)
-![write](benchmark_plots/parallel-scaling-write.svg)
+![read](benchmark_plots/parallel-scaling-cpp-read.svg)
+![write](benchmark_plots/parallel-scaling-cpp-write.svg)
 
-Note: IOStreams benchmark is sequential. IOStreams get *slower* with additional parallelism due to internal locking on the locale.
-
-
-The majority of the improvement comes from using C++17's `std::from_chars` and `std::to_chars`.
-If floating-point versions are not available then fall back on [fast_float](https://github.com/fastfloat/fast_float) 
-and [Dragonbox](https://github.com/jk-jeon/dragonbox).
-
+Note: IOStreams benchmark is sequential because IOStreams get *slower* with additional parallelism due to internal locking on the locale.
 Loaders using IOStreams or `fscanf` are both slow and do not parallelize. See [parse_bench](https://github.com/alugowski/parse-bench) for a demonstration.
 
-The benchmarks are fully automated and intended for you to run on your system. The `run_benchmarks.sh` script builds, runs, and saves benchmark data, then simply run all the cells in the [benchmark_plots/plot.ipynb](benchmark_plots/plot.ipynb) Jupyter notebook.
+The majority of `fast_matrix_market`'s improvement comes from using C++17's `std::from_chars` and `std::to_chars`.
+If floating-point versions are not available then fall back on [fast_float](https://github.com/fastfloat/fast_float) 
+and [Dragonbox](https://github.com/jk-jeon/dragonbox). These methods are then parallelized by chunking the input stream and parsing each chunk in parallel.
+
+Use the `run_benchmarks.sh` script to see for yourself. The script builds, runs, and saves benchmark data, then simply run all the cells in the [benchmark_plots/plot.ipynb](benchmark_plots/plot.ipynb) Jupyter notebook.
 
 # Full Featured
 
 * `coordinate` and `array`, each readable into either sparse or dense structures.
 
-* All `field` types supported: `integer`, `real`, `double`, `complex`, `pattern`.
+* All `field` types supported: `integer`, `real`, `complex`, `pattern`.
 
   * Support all C++ types.
     * `float`, `double`, `long double`, `std::complex<>`, integer types, `bool`.
@@ -62,50 +60,11 @@ The benchmarks are fully automated and intended for you to run on your system. T
 
 * Optional (on by default) automatic symmetry generalization. If your code cannot make use of the symmetry but the file specifies one, the loader can emit the symmetric entries for you.
 
-
-# Installation
-
-`fast_matrix_market` is a header-only library written in C++17. Parallelism uses C++11 threads.
-
-### CMake
-
-```cmake
-include(FetchContent)
-FetchContent_Declare(
-        fast_matrix_market
-        GIT_REPOSITORY https://github.com/alugowski/fast_matrix_market
-        GIT_TAG main
-        GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(fast_matrix_market)
-
-target_link_libraries(YOUR_TARGET fast_matrix_market::fast_matrix_market)
-```
-
-Alternatively copy or checkout the repo into your project and:
-```cmake
-add_subdirectory(fast_matrix_market)
-```
-See [examples/](examples) for what parts of the repo are needed.
-
-### Manual Copy
-You may also copy `include/fast_matrix_market` into your project's `include` directory.
-
-Define:
-* `FMM_FROM_CHARS_<INT|DOUBLE|LONG_DOUBLE>_SUPPORTED` as appropriate for your compiler.
-* `FMM_TO_CHARS_<INT|DOUBLE|LONG_DOUBLE>_SUPPORTED` as appropriate for your compiler.
-
-For best performance also include:
- * [fast_float](https://github.com/fastfloat/fast_float) and define `FMM_USE_FAST_FLOAT`.
- * [Dragonbox](https://github.com/jk-jeon/dragonbox) and define `FMM_USE_DRAGONBOX`.
-
 # Usage
 
 `fast_matrix_market` provides both ready-to-use methods for common data structures and building blocks for your own.
 
-See [examples/](examples).
-
-Bundled integrations include:
+See [examples/](examples) for complete code.
 
 ## Triplets
 `std::vector`-based triplet sparse matrices, also known as coordinate (COO) matrices. A vector each for row indices, column indices, values.
@@ -158,6 +117,43 @@ fast_matrix_market::read_matrix_market_cxsparse(input_stream, &A, cs_dl_spalloc)
 Simply provide `parse_handler` and `formatter` classes to read and write from/to any datastructure, respectively. The class you need is likely already in the library.
 
 Follow the example of the triplet and array implementations in [include/fast_matrix_market/app/](include/fast_matrix_market/app).
+
+# Installation
+
+`fast_matrix_market` is a header-only library written in C++17. Parallelism uses C++11 threads.
+
+### CMake
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+        fast_matrix_market
+        GIT_REPOSITORY https://github.com/alugowski/fast_matrix_market
+        GIT_TAG main
+        GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(fast_matrix_market)
+
+target_link_libraries(YOUR_TARGET fast_matrix_market::fast_matrix_market)
+```
+
+Alternatively copy or checkout the repo into your project and:
+```cmake
+add_subdirectory(fast_matrix_market)
+```
+See [examples/](examples) for what parts of the repo are needed.
+
+### Manual Copy
+You may also copy `include/fast_matrix_market` into your project's `include` directory.
+
+Define:
+* `FMM_FROM_CHARS_<INT|DOUBLE|LONG_DOUBLE>_SUPPORTED` as appropriate for your compiler.
+* `FMM_TO_CHARS_<INT|DOUBLE|LONG_DOUBLE>_SUPPORTED` as appropriate for your compiler.
+
+For best performance also include:
+* [fast_float](https://github.com/fastfloat/fast_float) and define `FMM_USE_FAST_FLOAT`.
+* [Dragonbox](https://github.com/jk-jeon/dragonbox) and define `FMM_USE_DRAGONBOX`.
+
 
 # 3rd Party Libraries Used
 These are automatically fetched if using CMake.

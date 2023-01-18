@@ -18,9 +18,11 @@
 
 namespace fast_matrix_market {
 
+    // Version macros.
+    // Keep in sync with python/pyproject.toml
 #define FAST_MATRIX_MARKET_VERSION_MAJOR 1
-#define FAST_MATRIX_MARKET_VERSION_MINOR 2
-#define FAST_MATRIX_MARKET_VERSION_PATCH 1
+#define FAST_MATRIX_MARKET_VERSION_MINOR 3
+#define FAST_MATRIX_MARKET_VERSION_PATCH 0
 
     constexpr std::string_view kSpace = " ";
     constexpr std::string_view kNewline = "\n";
@@ -79,6 +81,12 @@ namespace fast_matrix_market {
          * Number of threads to use. 0 means std::thread::hardware_concurrency().
          */
         int num_threads = 0;
+
+        /**
+         * Floating-point formatting precision.
+         * Placeholder. Currently not used due to the various supported float rendering backends.
+         */
+        int precision = -1;
     };
 
     template<class T> struct is_complex : std::false_type {};

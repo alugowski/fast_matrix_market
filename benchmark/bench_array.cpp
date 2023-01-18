@@ -10,7 +10,7 @@ static int num_iterations = 3;
 
 static std::string generate_read_string() {
     // Generate a big matrix in-memory.
-    auto array = construct_array<VT>(kInMemoryByteTargetRead);
+    auto array = construct_array<VT>(kArrayTargetReadBytes);
 
     std::ostringstream oss;
     fast_matrix_market::write_matrix_market_array(oss, {array.nrows, array.ncols}, array.vals);
@@ -18,7 +18,7 @@ static std::string generate_read_string() {
 }
 
 static std::string string_to_read = generate_read_string();
-static auto array_to_write = construct_array<VT>(kInMemoryByteTargetRead);
+static auto array_to_write = construct_array<VT>(kArrayTargetReadBytes);
 
 /**
  * Read dense array.
@@ -44,7 +44,7 @@ static void array_read(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(array_read)->Name("Array read")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);
+BENCHMARK(array_read)->Name("op:read/matrix:Array/impl:FMM/lang:C++")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);
 
 
 /**
@@ -74,4 +74,4 @@ static void array_write(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(array_write)->Name("Array write")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);
+BENCHMARK(array_write)->Name("op:write/matrix:Array/impl:FMM/lang:C++")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);

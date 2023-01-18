@@ -1,0 +1,4 @@
+%%MatrixMarket matrix array complex general
+%1-by-1 matrix that uses a value too large to fit in a double
+1 1
+1E310 1E310

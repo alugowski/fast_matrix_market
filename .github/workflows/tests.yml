@@ -8,14 +8,18 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-    defaults:
-      run:
-        shell: bash -l {0}
+        # Do not test on "pypy-3.8" because scipy fails to install there
+        python-version: ["3.7", "3.11"]
 
     steps:
     - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
 
     - name: Configure
       run: |
@@ -30,9 +34,34 @@ jobs:
         cd build
         ctest -C Debug --output-on-failure --verbose
 
-    - name: Upload coverage to Codecov
+    - name: Python Build and Install
+        # On GitHub Action Windows runner scikit-build has a permission denied error against the
+        # fast_float and Dragonbox libraries. Workaround by disabling those libraries on Windows for now.
+        #
+        # On some platforms pip uses a temporary build directory but only copies the python/ directory there.
+        # This breaks the relative symbolic links to the C++ library. Workaround is to pass the checkout directory
+        # as an environment variable so CMakeLists.txt can read it and know where to import the C++ library from.
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then export FMM_PYTHON_NO_DEPS=1; fi
+        export FMM_PYTHON_DIR="$(pwd)" && pip install python/.[test] -v
+      shell: bash
+
+    - name: Python Test
+      run: |
+        cd python/tests
+        pytest
+
+    - name: Python Test with Coverage
+      if: contains(matrix.os, 'ubuntu')
+      run: |
+        pip install pytest-cov
+        cd python/tests
+        pytest --cov=fast_matrix_market --cov-report term --cov-report=xml
+
+    - name: Upload Coverage to Codecov
       if: contains(matrix.os, 'ubuntu')
       uses: codecov/codecov-action@v3
       with:
         gcov: true
-        gcov_include: include/*
+        gcov_include: include/*   # C++ coverage
+#        directory: python/tests   # Python coverage. This seems to confuse codedov, disable for now.

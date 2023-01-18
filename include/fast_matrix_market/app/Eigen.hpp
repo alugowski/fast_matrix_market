@@ -86,12 +86,11 @@ namespace fast_matrix_market {
     /**
     * Format Eigen Sparse Matrix.
     */
-    template<typename SparseMatrixType>
+    template<typename LF, typename SparseMatrixType>
     class sparse_Eigen_formatter {
     public:
         typedef typename SparseMatrixType::Index MatIndex;
-        explicit sparse_Eigen_formatter(const SparseMatrixType& mat, bool pattern_only) : mat(mat),
-                                                                                          pattern_only(pattern_only) {
+        explicit sparse_Eigen_formatter(LF lf, const SparseMatrixType& mat) : line_formatter(lf), mat(mat) {
             nnz_per_column = ((double)mat.nonZeros()) / mat.outerSize();
         }
 
@@ -101,8 +100,8 @@ namespace fast_matrix_market {
 
         class chunk {
         public:
-            explicit chunk(const SparseMatrixType& mat, MatIndex outer_iter, MatIndex outer_end, bool pattern_only) :
-            mat(mat), outer_iter(outer_iter), outer_end(outer_end), pattern_only(pattern_only) {}
+            explicit chunk(LF lf, const SparseMatrixType& mat, MatIndex outer_iter, MatIndex outer_end) :
+            line_formatter(lf), mat(mat), outer_iter(outer_iter), outer_end(outer_end) {}
 
             std::string operator()() {
                 std::string chunk;
@@ -113,23 +112,16 @@ namespace fast_matrix_market {
 
                     for (typename SparseMatrixType::InnerIterator it(mat, outer_iter); it; ++it)
                     {
-                        chunk += int_to_string(it.row() + 1);
-                        chunk += kSpace;
-                        chunk += int_to_string(it.col() + 1);
-                        if (!pattern_only) {
-                            chunk += kSpace;
-                            chunk += value_to_string(it.value());
-                        }
-                        chunk += kNewline;
+                        chunk += line_formatter.coord_matrix(it.row(), it.col(), it.value());
                     }
                 }
 
                 return chunk;
             }
 
+            LF line_formatter;
             const SparseMatrixType& mat;
             MatIndex outer_iter, outer_end;
-            bool pattern_only;
         };
 
         chunk next_chunk(const write_options& options) {
@@ -137,77 +129,17 @@ namespace fast_matrix_market {
             num_columns = std::min(num_columns, mat.outerSize() - outer_iter);
 
             MatIndex outer_end = outer_iter + num_columns;
-            chunk c(mat, outer_iter, outer_end, pattern_only);
+            chunk c(line_formatter, mat, outer_iter, outer_end);
             outer_iter = outer_end;
 
             return c;
         }
 
     protected:
+        LF line_formatter;
         const SparseMatrixType& mat;
         double nnz_per_column;
         MatIndex outer_iter = 0;
-        bool pattern_only;
-    };
-
-    /**
-     * Format Eigen Dense Matrix/Vector.
-     *
-     * Supports any structure that has:
-     * .cols() - returns number of columns
-     * .rows() - returns number of rows
-     * .operator(row, col) - returns the value at (row, col)
-     */
-    template<typename DenseType>
-    class dense_Eigen_formatter {
-    public:
-        typedef typename DenseType::Index MatIndex;
-        explicit dense_Eigen_formatter(const DenseType& mat) : mat(mat) {}
-
-        [[nodiscard]] bool has_next() const {
-            return col_iter < mat.cols();
-        }
-
-        class chunk {
-        public:
-            explicit chunk(const DenseType& mat, MatIndex col_iter, MatIndex col_end) :
-                    mat(mat), col_iter(col_iter), col_end(col_end) {}
-
-            std::string operator()() {
-                std::string chunk;
-                chunk.reserve((col_end - col_iter) * mat.rows() * 15);
-
-                // iterate over assigned columns
-                for (; col_iter != col_end; ++col_iter) {
-
-                    for (MatIndex row = 0; row < mat.rows(); ++row)
-                    {
-                        chunk += value_to_string(mat(row, col_iter));
-                        chunk += kNewline;
-                    }
-                }
-
-                return chunk;
-            }
-
-            const DenseType& mat;
-            MatIndex col_iter, col_end;
-        };
-
-        chunk next_chunk(const write_options& options) {
-            auto num_columns = (MatIndex)(mat.rows() * (double)options.chunk_size_values + 1);
-            num_columns = std::min(num_columns, mat.cols() - col_iter);
-
-            MatIndex col_end = col_iter + num_columns;
-            chunk c(mat, col_iter, col_end);
-            col_iter = col_end;
-
-            return c;
-        }
-
-    protected:
-        const DenseType& mat;
-        MatIndex col_iter = 0;
     };
 
     /**
@@ -229,7 +161,8 @@ namespace fast_matrix_market {
 
         write_header(os, header);
 
-        auto formatter = sparse_Eigen_formatter(mat, header.field == pattern);
+        line_formatter<typename SparseType::Index, typename SparseType::Scalar> lf(header, options);
+        auto formatter = sparse_Eigen_formatter(lf, mat);
         write_body(os, formatter, options);
     }
 
@@ -251,7 +184,8 @@ namespace fast_matrix_market {
 
         write_header(os, header);
 
-        auto formatter = dense_Eigen_formatter(mat);
+        line_formatter<typename DenseType::Index, typename DenseType::Scalar> lf(header, options);
+        auto formatter = dense_2d_call_formatter(lf, mat, mat.rows(), mat.cols());
         write_body(os, formatter, options);
     }
 }
