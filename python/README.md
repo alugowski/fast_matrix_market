@@ -70,10 +70,6 @@ Compared to SciPy version 1.10.0:
 ![read](https://raw.githubusercontent.com/alugowski/fast_matrix_market/main/benchmark_plots/parallel-scaling-python-read.svg)
 ![write](https://raw.githubusercontent.com/alugowski/fast_matrix_market/main/benchmark_plots/parallel-scaling-python-write.svg)
 
-![read](../benchmark_plots/parallel-scaling-python-read.svg)
-
-![write](../benchmark_plots/parallel-scaling-python-write.svg)
-
 All cores on the system are used by default, use the `parallelism` argument to override. SciPy's routines are single-threaded.
 
 ### 64-bit indices
