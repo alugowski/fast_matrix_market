@@ -22,8 +22,8 @@ However, included routines are typically slow and/or are missing format features
 
 This lets us reach **>1GB/s** read and write speeds on a laptop (about 25x improvement over IOStreams).
 
-![read](benchmark_plots/parallel-scaling-read.svg)
-![write](benchmark_plots/parallel-scaling-write.svg)
+![read](benchmark_plots/parallel-scaling-cpp-read.svg)
+![write](benchmark_plots/parallel-scaling-cpp-write.svg)
 
 Note: IOStreams benchmark is sequential because IOStreams get *slower* with additional parallelism due to internal locking on the locale.
 Loaders using IOStreams or `fscanf` are both slow and do not parallelize. See [parse_bench](https://github.com/alugowski/parse-bench) for a demonstration.

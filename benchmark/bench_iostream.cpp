@@ -40,7 +40,7 @@ static void triplet_read_iostream(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(triplet_read_iostream)->Name("IOStream read")->UseRealTime();
+BENCHMARK(triplet_read_iostream)->Name("op:read/matrix:Coordinate/impl:IOStream/lang:C++")->UseRealTime();
 
 
 /**
@@ -73,4 +73,4 @@ static void triplet_write_iostream(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(triplet_write_iostream)->Name("IOStream write")->UseRealTime();
+BENCHMARK(triplet_write_iostream)->Name("op:write/matrix:Coordinate/impl:IOStream/lang:C++")->UseRealTime();

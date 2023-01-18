@@ -63,9 +63,11 @@ array_matrix<VT> construct_array(std::size_t byte_target) {
 
     ret.nrows = n;
     ret.ncols = n;
+    ret.vals.reserve(n*n);
 
-    ret.vals.resize(n*n, static_cast<VT>(n) / 100);
-
+    for (auto i = 0; i < n*n; ++i) {
+        ret.vals.emplace_back(static_cast<VT>(i) / 100);
+    }
     return ret;
 }
 
@@ -76,8 +78,10 @@ array_matrix<VT> construct_array(std::size_t byte_target) {
  */
 std::string construct_large_coord_string(std::size_t byte_target);
 
-constexpr int64_t kInMemoryByteTargetRead = 512 * 2 << 20;
-constexpr int64_t kInMemoryByteTargetWrite = 512 * 2 << 20;
+constexpr int64_t kArrayTargetReadBytes = 256 * 2 << 20;
+constexpr int64_t kArrayTargetWriteBytes = 256 * 2 << 20;
+constexpr int64_t kCoordTargetReadBytes = 512 * 2 << 20;
+constexpr int64_t kCoordTargetWriteBytes = 512 * 2 << 20;
 
 /**
  * Set thread count benchmark arguments.

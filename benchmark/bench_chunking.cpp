@@ -11,7 +11,7 @@
  * This needs to be fast because it is a sequential operation and can thus be a bottleneck.
  */
 static void bench_chunking(benchmark::State& state) {
-    std::string large = construct_large_coord_string(kInMemoryByteTargetRead);
+    std::string large = construct_large_coord_string(kCoordTargetReadBytes);
     // read options
     fast_matrix_market::read_options options{};
 
@@ -31,4 +31,4 @@ static void bench_chunking(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(bench_chunking)->Name("Chunking")->UseRealTime();
+BENCHMARK(bench_chunking)->Name("op:chunking/impl:FMM/lang:C++")->UseRealTime();

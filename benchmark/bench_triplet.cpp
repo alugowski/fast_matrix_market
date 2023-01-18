@@ -10,7 +10,7 @@ static int num_iterations = 3;
 
 static std::string generate_read_string() {
     // Generate a big matrix in-memory.
-    auto triplet = construct_triplet<int64_t, VT>(kInMemoryByteTargetRead);
+    auto triplet = construct_triplet<int64_t, VT>(kCoordTargetReadBytes);
 
     std::ostringstream oss;
     fast_matrix_market::write_matrix_market_triplet(oss, {triplet.nrows, triplet.ncols}, triplet.rows, triplet.cols, triplet.vals);
@@ -18,7 +18,7 @@ static std::string generate_read_string() {
 }
 
 static std::string string_to_read = generate_read_string();
-static auto triplet_to_write = construct_triplet<int64_t, VT>(kInMemoryByteTargetWrite);
+static auto triplet_to_write = construct_triplet<int64_t, VT>(kCoordTargetWriteBytes);
 
 /**
  * Read triplets.
@@ -44,7 +44,7 @@ static void triplet_read(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(triplet_read)->Name("Triplet read")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);
+BENCHMARK(triplet_read)->Name("op:read/matrix:Coordinate/impl:FMM/lang:C++")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);
 
 
 /**
@@ -75,4 +75,4 @@ static void triplet_write(benchmark::State& state) {
     state.SetBytesProcessed((int64_t)num_bytes);
 }
 
-BENCHMARK(triplet_write)->Name("Triplet write")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);
+BENCHMARK(triplet_write)->Name("op:write/matrix:Coordinate/impl:FMM/lang:C++")->UseRealTime()->Iterations(num_iterations)->Apply(NumThreadsArgument);
