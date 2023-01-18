@@ -1,7 +1,7 @@
 [![tests](https://github.com/alugowski/fast_matrix_market/actions/workflows/tests.yml/badge.svg)](https://github.com/alugowski/fast_matrix_market/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/alugowski/fast_matrix_market/branch/main/graph/badge.svg?token=s1G9zG4sDS)](https://codecov.io/gh/alugowski/fast_matrix_market)
 
-A fast and full-featured Matrix Market I/O library.
+A fast and full-featured Matrix Market I/O library for C++ and [Python](python).
 
 [Matrix Market](https://math.nist.gov/MatrixMarket/formats.html) is a simple, human-readable, and widely used sparse matrix file format that looks like this:
 ```
