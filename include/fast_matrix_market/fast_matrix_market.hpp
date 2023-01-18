@@ -149,6 +149,13 @@ namespace fast_matrix_market {
      */
     inline pattern_placeholder_type operator-(const pattern_placeholder_type& o) { return o; }
 
+    /**
+     * MSVC does not like std::negate<bool>
+     */
+    inline bool negate(const bool o) {
+        return !o;
+    }
+
     template <typename T>
     T negate(const T& o) {
         return std::negate<T>()(o);
