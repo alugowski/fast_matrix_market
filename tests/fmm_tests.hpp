@@ -85,12 +85,22 @@ TRIPLET sorted_triplet(const TRIPLET& triplet) {
     return ret;
 }
 
+template <typename VEC>
+void print_vec(const VEC& vec, const std::string& label) {
+    std::cout << label << " size=" << vec.size();
+    for (const auto& v : vec) {
+        std::cout << v << std::endl;
+    }
+}
+
 template <typename IT, typename VT>
 bool operator==(const triplet_matrix<IT, VT>& a, const triplet_matrix<IT, VT>& b) {
     if (a.nrows != b.nrows) {
+        std::cout << "nrows mismatch" << std::endl;
         return false;
     }
     if (a.ncols != b.ncols) {
+        std::cout << "ncols mismatch" << std::endl;
         return false;
     }
 
@@ -98,14 +108,23 @@ bool operator==(const triplet_matrix<IT, VT>& a, const triplet_matrix<IT, VT>& b
     auto b_sorted = sorted_triplet(b);
 
     if (a_sorted.rows != b_sorted.rows) {
+        std::cout << "row indices mismatch" << std::endl;
+        print_vec(a_sorted.rows, "a (sorted)");
+        print_vec(b_sorted.rows, "b (sorted)");
         return false;
     }
 
     if (a_sorted.cols != b_sorted.cols) {
+        std::cout << "col indices mismatch" << std::endl;
+        print_vec(a_sorted.cols, "a (sorted)");
+        print_vec(b_sorted.cols, "b (sorted)");
         return false;
     }
 
     if (a_sorted.vals != b_sorted.vals) {
+        std::cout << "values mismatch" << std::endl;
+        print_vec(a_sorted.vals, "a (sorted)");
+        print_vec(b_sorted.vals, "b (sorted)");
         return false;
     }
 
@@ -115,14 +134,21 @@ bool operator==(const triplet_matrix<IT, VT>& a, const triplet_matrix<IT, VT>& b
 template <typename IT, typename VT>
 bool operator==(const sparse_vector<IT, VT>& a, const sparse_vector<IT, VT>& b) {
     if (a.length != b.length) {
+        std::cout << "length mismatch" << std::endl;
         return false;
     }
 
     if (a.indices != b.indices) {
+        std::cout << "indices mismatch" << std::endl;
+        print_vec(a.indices, "a");
+        print_vec(b.indices, "b");
         return false;
     }
 
     if (a.vals != b.vals) {
+        std::cout << "vals mismatch" << std::endl;
+        print_vec(a.vals, "a");
+        print_vec(b.vals, "b");
         return false;
     }
 
@@ -132,13 +158,18 @@ bool operator==(const sparse_vector<IT, VT>& a, const sparse_vector<IT, VT>& b) 
 template <typename VT>
 bool operator==(const array_matrix<VT>& a, const array_matrix<VT>& b) {
     if (a.nrows != b.nrows) {
+        std::cout << "nrows mismatch" << std::endl;
         return false;
     }
     if (a.ncols != b.ncols) {
+        std::cout << "ncols mismatch" << std::endl;
         return false;
     }
 
     if (a.vals != b.vals) {
+        std::cout << "vals mismatch" << std::endl;
+        print_vec(a.vals, "a");
+        print_vec(b.vals, "b");
         return false;
     }
 
