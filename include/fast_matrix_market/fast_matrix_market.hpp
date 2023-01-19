@@ -21,8 +21,8 @@ namespace fast_matrix_market {
     // Version macros.
     // Keep in sync with python/pyproject.toml
 #define FAST_MATRIX_MARKET_VERSION_MAJOR 1
-#define FAST_MATRIX_MARKET_VERSION_MINOR 3
-#define FAST_MATRIX_MARKET_VERSION_PATCH 1
+#define FAST_MATRIX_MARKET_VERSION_MINOR 4
+#define FAST_MATRIX_MARKET_VERSION_PATCH 0
 
     constexpr std::string_view kSpace = " ";
     constexpr std::string_view kNewline = "\n";
