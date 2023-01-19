@@ -109,9 +109,7 @@ namespace fast_matrix_market {
 
                 // iterate over assigned columns
                 for (; outer_iter != outer_end; ++outer_iter) {
-
-                    for (typename SparseMatrixType::InnerIterator it(mat, outer_iter); it; ++it)
-                    {
+                    for (typename SparseMatrixType::InnerIterator it(mat, outer_iter); it; ++it) {
                         chunk += line_formatter.coord_matrix(it.row(), it.col(), it.value());
                     }
                 }

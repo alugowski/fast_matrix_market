@@ -180,7 +180,7 @@ namespace fast_matrix_market {
 
                 // validate
                 if (row <= 0 || row > header.vector_length) {
-                    throw invalid_mm("Index out of bounds", line_num);
+                    throw invalid_mm("Vector index out of bounds");
                 }
 
                 // Matrix Market is one-based
