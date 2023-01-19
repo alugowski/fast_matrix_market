@@ -94,11 +94,11 @@ Read 1D vector files. `scipy.io.mmread()` throws a `ValueError`.
 
 ### Differences
 
-Differences between `fast_matrix_market.mmwrite()` and `scipy.io.mmwrite()`:
 * If no symmetry is specified `scipy.io.mmwrite` will search the matrix for one. 
-This is a very slow process that significantly impacts writing time. It can be disabled by setting
-`symmetry="general"`, but that is easily forgotten. `fast_matrix_market.mmwrite()` only looks for symmetries if the `find_symmetry=True` argument is passed.
-* `precision` argument is currently ignored. Floats may be written with more precision than desired.
+This is a very slow process that significantly impacts writing time for all matrices, including non-symmetric ones.
+It can be disabled by setting `symmetry="general"`, but that is easily forgotten.
+`fast_matrix_market.mmwrite()` only looks for symmetries if the `find_symmetry=True` argument is passed.
+* `precision` argument to `mmwrite()` is currently ignored. Floats may be written with more precision than desired.
 
 ### Quick way to try
 
