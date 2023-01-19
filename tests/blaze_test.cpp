@@ -19,9 +19,12 @@
 #pragma clang diagnostic pop
 #endif
 
+#if defined(__clang__)
+// for TYPED_TEST_SUITE
+#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#endif
 
-using VT = double;
-
+using ValueTypes = ::testing::Types<int64_t, float, double, std::complex<double>, long double>;
 
 template <typename MatType>
 MatType read_mtx(const std::string& source, typename MatType::ElementType pattern_value = 1) {
@@ -48,9 +51,63 @@ std::string write_mtx(MatType& mat, bool pattern_only=false) {
     return oss.str();
 }
 
+/**
+ * Equality check that prints the matrices if they're unequal. Useful for debugging when remote tests fail.
+ */
+template <typename LHS, typename RHS, typename std::enable_if<blaze::IsMatrix_v<LHS>, int>::type = 0>
+bool is_equal(const LHS& lhs, const RHS& rhs) {
+    if (lhs.rows() != rhs.rows() || lhs.columns() != rhs.columns()) {
+        return false;
+    }
 
+    bool equal = true;
+    for (size_t row = 0; row < rhs.rows(); ++row) {
+        for (size_t col = 0; col < rhs.columns(); ++col) {
+            if (rhs(row, col) != lhs(row, col)) {
+                equal = false;
+            }
+        }
+    }
 
-class BlazeTest : public ::testing::TestWithParam<std::string> {
+    if (!equal) {
+        std::cout << "Left:" << std::endl << lhs.rows() << "-by-" << lhs.columns() << std::endl << lhs << std::endl;
+        std::cout << "Right:" << std::endl << rhs.rows() << "-by-" << rhs.columns() << std::endl << rhs << std::endl
+                  << std::endl;
+    }
+
+    return equal;
+}
+
+/**
+ * Equality check that prints the vectors if they're unequal. Useful for debugging when remote tests fail.
+ */
+template <typename LHS, typename RHS, typename std::enable_if<blaze::IsVector_v<LHS>, int>::type = 0>
+bool is_equal(const LHS& lhs, const RHS& rhs) {
+    bool equal = true;
+    if (lhs.size() != rhs.size()) {
+        equal = false;
+    }
+
+    if (equal) {
+        for (size_t row = 0; row < rhs.size(); ++row) {
+            if (rhs[row] != lhs[row]) {
+                equal = false;
+            }
+        }
+    }
+
+    if (!equal) {
+        std::cout << "Left:" << std::endl << "len=" << lhs.size() << " sparse=" << blaze::IsSparseVector_v<LHS> << std::endl << lhs << std::endl;
+        std::cout << "Right:" << std::endl << "len=" << rhs.size() << " sparse=" << blaze::IsSparseVector_v<RHS> << std::endl << rhs << std::endl << std::endl;
+    }
+
+    return equal;
+}
+
+TYPED_TEST_SUITE(BlazeMatrixTest, ValueTypes);
+
+template <typename VT>
+class BlazeMatrixTest : public testing::Test {
 public:
     void load(const std::string& param) {
         std::string load_path = kTestMatrixDir + "/" + param;
@@ -74,81 +131,69 @@ public:
 
     }
 
-    /**
-     * Equality check that prints the matrices if they're unequal. Useful for debugging when remote tests fail.
-     */
-    template <typename LHS, typename RHS>
-    static bool is_equal(const LHS& lhs, const RHS& rhs) {
-        if (lhs.rows() != rhs.rows() || lhs.columns() != rhs.columns()) {
-            return false;
-        }
-
-        bool equal = true;
-        for (size_t row = 0; row < rhs.rows(); ++row) {
-            for (size_t col = 0; col < rhs.columns(); ++col) {
-                if (rhs(row, col) != lhs(row, col)) {
-                    equal = false;
-                }
-            }
-        }
-
-        if (!equal) {
-            std::cout << "Left:" << std::endl << lhs.rows() << "-by-" << lhs.columns() << std::endl << lhs << std::endl;
-            std::cout << "Right:" << std::endl << rhs.rows() << "-by-" << rhs.columns() << std::endl << rhs << std::endl
-                      << std::endl;
-        }
-
-        return equal;
-    }
-
     protected:
     blaze::CompressedMatrix<VT, blaze::columnMajor> col_major;
-    blaze::CompressedMatrix<double, blaze::rowMajor> row_major;
+    blaze::CompressedMatrix<VT, blaze::rowMajor> row_major;
 
     blaze::DynamicMatrix<VT, blaze::columnMajor> dense_col_major;
     blaze::DynamicMatrix<VT, blaze::rowMajor> dense_row_major;
 };
 
-TEST_P(BlazeTest, SmallMatrices) {
-    EXPECT_NO_THROW(load(GetParam()));
+TYPED_TEST(BlazeMatrixTest, SmallMatrices) {
+    auto filenames = std::vector{
+        "eye3.mtx"
+        , "row_3by4.mtx"
+        , "kepner_gilbert_graph.mtx"
+        , "vector_array.mtx"
+        , "vector_coordinate.mtx"
+        , "eye3_pattern.mtx"
+    };
+    if (fast_matrix_market::is_complex<TypeParam>::value) {
+        filenames.emplace_back("eye3_complex.mtx");
+        filenames.emplace_back("vector_coordinate_complex.mtx");
+    }
+    for (auto param : filenames) {
+        EXPECT_NO_THROW(this->load(param));
 
-    EXPECT_TRUE(is_equal(col_major, row_major));
+        auto& col_major = this->col_major;
+        auto& row_major = this->row_major;
+        auto& dense_col_major = this->dense_col_major;
+        auto& dense_row_major = this->dense_row_major;
 
-    EXPECT_EQ(col_major.nonZeros(), row_major.nonZeros());
+        EXPECT_TRUE(is_equal(col_major, row_major));
 
-    EXPECT_TRUE(is_equal(dense_col_major, dense_row_major));
-    EXPECT_TRUE(is_equal(col_major, dense_col_major));
+        EXPECT_EQ(col_major.nonZeros(), row_major.nonZeros());
 
-    // Read/Write into a copy
-    using Dense = blaze::DynamicMatrix<VT, blaze::rowMajor>;
-    using Sparse = blaze::CompressedMatrix<VT, blaze::columnMajor>;
-    EXPECT_TRUE(is_equal(col_major, read_mtx<Sparse>(write_mtx(row_major))));
-    EXPECT_TRUE(is_equal(col_major, read_mtx<Sparse>(write_mtx(col_major))));
-    EXPECT_TRUE(is_equal(dense_row_major, read_mtx<Dense>(write_mtx(row_major))));
-    EXPECT_TRUE(is_equal(dense_row_major, read_mtx<Dense>(write_mtx(dense_row_major))));
-    EXPECT_TRUE(is_equal(dense_row_major, read_mtx<Dense>(write_mtx(dense_col_major))));
+        EXPECT_TRUE(is_equal(dense_col_major, dense_row_major));
+        EXPECT_TRUE(is_equal(col_major, dense_col_major));
 
-    // write pattern
-    std::string pattern_mtx = write_mtx(col_major, true);
-    EXPECT_TRUE(pattern_mtx.find("pattern") > 0); // pattern should appear in the header
+        // Read/Write into a copy
+        using Dense = blaze::DynamicMatrix<TypeParam, blaze::rowMajor>;
+        using Sparse = blaze::CompressedMatrix<TypeParam, blaze::columnMajor>;
+        EXPECT_TRUE(is_equal(col_major, read_mtx<Sparse>(write_mtx(row_major))));
+        EXPECT_TRUE(is_equal(col_major, read_mtx<Sparse>(write_mtx(col_major))));
+        EXPECT_TRUE(is_equal(dense_row_major, read_mtx<Dense>(write_mtx(row_major))));
+        EXPECT_TRUE(is_equal(dense_row_major, read_mtx<Dense>(write_mtx(dense_row_major))));
+        EXPECT_TRUE(is_equal(dense_row_major, read_mtx<Dense>(write_mtx(dense_col_major))));
 
-    auto sparse_pat = read_mtx<Sparse>(pattern_mtx, 1);
-    auto dense_pat = read_mtx<Dense>(pattern_mtx, 1);
-    EXPECT_TRUE(is_equal(dense_pat, sparse_pat));
+        // write pattern
+        std::string pattern_mtx = write_mtx(col_major, true);
+        EXPECT_TRUE(pattern_mtx.find("pattern") > 0); // pattern should appear in the header
+
+        auto sparse_pat = read_mtx<Sparse>(pattern_mtx, 1);
+        auto dense_pat = read_mtx<Dense>(pattern_mtx, 1);
+        EXPECT_TRUE(is_equal(dense_pat, sparse_pat));
+    }
 }
 
-INSTANTIATE_TEST_SUITE_P(
-        BlazeTest,
-        BlazeTest,
-        ::testing::Values("eye3.mtx"
-                          , "row_3by4.mtx"
-                          , "kepner_gilbert_graph.mtx"
-                          , "vector_array.mtx"
-                          , "vector_coordinate.mtx"
-                          , "eye3_pattern.mtx"
-                          ));
+/////////////////////////////////////////////////////////
+///// Vectors
+/////////////////////////////////////////////////////////
 
-class BlazeVectorTest : public ::testing::TestWithParam<std::string> {
+TYPED_TEST_SUITE(BlazeVectorTest, ValueTypes);
+
+template <typename VT>
+class BlazeVectorTest : public testing::Test {
 public:
     void load(const std::string& param) {
         std::string load_path = kTestMatrixDir + "/" + param;
@@ -163,64 +208,43 @@ public:
         }
     }
 
-    /**
-     * Equality check that prints the matrices if they're unequal. Useful for debugging when remote tests fail.
-     */
-    template <typename LHS, typename RHS>
-    static bool is_equal(const LHS& lhs, const RHS& rhs) {
-        bool equal = true;
-        if (lhs.size() != rhs.size()) {
-            equal = false;
-        }
-
-        if (equal) {
-            for (size_t row = 0; row < rhs.size(); ++row) {
-                if (rhs[row] != lhs[row]) {
-                    equal = false;
-                }
-            }
-        }
-
-        if (!equal) {
-            std::cout << "Left:" << std::endl << "len=" << lhs.size() << " sparse=" << blaze::IsSparseVector_v<LHS> << std::endl << lhs << std::endl;
-            std::cout << "Right:" << std::endl << "len=" << rhs.size() << " sparse=" << blaze::IsSparseVector_v<RHS> << std::endl << rhs << std::endl << std::endl;
-        }
-
-        return equal;
-    }
-
 protected:
     blaze::CompressedVector<VT> sparse;
     blaze::DynamicVector<VT> dense;
 };
 
-TEST_P(BlazeVectorTest, SmallVectors) {
-    EXPECT_NO_THROW(load(GetParam()));
+TYPED_TEST(BlazeVectorTest, SmallVectors) {
+    auto filenames = std::vector{
+        "vector_array.mtx"
+        , "vector_coordinate.mtx"
+    };
+    if (fast_matrix_market::is_complex<TypeParam>::value) {
+        filenames.emplace_back("vector_coordinate_complex.mtx");
+    }
+    for (auto param : filenames) {
+        EXPECT_NO_THROW(this->load(param));
 
-    EXPECT_TRUE(is_equal(sparse, dense));
+        auto& sparse = this->sparse;
+        auto& dense = this->dense;
 
-    EXPECT_GT(sparse.nonZeros(), 0);
+        EXPECT_TRUE(is_equal(sparse, dense));
 
-    // Read/Write into a copy
-    using Dense = blaze::DynamicVector<VT>;
-    using Sparse = blaze::CompressedVector<VT>;
-    EXPECT_TRUE(is_equal(sparse, read_mtx<Sparse>(write_mtx(sparse))));
-    EXPECT_TRUE(is_equal(sparse, read_mtx<Sparse>(write_mtx(dense))));
-    EXPECT_TRUE(is_equal(dense, read_mtx<Dense>(write_mtx(sparse))));
-    EXPECT_TRUE(is_equal(dense, read_mtx<Dense>(write_mtx(dense))));
+        EXPECT_GT(sparse.nonZeros(), 0);
 
-    // write pattern
-    std::string pattern_mtx = write_mtx(sparse, true);
-    EXPECT_TRUE(pattern_mtx.find("pattern") > 0); // pattern should appear in the header
+        // Read/Write into a copy
+        using Dense = blaze::DynamicVector<TypeParam>;
+        using Sparse = blaze::CompressedVector<TypeParam>;
+        EXPECT_TRUE(is_equal(sparse, read_mtx<Sparse>(write_mtx(sparse))));
+        EXPECT_TRUE(is_equal(sparse, read_mtx<Sparse>(write_mtx(dense))));
+        EXPECT_TRUE(is_equal(dense, read_mtx<Dense>(write_mtx(sparse))));
+        EXPECT_TRUE(is_equal(dense, read_mtx<Dense>(write_mtx(dense))));
 
-    auto sparse_pat = read_mtx<Sparse>(pattern_mtx, 1);
-    auto dense_pat = read_mtx<Dense>(pattern_mtx, 1);
-    EXPECT_TRUE(is_equal(dense_pat, sparse_pat));
+        // write pattern
+        std::string pattern_mtx = write_mtx(sparse, true);
+        EXPECT_TRUE(pattern_mtx.find("pattern") > 0); // pattern should appear in the header
+
+        auto sparse_pat = read_mtx<Sparse>(pattern_mtx, 1);
+        auto dense_pat = read_mtx<Dense>(pattern_mtx, 1);
+        EXPECT_TRUE(is_equal(dense_pat, sparse_pat));
+    }
 }
-
-INSTANTIATE_TEST_SUITE_P(
-        BlazeVectorTest,
-        BlazeVectorTest,
-        ::testing::Values("vector_array.mtx"
-                          , "vector_coordinate.mtx"
-        ));
