@@ -113,6 +113,13 @@ cs_dl *A;
 fast_matrix_market::read_matrix_market_cxsparse(input_stream, &A, cs_dl_spalloc);
 ```
 
+## Blaze
+[Blaze](https://bitbucket.org/blaze-lib/blaze) sparse and dense matrices and vectors are supported. See [Blaze README](README.Blaze.md).
+```c++
+blaze::CompressedMatrix<double> A;
+fast_matrix_market::read_matrix_market_blaze(input_stream, A);
+```
+
 ## Your Own
 
 Simply provide `parse_handler` and `formatter` classes to read and write from/to any datastructure, respectively. The class you need is likely already in the library.
