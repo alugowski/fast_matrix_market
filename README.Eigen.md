@@ -1,6 +1,6 @@
-# Eigen integration
+# Eigen Matrix Market
 
-`fast_matrix_market` provides read/write methods for Eigen sparse matrices, dense matrices, and dense vectors.
+`fast_matrix_market` provides read/write methods for [Eigen](https://eigen.tuxfamily.org) sparse matrices, dense matrices, and dense vectors.
 
 # Usage
 

@@ -1,4 +1,4 @@
-# CXSparse integration
+# CXSparse Matrix Market
 
 `fast_matrix_market` provides read/write methods for CXSparse `cs_xx` structs.
 

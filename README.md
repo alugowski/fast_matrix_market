@@ -63,12 +63,9 @@ Use the `run_benchmarks.sh` script to see for yourself. The script builds, runs,
 
 # Usage
 
-`fast_matrix_market` provides both ready-to-use methods for common data structures and building blocks for your own.
+`fast_matrix_market` provides both ready-to-use methods for common data structures and building blocks for your own. See [examples/](examples) for complete code.
 
-See [examples/](examples) for complete code.
-
-## Triplets
-`std::vector`-based triplet sparse matrices, also known as coordinate (COO) matrices. A vector each for row indices, column indices, values.
+## Coordinate / Triplets
 
 ```c++
 struct triplet_matrix {
@@ -83,10 +80,10 @@ fast_matrix_market::read_matrix_market_triplet(
                 mat.rows, mat.cols, mat.vals);
 ```
 
-Doublet Sparse vectors, composed of index and value vectors, are supported in a similar way.
+Doublet sparse vectors, composed of index and value vectors, are supported in a similar way by `read_matrix_market_doublet()`.
 
 ## Dense arrays
-Both 1D and 2D.
+
 ```c++
 struct array_matrix {
     int64_t nrows = 0, ncols = 0;
@@ -96,11 +93,14 @@ struct array_matrix {
 fast_matrix_market::read_matrix_market_array(
                 input_stream,
                 mat.nrows, mat.ncols,
-                mat.vals);
+                mat.vals,
+                fast_matrix_market::row_major);
 ```
 
+1D dense vectors supported by the same method.
+
 ## Eigen
-Both sparse matrices and dense matrices and vectors are supported. See [Eigen README](README.Eigen.md).
+Sparse and dense matrices and vectors are supported. See [Eigen README](README.Eigen.md).
 ```c++
 Eigen::SparseMatrix<double> mat;
 fast_matrix_market::read_matrix_market_eigen(input_stream, mat);
