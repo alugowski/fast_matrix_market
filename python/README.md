@@ -121,7 +121,7 @@ scipy.io.mmwrite = fmm.mmwrite
 
 # Development
 
-This Python binding is implemented using pybind11 and built with [scikit-build](https://scikit-build.readthedocs.io/en/latest/).
+This Python binding is implemented using [pybind11](https://pybind11.readthedocs.io) and built with [scikit-build-core](https://github.com/scikit-build/scikit-build-core).
 
 All code is in the [python/](https://github.com/alugowski/fast_matrix_market/tree/main/python) directory. If you make any changes simply install the package directory to build it:
 
