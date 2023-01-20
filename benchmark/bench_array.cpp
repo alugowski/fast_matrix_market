@@ -8,17 +8,24 @@
 using VT = double;
 static int num_iterations = 3;
 
-static std::string generate_read_string() {
-    // Generate a big matrix in-memory.
-    auto array = construct_array<VT>(kArrayTargetReadBytes);
-
+template <typename ARR>
+static std::string generate_read_string(const ARR& array) {
     std::ostringstream oss;
     fast_matrix_market::write_matrix_market_array(oss, {array.nrows, array.ncols}, array.vals);
-    return oss.str();
+    std::string ret = oss.str();
+
+    // Set a locale for comma separations
+    if (std::locale("").name() == "C" || std::locale("").name().empty()) {
+        std::cout.imbue(std::locale("en_US"));
+    } else {
+        std::cout.imbue(std::locale(""));
+    }
+    std::cout << "Array matrix has " << array.vals.size() << " elements (" << array.size_bytes() << " bytes) for " << ret.size() << " bytes in MatrixMarket format." << std::endl;
+    return ret;
 }
 
-static std::string string_to_read = generate_read_string();
-static auto array_to_write = construct_array<VT>(kArrayTargetReadBytes);
+auto array_to_write = construct_array<VT>(kArrayTargetBytes);
+std::string array_string_to_read = generate_read_string(array_to_write);
 
 /**
  * Read dense array.
@@ -35,9 +42,13 @@ static void array_read(benchmark::State& state) {
         fast_matrix_market::matrix_market_header header;
         array_matrix<VT> array;
 
-        std::istringstream iss(string_to_read);
-        fast_matrix_market::read_matrix_market_array(iss, header, array.vals, fast_matrix_market::row_major, options);
-        num_bytes += string_to_read.size();
+        std::istringstream iss(array_string_to_read);
+        fast_matrix_market::read_matrix_market_array(iss,
+                                                     header,
+                                                     array.vals,
+                                                     fast_matrix_market::col_major,
+                                                     options);
+        num_bytes += array_string_to_read.size();
         benchmark::ClobberMemory();
     }
 
@@ -64,7 +75,7 @@ static void array_write(benchmark::State& state) {
         fast_matrix_market::write_matrix_market_array(oss,
                                                       {array_to_write.nrows, array_to_write.ncols},
                                                       array_to_write.vals,
-                                                      fast_matrix_market::row_major,
+                                                      fast_matrix_market::col_major,
                                                       options);
 
         num_bytes += oss.str().size();

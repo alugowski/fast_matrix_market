@@ -16,12 +16,20 @@ struct triplet_matrix {
     std::vector<IT> rows;
     std::vector<IT> cols;
     std::vector<VT> vals;
+
+    size_t size_bytes() const {
+        return sizeof(IT)*rows.size() + sizeof(IT)*cols.size() + sizeof(VT)*vals.size();
+    }
 };
 
 template <typename VT>
 struct array_matrix {
     int64_t nrows = 0, ncols = 0;
     std::vector<VT> vals;
+
+    size_t size_bytes() const {
+        return sizeof(VT)*vals.size();
+    }
 };
 
 /**
@@ -78,10 +86,10 @@ array_matrix<VT> construct_array(std::size_t byte_target) {
  */
 std::string construct_large_coord_string(std::size_t byte_target);
 
-constexpr int64_t kArrayTargetReadBytes = 256 * 2 << 20;
-constexpr int64_t kArrayTargetWriteBytes = 256 * 2 << 20;
-constexpr int64_t kCoordTargetReadBytes = 512 * 2 << 20;
-constexpr int64_t kCoordTargetWriteBytes = 512 * 2 << 20;
+// In-memory byte targets.
+// MatrixMarket files will be larger.
+constexpr int64_t kArrayTargetBytes = 128 * 2 << 20;
+constexpr int64_t kCoordTargetBytes = 256 * 2 << 20;
 
 /**
  * Set thread count benchmark arguments.

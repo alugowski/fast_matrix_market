@@ -11,7 +11,7 @@
  * This needs to be fast because it is a sequential operation and can thus be a bottleneck.
  */
 static void bench_chunking(benchmark::State& state) {
-    std::string large = construct_large_coord_string(kCoordTargetReadBytes);
+    std::string large = construct_large_coord_string(kCoordTargetBytes);
     // read options
     fast_matrix_market::read_options options{};
 

@@ -8,17 +8,24 @@
 using VT = double;
 static int num_iterations = 3;
 
-static std::string generate_read_string() {
-    // Generate a big matrix in-memory.
-    auto triplet = construct_triplet<int64_t, VT>(kCoordTargetReadBytes);
-
+template <typename TRIPLET>
+static std::string generate_read_string(const TRIPLET& triplet) {
     std::ostringstream oss;
     fast_matrix_market::write_matrix_market_triplet(oss, {triplet.nrows, triplet.ncols}, triplet.rows, triplet.cols, triplet.vals);
-    return oss.str();
+    std::string ret = oss.str();
+
+    // Set a locale for comma separations
+    if (std::locale("").name() == "C" || std::locale("").name().empty()) {
+        std::cout.imbue(std::locale("en_US"));
+    } else {
+        std::cout.imbue(std::locale(""));
+    }
+    std::cout << "Triplet matrix has " << triplet.vals.size() << " elements (" << triplet.size_bytes() << " bytes) for " << ret.size() << " bytes in MatrixMarket format." << std::endl;
+    return ret;
 }
 
-static std::string string_to_read = generate_read_string();
-static auto triplet_to_write = construct_triplet<int64_t, VT>(kCoordTargetWriteBytes);
+auto triplet_to_write = construct_triplet<int64_t, VT>(kCoordTargetBytes);
+std::string triplet_string_to_read = generate_read_string(triplet_to_write);
 
 /**
  * Read triplets.
@@ -35,9 +42,9 @@ static void triplet_read(benchmark::State& state) {
         fast_matrix_market::matrix_market_header header;
         triplet_matrix<int64_t, VT> triplet;
 
-        std::istringstream iss(string_to_read);
+        std::istringstream iss(triplet_string_to_read);
         fast_matrix_market::read_matrix_market_triplet(iss, header, triplet.rows, triplet.cols, triplet.vals, options);
-        num_bytes += string_to_read.size();
+        num_bytes += triplet_string_to_read.size();
         benchmark::ClobberMemory();
     }
 

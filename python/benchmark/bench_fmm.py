@@ -59,8 +59,8 @@ large_array_length = len(large_array_bytes)  # About 50 MB for nnz=10M
 array_read_path = Path(tempdir.name) / "readfile_array.mtx"
 array_read_path.write_bytes(large_array_bytes)
 
-print(f"Array matrix has {large_array_matrix.size:,} values and {large_array_length:,} bytes in MatrixMarket format.")
-print(f"Triplet matrix has {large_coo_matrix.size:,} values and {large_coo_length:,} bytes in MatrixMarket format.")
+print(f"Array matrix has {large_array_matrix.size:,} elements and {large_array_length:,} bytes in MatrixMarket format.")
+print(f"Triplet matrix has {large_coo_matrix.size:,} elements and {large_coo_length:,} bytes in MatrixMarket format.")
 
 
 ##############################
