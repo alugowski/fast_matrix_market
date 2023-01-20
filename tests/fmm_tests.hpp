@@ -175,3 +175,8 @@ bool operator==(const array_matrix<VT>& a, const array_matrix<VT>& b) {
 
     return true;
 }
+
+template <typename VT>
+bool operator!=(const array_matrix<VT>& a, const array_matrix<VT>& b) {
+    return (a.nrows != b.nrows || a.ncols != b.ncols || a.vals != b.vals);
+}

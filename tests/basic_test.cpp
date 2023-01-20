@@ -537,7 +537,7 @@ TEST_P(SymmetryArraySuite, SmallArray) {
     EXPECT_EQ(symmetric.ncols, general.ncols);
     EXPECT_EQ(symmetric.vals.size(), symmetric_no_gen.vals.size());
     EXPECT_EQ(symmetric.vals.size(), general.vals.size());
-    EXPECT_FALSE(symmetric == symmetric_no_gen);
+    EXPECT_NE(symmetric, symmetric_no_gen);
     EXPECT_EQ(symmetric, general);
 }
 
