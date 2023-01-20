@@ -1,4 +1,4 @@
-[![PyPI version](https://badge.fury.io/py/fast_matrix_market.svg)](https://badge.fury.io/py/fast_matrix_market)
+[![PyPI version](https://badge.fury.io/py/fast_matrix_market.svg)](https://pypi.org/project/fast-matrix-market/)
 
 Fast and full-featured Matrix Market file I/O package for Python.
 
