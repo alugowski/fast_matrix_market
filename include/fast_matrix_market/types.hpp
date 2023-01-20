@@ -42,6 +42,7 @@ namespace fast_matrix_market {
      */
     struct matrix_market_header {
         matrix_market_header() = default;
+        explicit matrix_market_header(int64_t vector_length) : object(vector), vector_length(vector_length) {}
         matrix_market_header(int64_t nrows, int64_t ncols) : nrows(nrows), ncols(ncols) {}
 
         object_type object = matrix;

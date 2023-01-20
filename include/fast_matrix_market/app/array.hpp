@@ -42,6 +42,19 @@ namespace fast_matrix_market {
     }
 
     /**
+     * Convenience method that omits the header requirement if the user only cares about the values
+     * (e.g. loading a 1D vector, where the std::vector length already includes the length).
+     */
+    template <typename VT>
+    void read_matrix_market_array(std::istream &instream,
+                                  std::vector<VT>& values,
+                                  storage_order order = row_major,
+                                  const read_options& options = {}) {
+        matrix_market_header header;
+        read_matrix_market_array(instream, header, values, order, options);
+    }
+
+    /**
      * Write a row-major array to a Matrix Market file.
      */
     template <typename VT>
