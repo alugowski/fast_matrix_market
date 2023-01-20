@@ -146,8 +146,6 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(Param{Param::Load_Eigen, "eye3.mtx"}
                           , Param{Param::Load_Eigen, "row_3by4.mtx"}
                           , Param{Param::Load_Eigen, "kepner_gilbert_graph.mtx"}
-                          , Param{Param::Load_FMM, "vector_array.mtx"}
-                          , Param{Param::Load_FMM, "vector_coordinate.mtx"}
                           , Param{Param::Load_FMM_Vec, "vector_array.mtx"}
                           , Param{Param::Load_FMM_Vec, "vector_coordinate.mtx"}
                           , Param{Param::Load_FMM, "eye3_pattern.mtx"}

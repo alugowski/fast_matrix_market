@@ -86,7 +86,5 @@ INSTANTIATE_TEST_SUITE_P(
                           , "kepner_gilbert_graph.mtx"
                           , "vector_array.mtx"
                           , "vector_coordinate.mtx"
-                          , "vector_array.mtx"
-                          , "vector_coordinate.mtx"
                           , "eye3_pattern.mtx"
         ));
