@@ -2,7 +2,7 @@
 
 Fast and full-featured Matrix Market file I/O package for Python.
 
-Fastest way to read and write any Matrix Market `.mtx` file into a dense ndarray, sparse coordinate (triplet) arrays, or SciPy sparse matrix.
+Fastest way to read and write any Matrix Market `.mtx` file into a SciPy sparse matrix, sparse coordinate (triplet) arrays, or dense ndarray.
 
 Implemented as a Python binding of the C++ [fast_matrix_market](https://github.com/alugowski/fast_matrix_market) library.
 
@@ -20,7 +20,7 @@ Compared to SciPy v1.10.0:
   ![read](https://raw.githubusercontent.com/alugowski/fast_matrix_market/main/benchmark_plots/parallel-scaling-python-read.svg)
   ![write](https://raw.githubusercontent.com/alugowski/fast_matrix_market/main/benchmark_plots/parallel-scaling-python-write.svg)
 
-  All cores on the system are used by default, use the `parallelism` argument to override. SciPy's routines are single-threaded.
+  The bytes in the plot refer to MatrixMarket file length. All cores on the system are used by default, use the `parallelism` argument to override. SciPy's routines are single-threaded.
 
 * **64-bit indices**, but only if the matrix dimensions require it.
 
@@ -115,9 +115,12 @@ scipy.io.mmwrite = fmm.mmwrite
 
 # Dependencies
 
-* No dependencies to read/write MatrixMarket headers.
+* No dependencies to read/write MatrixMarket headers (i.e. `read_header()`, `mminfo()`).
 * `numpy` to read/write arrays (i.e. `read_array()` and `read_coo()`). SciPy is **not** required.
 * `scipy` to read/write `scipy.sparse` sparse matrices (i.e. `read_scipy()` and `mmread()`).
+
+Neither `numpy` nor `scipy` are listed as package dependencies, and those packages are imported only by the methods that need them.
+This means that you may use `read_coo()` without having SciPy installed.
 
 # Development
 

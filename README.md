@@ -13,37 +13,48 @@ A fast and full-featured Matrix Market I/O library for C++ and [Python](python).
 2 2 1
 3 3 1
 ```
-Most sparse matrix libraries include Matrix Market read and write routines.
 
-However, included routines are typically slow and/or are missing format features. Use this library to fix these shortcomings.
+# Why use fast_matrix_market
+Most sparse matrix libraries include Matrix Market read and write routines.
+However, these are typically written using `scanf`, IOStreams, or equivalent in their language. These routines work,
+but are too slow to saturate even a low-end mechanical hard drive, nevermind today's fast storage devices.
+This means working with large multi-gigabyte datasets is far more painful than it needs to be.
+
+Additionally, many loaders only support a subset of the Matrix Market format. Typically only coordinate matrices and often just a subset of that.
+This means loading data from external sources like the [SuiteSparse Matrix Collection](https://sparse.tamu.edu/) becomes
+hit or miss as some valid matrices cannot be loaded.
+
+Use this library to fix these shortcomings.
 
 # Fast
 
 `fast_matrix_market` takes the fastest available sequential methods and parallelizes them.
 
-This lets us reach **>1GB/s** read and write speeds on a laptop (about 25x improvement over IOStreams).
+Reach **>1GB/s** read and write speeds on a laptop (about 25x improvement over IOStreams).
 
 ![read](benchmark_plots/parallel-scaling-cpp-read.svg)
 ![write](benchmark_plots/parallel-scaling-cpp-write.svg)
 
 Note: IOStreams benchmark is sequential because IOStreams get *slower* with additional parallelism due to internal locking on the locale.
-Loaders using IOStreams or `fscanf` are both slow and do not parallelize. See [parse_bench](https://github.com/alugowski/parse-bench) for a demonstration.
+Loaders using IOStreams or `fscanf` are both slow and do not parallelize.
+See [parse_bench](https://github.com/alugowski/parse-bench) for more.
 
-The majority of `fast_matrix_market`'s improvement comes from using C++17's `std::from_chars` and `std::to_chars`.
+The majority of `fast_matrix_market`'s sequential improvement comes from using C++17's `<charconv>`.
 If floating-point versions are not available then fall back on [fast_float](https://github.com/fastfloat/fast_float) 
 and [Dragonbox](https://github.com/jk-jeon/dragonbox). These methods are then parallelized by chunking the input stream and parsing each chunk in parallel.
 
-Use the `run_benchmarks.sh` script to see for yourself. The script builds, runs, and saves benchmark data, then simply run all the cells in the [benchmark_plots/plot.ipynb](benchmark_plots/plot.ipynb) Jupyter notebook.
+Use the `run_benchmarks.sh` script to see for yourself on your own system. The script builds, runs, and saves benchmark data.
+Then simply run all the cells in the [benchmark_plots/plot.ipynb](benchmark_plots/plot.ipynb) Jupyter notebook.
 
 # Full Featured
 
-* `coordinate` and `array`, each readable into either sparse or dense structures.
+* `coordinate` and `array`, each readable into both sparse and dense structures.
 
 * All `field` types supported: `integer`, `real`, `complex`, `pattern`.
 
   * Support all C++ types.
     * `float`, `double`, `long double`, `std::complex<>`, integer types, `bool`.
-    * Arbitrary types. [Example using `std::string`](tests/user_type_test.cpp).
+    * Arbitrary types. [Example using `std::string`.](tests/user_type_test.cpp)
 
   * Automatic `std::complex` up-cast. For example, `real` files can be read into `std::complex<double>` arrays.
 
@@ -55,7 +66,7 @@ Use the `run_benchmarks.sh` script to see for yourself. The script builds, runs,
 
 * Ability to read just the header (useful for metadata collection).
 
-* Read and write Matrix Market header comments, including multiline comments.
+* Read and write Matrix Market header comments.
 
 * Read and write all symmetries: `general`, `symmetric`, `skew-symmetric`, `hermitian`.
 
@@ -128,7 +139,7 @@ Follow the example of the triplet and array implementations in [include/fast_mat
 
 # Installation
 
-`fast_matrix_market` is a header-only library written in C++17. Parallelism uses C++11 threads.
+`fast_matrix_market` is written in C++17. Parallelism uses C++11 threads. Header-only if optional dependencies are disabled.
 
 ### CMake
 
@@ -163,7 +174,7 @@ For best performance also include:
 * [Dragonbox](https://github.com/jk-jeon/dragonbox) and define `FMM_USE_DRAGONBOX`.
 
 
-# 3rd Party Libraries Used
+# Dependencies
 These are automatically fetched if using CMake.
 
 * [fast_float](https://github.com/fastfloat/fast_float) for floating-point parsing (Optional).
