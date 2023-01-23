@@ -306,9 +306,6 @@ namespace fast_matrix_market {
                                   DenseVector& vec,
                                   const read_options& options = {},
                                   typename DenseVector::ElementType default_pattern_value = 1) {
-        typedef int64_t IT; // Blaze matrices use size_t for indexing, but allowing negative numbers allows more error checking while parsing.
-        typedef typename DenseVector::ElementType VT;
-
         read_header(instream, header);
 
         if (std::min(header.nrows, header.ncols) > 1) {
@@ -375,7 +372,6 @@ namespace fast_matrix_market {
                                    const DenseVector& vec,
                                    const write_options& options = {},
                                    matrix_market_header header = {}) {
-        typedef size_t IT; // Blaze matrices use size_t for indexing
         typedef typename DenseVector::ElementType VT;
 
         auto vector_length = (int64_t)vec.size();
