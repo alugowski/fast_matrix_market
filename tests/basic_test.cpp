@@ -5,6 +5,11 @@
 #include <fstream>
 #include <regex>
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4244) // '=': conversion from '__int64' to '_Ty', possible loss of data
+#endif
+
 #include "fmm_tests.hpp"
 
 #if defined(__clang__)
