@@ -31,6 +31,9 @@ add_definitions(-DTEST_MATRIX_DIR="${MATRIX_DIR}")
 add_executable(chunking_test chunking_test.cpp)
 target_link_libraries(chunking_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
 
+add_executable(field_conv_test field_conv_test.cpp)
+target_link_libraries(field_conv_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+
 add_executable(basic_test basic_test.cpp)
 target_link_libraries(basic_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
 
@@ -48,6 +51,7 @@ target_link_libraries(cxsparse_test GTest::gtest_main fast_matrix_market::fast_m
 
 include(GoogleTest)
 gtest_discover_tests(chunking_test)
+gtest_discover_tests(field_conv_test)
 gtest_discover_tests(basic_test)
 gtest_discover_tests(user_type_test)
 gtest_discover_tests(array_test)

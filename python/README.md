@@ -41,11 +41,10 @@ Compared to SciPy v1.10.0:
 
 ### Differences
 
-* If no symmetry is specified `scipy.io.mmwrite` will search the matrix for one.
+* `scipy.io.mmwrite()` will search the matrix for symmetry if the `symmetry` argument is not specified.
   This is a very slow process that significantly impacts writing time for all matrices, including non-symmetric ones.
   It can be disabled by setting `symmetry="general"`, but that is easily forgotten.
   `fast_matrix_market.mmwrite()` only looks for symmetries if the `find_symmetry=True` argument is passed.
-* `precision` argument to `mmwrite()` is currently ignored. Floats may be written with more precision than desired.
 
 # Usage
 ```python

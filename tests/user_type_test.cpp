@@ -57,7 +57,7 @@ namespace fast_matrix_market {
     /**
      * (Needed for write) Write a value.
      */
-    std::string value_to_string(const std::string& value) {
+    std::string value_to_string(const std::string& value, [[maybe_unused]] int precision) {
         return value;
     }
 }

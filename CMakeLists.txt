@@ -85,7 +85,7 @@ if (FMM_USE_FAST_FLOAT)
 endif()
 
 # Setup Dragonbox.
-# float and double formatter, no precision support.
+# float and double formatter for shortest representation. No precision support.
 if (FMM_USE_DRAGONBOX)
     message("Fetching Dragonbox.")
 
@@ -96,20 +96,13 @@ if (FMM_USE_DRAGONBOX)
 endif()
 
 # Setup Ryu.
-# float, double, long double formatter, with precision support. Slower than Dragonbox for 'shortest' precision.
+# float, double formatter with precision support. Slower than Dragonbox for shortest representation.
 option(FMM_USE_RYU "Whether or not to use Ryu floating-point to string library" ON)
 if (FMM_USE_RYU)
     message("Using ryu")
     add_subdirectory(dependencies/ryu)
     target_link_libraries(fast_matrix_market INTERFACE ryu::ryu)
     target_compile_definitions(fast_matrix_market INTERFACE FMM_USE_RYU)
-
-    if (RYU_GENERIC_128_AVAILABLE)
-        # Requires __uint128_t which is a GCC/Clang extension.
-        message("ryu::generic_128 is available")
-        target_link_libraries(fast_matrix_market INTERFACE ryu::generic_128)
-        target_compile_definitions(fast_matrix_market INTERFACE FMM_USE_RYU_GENERIC_128)
-    endif()
 endif()
 
 ###############################################
