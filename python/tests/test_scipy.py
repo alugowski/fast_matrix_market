@@ -268,6 +268,21 @@ class TestSciPy(unittest.TestCase):
                     expected_symmetry = "symmetric"
                 self.assertIn(expected_symmetry, fmms)
 
+    def test_precision(self):
+        test_values = [np.pi] + [10**i for i in range(0, -10, -1)]
+        test_precisions = range(1, 10)
+        for value in test_values:
+            for precision in test_precisions:
+                with self.subTest(msg=f"value={value}, precision={precision}"):
+                    m = np.array([[value]])
+
+                    bio = BytesIO()
+                    fmm.mmwrite(bio, m, precision=precision)
+                    fmms = bio.getvalue().decode()
+
+                    m2 = fmm.mmread(StringIO(fmms))
+                    self.assertAlmostEqual(m2[0][0], float('%%.%dg' % precision % value))
+
 
 if __name__ == '__main__':
     unittest.main()

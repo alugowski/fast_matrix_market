@@ -5,6 +5,7 @@
 
 #include <charconv>
 #include <complex>
+#include <iomanip>
 #include <type_traits>
 
 #ifdef FMM_USE_FAST_FLOAT
@@ -13,6 +14,10 @@
 
 #ifdef FMM_USE_DRAGONBOX
 #include <dragonbox/dragonbox_to_chars.h>
+#endif
+
+#ifdef FMM_USE_RYU
+#include <ryu/ryu.h>
 #endif
 
 #include "fast_matrix_market.hpp"
@@ -232,7 +237,7 @@ namespace fast_matrix_market {
      */
     template <typename T>
     std::string int_to_string(const T& value) {
-        std::string ret(15, ' ');
+        std::string ret(20, ' ');
         std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
         if (result.ec == std::errc()) {
             ret.resize(result.ptr - ret.data());
@@ -251,25 +256,35 @@ namespace fast_matrix_market {
     }
 #endif
 
-    template <typename T>
-    std::string value_to_string(const T& value) {
-        return std::to_string(value);
-    }
-
-    inline std::string value_to_string([[maybe_unused]] const pattern_placeholder_type& value) {
+    inline std::string value_to_string([[maybe_unused]] const pattern_placeholder_type& value, [[maybe_unused]] int precision) {
         return {};
     }
 
-    inline std::string value_to_string(const bool & value) {
+    inline std::string value_to_string(const bool & value, [[maybe_unused]] int precision) {
         return value ? "1" : "0";
     }
 
-    inline std::string value_to_string(const int32_t & value) {
+    inline std::string value_to_string(const int32_t & value, [[maybe_unused]] int precision) {
         return int_to_string(value);
     }
 
-    inline std::string value_to_string(const int64_t & value) {
+    inline std::string value_to_string(const int64_t & value, [[maybe_unused]] int precision) {
         return int_to_string(value);
+    }
+
+    /**
+     * stdlib fallback
+     */
+    template <typename T>
+    std::string value_to_string_fallback(const T& value, int precision) {
+        if (precision < 0) {
+            // shortest representation
+            return std::to_string(value);
+        } else {
+            std::ostringstream oss;
+            oss << std::setprecision(precision) << value;
+            return oss.str();
+        }
     }
 
 #ifdef FMM_USE_DRAGONBOX
@@ -278,7 +293,7 @@ namespace fast_matrix_market {
     #define DRAGONBOX_DROP_E0 true
     #endif
 
-    inline std::string value_to_string(const float& value) {
+    inline std::string value_to_string_dragonbox(const float& value) {
         std::string buffer(jkj::dragonbox::max_output_string_length<jkj::dragonbox::ieee754_binary32> + 1, ' ');
 
         char *end_ptr = jkj::dragonbox::to_chars(value, buffer.data());
@@ -290,7 +305,7 @@ namespace fast_matrix_market {
         return buffer;
     }
 
-    inline std::string value_to_string(const double& value) {
+    inline std::string value_to_string_dragonbox(const double& value) {
         std::string buffer(jkj::dragonbox::max_output_string_length<jkj::dragonbox::ieee754_binary64> + 1, ' ');
 
         char *end_ptr = jkj::dragonbox::to_chars(value, buffer.data());
@@ -301,55 +316,186 @@ namespace fast_matrix_market {
         }
         return buffer;
     }
+#endif
 
-#elif defined(FMM_TO_CHARS_DOUBLE_SUPPORTED)
-    inline std::string value_to_string(const float& value) {
-        std::string ret(15, ' ');
-        std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
+#ifdef FMM_USE_RYU
+    inline std::string value_to_string_ryu(const float& value, int precision) {
+        std::string ret(16, ' ');
+
+        if (precision < 0) {
+            // shortest representation
+            auto len = f2s_buffered_n(value, ret.data());
+            ret.resize(len);
+        } else {
+            // explicit precision
+            if (precision > 0) {
+                // d2exp_buffered_n's precision means number of places after the decimal point, but
+                // we expect it to mean number of sigfigs.
+                --precision;
+            }
+            auto len = d2exp_buffered_n(static_cast<double>(value), precision, ret.data());
+            ret.resize(len);
+        }
+
+        return ret;
+    }
+
+    inline std::string value_to_string_ryu(const double& value, int precision) {
+        std::string ret(26, ' ');
+
+        if (precision < 0) {
+            // shortest representation
+            auto len = d2s_buffered_n(value, ret.data());
+            ret.resize(len);
+        } else {
+            // explicit precision
+            if (precision > 0) {
+                // d2exp_buffered_n's precision means number of places after the decimal point, but
+                // we expect it to mean number of sigfigs.
+                --precision;
+            }
+            auto len = d2exp_buffered_n(value, precision, ret.data());
+            ret.resize(len);
+        }
+
+        return ret;
+    }
+#endif
+
+#ifdef FMM_TO_CHARS_DOUBLE_SUPPORTED
+    inline std::string value_to_string_to_chars(const float& value, int precision) {
+        std::string ret(16, ' ');
+        std::to_chars_result result;
+        if (precision < 0) {
+            // shortest representation
+            result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
+        } else {
+            // explicit precision
+            result = std::to_chars(ret.data(), ret.data() + ret.size(), value, std::chars_format::general, precision);
+        }
         if (result.ec == std::errc()) {
             ret.resize(result.ptr - ret.data());
             return ret;
         } else {
-            return std::to_string(value);
+            return value_to_string_fallback(value, precistion);
         }
     }
 
-    inline std::string value_to_string(const double& value) {
+    inline std::string value_to_string_to_chars(const double& value, int precision) {
         std::string ret(25, ' ');
-        std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
+        std::to_chars_result result;
+        if (precision < 0) {
+            // shortest representation
+            result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
+        } else {
+            // explicit precision
+            result = std::to_chars(ret.data(), ret.data() + ret.size(), value, std::chars_format::general, precision);
+        }
         if (result.ec == std::errc()) {
             ret.resize(result.ptr - ret.data());
             return ret;
         } else {
-            return std::to_string(value);
+            return value_to_string_fallback(value, precistion);
         }
     }
-#else
-// fallback to value_to_string<T>() which calls std::to_string<>()
 #endif
 
 #ifdef FMM_TO_CHARS_LONG_DOUBLE_SUPPORTED
-    inline std::string value_to_string(const long double& value) {
-        std::string ret(35, ' ');
-        std::to_chars_result result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
+    inline std::string value_to_string_to_chars(const long double& value, int precision) {
+        std::string ret(50, ' ');
+        std::to_chars_result result;
+        if (precision < 0) {
+            // shortest representation
+            result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
+        } else {
+            // explicit precision
+            result = std::to_chars(ret.data(), ret.data() + ret.size(), value, std::chars_format::general, precision);
+        }
         if (result.ec == std::errc()) {
             ret.resize(result.ptr - ret.data());
             return ret;
         } else {
-            return std::to_string(value);
+            return value_to_string_fallback(value, precistion);
         }
     }
 #endif
 
-    inline std::string value_to_string(const std::complex<float>& value) {
-        return value_to_string(value.real()) + " " + value_to_string(value.imag());
+    /**
+     * float to string.
+     *
+     * Preference order: Dragonbox (no precision support), to_chars, Ryu, fallback.
+     */
+    inline std::string value_to_string(const float& value, int precision) {
+#ifdef FMM_USE_DRAGONBOX
+        if (precision < 0) {
+            // Shortest representation. Dragonbox is fastest.
+            return value_to_string_dragonbox(value);
+        }
+#endif
+
+#if defined(FMM_TO_CHARS_DOUBLE_SUPPORTED)
+        return value_to_string_to_chars(value, precision);
+#elif defined(FMM_USE_RYU)
+        return value_to_string_ryu(value, precision);
+#else
+        return value_to_string_fallback(value, precision);
+#endif
     }
 
-    inline std::string value_to_string(const std::complex<double>& value) {
-        return value_to_string(value.real()) + " " + value_to_string(value.imag());
+    /**
+     * double to string.
+     *
+     * Preference order: Dragonbox (no precision support), to_chars, Ryu, fallback.
+     */
+    inline std::string value_to_string(const double& value, int precision) {
+#ifdef FMM_USE_DRAGONBOX
+        if (precision < 0) {
+            // Shortest representation. Dragonbox is fastest.
+            return value_to_string_dragonbox(value);
+        }
+#endif
+
+#if defined(FMM_TO_CHARS_DOUBLE_SUPPORTED)
+        return value_to_string_to_chars(value, precision);
+#elif defined(FMM_USE_RYU)
+        return value_to_string_ryu(value, precision);
+#else
+        return value_to_string_fallback(value, precision);
+#endif
     }
 
-    inline std::string value_to_string(const std::complex<long double>& value) {
-        return value_to_string(value.real()) + " " + value_to_string(value.imag());
+    /**
+     * long double to string.
+     *
+     * Preference order: to_chars, fallback.
+     * Note: Ryu's generic_128 can do this on some platforms, but it is not reliable.
+     * see https://github.com/ulfjack/ryu/issues/215
+     */
+    inline std::string value_to_string(const long double& value, int precision) {
+#if defined(FMM_TO_CHARS_LONG_DOUBLE_SUPPORTED)
+        return value_to_string_to_chars(value, precision);
+#else
+        return value_to_string_fallback(value, precision);
+#endif
+    }
+
+    inline std::string value_to_string(const std::complex<float>& value, int precision) {
+        return value_to_string(value.real(), precision) + " " + value_to_string(value.imag(), precision);
+    }
+
+    inline std::string value_to_string(const std::complex<double>& value, int precision) {
+        return value_to_string(value.real(), precision) + " " + value_to_string(value.imag(), precision);
+    }
+
+    inline std::string value_to_string(const std::complex<long double>& value, int precision) {
+        return value_to_string(value.real(), precision) + " " + value_to_string(value.imag(), precision);
+    }
+
+    /**
+     * Catchall
+     */
+    template <typename T>
+    std::string value_to_string(const T& value, int precision) {
+        return value_to_string_fallback(value, precision);
     }
 }

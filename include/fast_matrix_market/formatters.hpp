@@ -27,7 +27,7 @@ namespace fast_matrix_market {
 
             if (header.field != pattern) {
                 line += kSpace;
-                line += value_to_string(val);
+                line += value_to_string(val, options.precision);
             }
             line += kNewline;
 
@@ -56,7 +56,7 @@ namespace fast_matrix_market {
                 }
             }
 
-            std::string ret = value_to_string(val);
+            std::string ret = value_to_string(val, options.precision);
             ret += kNewline;
             return ret;
         }
@@ -79,7 +79,7 @@ namespace fast_matrix_market {
 
             if (header.field != pattern) {
                 line += kSpace;
-                line += value_to_string(val);
+                line += value_to_string(val, options.precision);
             }
             line += kNewline;
 

@@ -179,6 +179,7 @@ These are automatically fetched if using CMake.
 
 * [fast_float](https://github.com/fastfloat/fast_float) for floating-point parsing (Optional).
 * [Dragonbox](https://github.com/jk-jeon/dragonbox) for floating-point rendering (Optional).
-* [thread-pool](https://github.com/bshoshany/thread-pool) for a lightweight thread pool using C++11 threads (Bundled). 
+* [Ryu](https://github.com/ulfjack/ryu) for floating-point rendering with user-specified precision (bundled, optional).
+* [thread-pool](https://github.com/bshoshany/thread-pool) for a lightweight thread pool using C++11 threads (bundled).
 
 Standard library fallbacks for the above libraries are included, but both sequential and parallel performance can suffer without them.

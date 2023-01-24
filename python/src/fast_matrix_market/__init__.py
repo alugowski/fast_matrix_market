@@ -357,7 +357,7 @@ def write_scipy(target, a, comment=None, field=None, precision=None, symmetry=No
     :param a: a 2D ndarray (or an array convertible to one) or a scipy.sparse matrix
     :param comment: comment to include in the MatrixMarket header
     :param field: convert matrix values to this MatrixMarket field
-    :param precision: ignored
+    :param precision: floating-point precision to use. If None then use shortest representation.
     :param symmetry: if not None then the matrix is written as having this MatrixMarket symmetry. "pattern" means write
     only the nonzero structure and no values.
     :param parallelism: number of threads to use. 0 means auto.
