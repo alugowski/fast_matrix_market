@@ -17,8 +17,8 @@ Compared to SciPy v1.10.0:
 
 * **Significant performance boost**
 
-  ![read](https://raw.githubusercontent.com/alugowski/fast_matrix_market/main/benchmark_plots/parallel-scaling-python-read.svg)
-  ![write](https://raw.githubusercontent.com/alugowski/fast_matrix_market/main/benchmark_plots/parallel-scaling-python-write.svg)
+  ![read speedup over SciPy](https://raw.githubusercontent.com/alugowski/fast_matrix_market/main/benchmark_plots/parallel-scaling-python-read.svg)
+  ![write speedup over SciPy](https://raw.githubusercontent.com/alugowski/fast_matrix_market/main/benchmark_plots/parallel-scaling-python-write.svg)
 
   The bytes in the plot refer to MatrixMarket file length. All cores on the system are used by default, use the `parallelism` argument to override. SciPy's routines are single-threaded.
 

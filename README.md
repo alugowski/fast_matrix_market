@@ -26,6 +26,8 @@ hit or miss as some valid matrices cannot be loaded.
 
 Use this library to fix these shortcomings.
 
+Ready-to-use bindings for [Eigen](README.Eigen.md), [CXSparse](README.CXSparse.md), [Blaze](README.Blaze.md), [SciPy](python/README.md).
+
 # Fast
 
 `fast_matrix_market` takes the fastest available sequential methods and parallelizes them.
