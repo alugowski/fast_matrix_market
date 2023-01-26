@@ -75,10 +75,9 @@ endif()
 # Setup fast_float.
 # float and double parser.
 if (FMM_USE_FAST_FLOAT)
-    message("Fetching fast_float.")
-
-    # Add fast_float library
-    include(cmake/fast_float.cmake)
+    message("Using fast_float")
+    set(FASTFLOAT_INSTALL OFF)
+    add_subdirectory(dependencies/fast_float)
 
     target_compile_definitions(fast_matrix_market INTERFACE FMM_USE_FAST_FLOAT)
     target_link_libraries(fast_matrix_market INTERFACE fast_float)
@@ -87,9 +86,8 @@ endif()
 # Setup Dragonbox.
 # float and double formatter for shortest representation. No precision support.
 if (FMM_USE_DRAGONBOX)
-    message("Fetching Dragonbox.")
-
-    include(cmake/Dragonbox.cmake)
+    message("Using Dragonbox")
+    add_subdirectory(dependencies/dragonbox)
 
     target_compile_definitions(fast_matrix_market INTERFACE FMM_USE_DRAGONBOX)
     target_link_libraries(fast_matrix_market INTERFACE dragonbox::dragonbox_to_chars)
@@ -101,6 +99,7 @@ option(FMM_USE_RYU "Whether or not to use Ryu floating-point to string library" 
 if (FMM_USE_RYU)
     message("Using ryu")
     add_subdirectory(dependencies/ryu)
+
     target_link_libraries(fast_matrix_market INTERFACE ryu::ryu)
     target_compile_definitions(fast_matrix_market INTERFACE FMM_USE_RYU)
 endif()

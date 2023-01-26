@@ -85,8 +85,6 @@ jobs:
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           # No 32-bit builds. See https://cibuildwheel.readthedocs.io/en/stable/options/#archs
           CIBW_SKIP: "*-win32 *_i686"
-          # Omit fast_float and Dragonbox on Windows because the Windows builder can't access them after it builds them for an unknown reason.
-          CIBW_ENVIRONMENT_WINDOWS: "FMM_PYTHON_NO_DEPS=1"
           # make cibuildwheel install test dependencies from pyproject.toml
           CIBW_TEST_EXTRAS: "test"
           # run tests in the {package}/tests dir which is python/tests
