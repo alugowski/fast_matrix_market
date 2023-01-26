@@ -340,14 +340,14 @@ namespace jkj::dragonbox {
             // implementing 64-bit x 64-bit -> 128-bit multiplication.
 
             // clang-format off
-    #if defined(__SIZEOF_INT128__)
-                // To silence "error: ISO C++ does not support '__int128' for 'type name'
-                // [-Wpedantic]"
-        #if defined(__GNUC__)
-            __extension__
-        #endif
-                using builtin_uint128_t = unsigned __int128;
-    #endif
+#if defined(__SIZEOF_INT128__)
+		// To silence "error: ISO C++ does not support '__int128' for 'type name'
+		// [-Wpedantic]"
+#if defined(__GNUC__)
+			__extension__
+#endif
+				using builtin_uint128_t = unsigned __int128;
+#endif
             // clang-format on
 
             struct uint128 {
@@ -654,7 +654,7 @@ namespace jkj::dragonbox {
                 }
                 // Specialize for 64-bit division by 1000.
                 // Ensure that the correctness condition is met.
-                if constexpr (std::is_same_v<UInt, std::uint64_t> && N == 3 &&
+                else if constexpr (std::is_same_v<UInt, std::uint64_t> && N == 3 &&
                               n_max <= std::uint64_t(15534100272597517998ull)) {
                     return wuint::umul128_upper64(n, std::uint64_t(2361183241434822607ull)) >> 7;
                 }
@@ -1238,18 +1238,18 @@ namespace jkj::dragonbox {
                     using shorter_interval_type = interval_type::closed;
 
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits, Func&& f) noexcept {
                         return f(nearest_to_even{});
                     }
 
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_normal_interval_case(SignedSignificandBits s,
-                                                                      Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_normal_interval_case(SignedSignificandBits s, Func&& f) noexcept {
                         return f(s.has_even_significand_bits());
                     }
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_shorter_interval_case(SignedSignificandBits,
-                                                                       Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_shorter_interval_case(SignedSignificandBits, Func&& f) noexcept {
                         return f();
                     }
                 };
@@ -1260,18 +1260,18 @@ namespace jkj::dragonbox {
                     using shorter_interval_type = interval_type::open;
 
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits, Func&& f) noexcept {
                         return f(nearest_to_odd{});
                     }
 
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_normal_interval_case(SignedSignificandBits s,
-                                                                      Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_normal_interval_case(SignedSignificandBits s, Func&& f) noexcept {
                         return f(!s.has_even_significand_bits());
                     }
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_shorter_interval_case(SignedSignificandBits,
-                                                                       Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_shorter_interval_case(SignedSignificandBits, Func&& f) noexcept {
                         return f();
                     }
                 };
@@ -1282,18 +1282,18 @@ namespace jkj::dragonbox {
                     using shorter_interval_type = interval_type::asymmetric_boundary;
 
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits, Func&& f) noexcept {
                         return f(nearest_toward_plus_infinity{});
                     }
 
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_normal_interval_case(SignedSignificandBits s,
-                                                                      Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_normal_interval_case(SignedSignificandBits s, Func&& f) noexcept {
                         return f(!s.is_negative());
                     }
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_shorter_interval_case(SignedSignificandBits s,
-                                                                       Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_shorter_interval_case(SignedSignificandBits s, Func&& f) noexcept {
                         return f(!s.is_negative());
                     }
                 };
@@ -1304,18 +1304,18 @@ namespace jkj::dragonbox {
                     using shorter_interval_type = interval_type::asymmetric_boundary;
 
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits, Func&& f) noexcept {
                         return f(nearest_toward_minus_infinity{});
                     }
 
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_normal_interval_case(SignedSignificandBits s,
-                                                                      Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_normal_interval_case(SignedSignificandBits s, Func&& f) noexcept {
                         return f(s.is_negative());
                     }
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_shorter_interval_case(SignedSignificandBits s,
-                                                                       Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_shorter_interval_case(SignedSignificandBits s, Func&& f) noexcept {
                         return f(s.is_negative());
                     }
                 };
@@ -1326,18 +1326,18 @@ namespace jkj::dragonbox {
                     using shorter_interval_type = interval_type::right_closed_left_open;
 
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits, Func&& f) noexcept {
                         return f(nearest_toward_zero{});
                     }
 
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_normal_interval_case(SignedSignificandBits,
-                                                                      Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_normal_interval_case(SignedSignificandBits, Func&& f) noexcept {
                         return f();
                     }
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_shorter_interval_case(SignedSignificandBits,
-                                                                       Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_shorter_interval_case(SignedSignificandBits, Func&& f) noexcept {
                         return f();
                     }
                 };
@@ -1348,18 +1348,18 @@ namespace jkj::dragonbox {
                     using shorter_interval_type = interval_type::left_closed_right_open;
 
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits, Func&& f) noexcept {
                         return f(nearest_away_from_zero{});
                     }
 
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_normal_interval_case(SignedSignificandBits,
-                                                                      Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_normal_interval_case(SignedSignificandBits, Func&& f) noexcept {
                         return f();
                     }
                     template <class SignedSignificandBits, class Func>
-                    static constexpr auto invoke_shorter_interval_case(SignedSignificandBits,
-                                                                       Func&& f) noexcept {
+                    JKJ_FORCEINLINE static constexpr auto
+                    invoke_shorter_interval_case(SignedSignificandBits, Func&& f) noexcept {
                         return f();
                     }
                 };
@@ -1371,13 +1371,13 @@ namespace jkj::dragonbox {
                         using shorter_interval_type = interval_type::closed;
 
                         template <class SignedSignificandBits, class Func>
-                        static constexpr auto invoke_normal_interval_case(SignedSignificandBits,
-                                                                          Func&& f) noexcept {
+                        JKJ_FORCEINLINE static constexpr auto
+                        invoke_normal_interval_case(SignedSignificandBits, Func&& f) noexcept {
                             return f();
                         }
                         template <class SignedSignificandBits, class Func>
-                        static constexpr auto invoke_shorter_interval_case(SignedSignificandBits,
-                                                                           Func&& f) noexcept {
+                        JKJ_FORCEINLINE static constexpr auto
+                        invoke_shorter_interval_case(SignedSignificandBits, Func&& f) noexcept {
                             return f();
                         }
                     };
@@ -1387,13 +1387,13 @@ namespace jkj::dragonbox {
                         using shorter_interval_type = interval_type::open;
 
                         template <class SignedSignificandBits, class Func>
-                        static constexpr auto invoke_normal_interval_case(SignedSignificandBits,
-                                                                          Func&& f) noexcept {
+                        JKJ_FORCEINLINE static constexpr auto
+                        invoke_normal_interval_case(SignedSignificandBits, Func&& f) noexcept {
                             return f();
                         }
                         template <class SignedSignificandBits, class Func>
-                        static constexpr auto invoke_shorter_interval_case(SignedSignificandBits,
-                                                                           Func&& f) noexcept {
+                        JKJ_FORCEINLINE static constexpr auto
+                        invoke_shorter_interval_case(SignedSignificandBits, Func&& f) noexcept {
                             return f();
                         }
                     };
@@ -1402,7 +1402,8 @@ namespace jkj::dragonbox {
                 struct nearest_to_even_static_boundary : base {
                     using decimal_to_binary_rounding_policy = nearest_to_even_static_boundary;
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits s, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits s,
+                                                         Func&& f) noexcept {
                         if (s.has_even_significand_bits()) {
                             return f(detail::nearest_always_closed{});
                         }
@@ -1414,7 +1415,8 @@ namespace jkj::dragonbox {
                 struct nearest_to_odd_static_boundary : base {
                     using decimal_to_binary_rounding_policy = nearest_to_odd_static_boundary;
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits s, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits s,
+                                                         Func&& f) noexcept {
                         if (s.has_even_significand_bits()) {
                             return f(detail::nearest_always_open{});
                         }
@@ -1427,7 +1429,8 @@ namespace jkj::dragonbox {
                     using decimal_to_binary_rounding_policy =
                         nearest_toward_plus_infinity_static_boundary;
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits s, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits s,
+                                                         Func&& f) noexcept {
                         if (s.is_negative()) {
                             return f(nearest_toward_zero{});
                         }
@@ -1440,7 +1443,8 @@ namespace jkj::dragonbox {
                     using decimal_to_binary_rounding_policy =
                         nearest_toward_minus_infinity_static_boundary;
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits s, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits s,
+                                                         Func&& f) noexcept {
                         if (s.is_negative()) {
                             return f(nearest_away_from_zero{});
                         }
@@ -1462,7 +1466,8 @@ namespace jkj::dragonbox {
                 struct toward_plus_infinity : base {
                     using decimal_to_binary_rounding_policy = toward_plus_infinity;
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits s, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits s,
+                                                         Func&& f) noexcept {
                         if (s.is_negative()) {
                             return f(detail::left_closed_directed{});
                         }
@@ -1474,7 +1479,8 @@ namespace jkj::dragonbox {
                 struct toward_minus_infinity : base {
                     using decimal_to_binary_rounding_policy = toward_minus_infinity;
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits s, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits s,
+                                                         Func&& f) noexcept {
                         if (s.is_negative()) {
                             return f(detail::right_closed_directed{});
                         }
@@ -1486,14 +1492,14 @@ namespace jkj::dragonbox {
                 struct toward_zero : base {
                     using decimal_to_binary_rounding_policy = toward_zero;
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits, Func&& f) noexcept {
                         return f(detail::left_closed_directed{});
                     }
                 };
                 struct away_from_zero : base {
                     using decimal_to_binary_rounding_policy = away_from_zero;
                     template <class SignedSignificandBits, class Func>
-                    static auto delegate(SignedSignificandBits, Func&& f) noexcept {
+                    JKJ_FORCEINLINE static auto delegate(SignedSignificandBits, Func&& f) noexcept {
                         return f(detail::right_closed_directed{});
                     }
                 };
@@ -1746,14 +1752,6 @@ namespace jkj::dragonbox {
             using cache_entry_type = typename cache_holder<format>::cache_entry_type;
             static constexpr auto cache_bits = cache_holder<format>::cache_bits;
 
-            static constexpr int max_power_of_factor_of_5 =
-                log::floor_log5_pow2(int(significand_bits + 2));
-            static constexpr int divisibility_check_by_5_threshold =
-                log::floor_log2_pow10(max_power_of_factor_of_5 + kappa + 1);
-
-            static constexpr int case_fc_pm_half_lower_threshold =
-                -kappa - log::floor_log5_pow2(kappa);
-
             static constexpr int case_shorter_interval_left_endpoint_lower_threshold = 2;
             static constexpr int case_shorter_interval_left_endpoint_upper_threshold =
                 2 +
@@ -1836,7 +1834,7 @@ namespace jkj::dragonbox {
 
                 if (r < deltai) {
                     // Exclude the right endpoint if necessary.
-                    if (r == 0 && is_z_integer && !interval_type.include_right_endpoint()) {
+                    if (r == 0 && (is_z_integer & !interval_type.include_right_endpoint())) {
                         if constexpr (BinaryToDecimalRoundingPolicy::tag ==
                                       policy_impl::binary_to_decimal_rounding::tag_t::do_not_care) {
                             ret_value.significand *= 10;
@@ -1857,26 +1855,11 @@ namespace jkj::dragonbox {
                 }
                 else {
                     // r == deltai; compare fractional parts.
-                    auto const two_fl = two_fc - 1;
+                    auto const [xi_parity, x_is_integer] =
+                        compute_mul_parity(two_fc - 1, cache, beta);
 
-                    if (!interval_type.include_left_endpoint() ||
-                        exponent < case_fc_pm_half_lower_threshold ||
-                        exponent > divisibility_check_by_5_threshold) {
-                        // If the left endpoint is not included, the condition for
-                        // success is z^(f) < delta^(f) (odd parity).
-                        // Otherwise, the inequalities on exponent ensure that
-                        // x is not an integer, so if z^(f) >= delta^(f) (even parity), we in fact
-                        // have strict inequality.
-                        if (!compute_mul_parity(two_fl, cache, beta).parity) {
-                            goto small_divisor_case_label;
-                        }
-                    }
-                    else {
-                        auto const [xi_parity, x_is_integer] =
-                            compute_mul_parity(two_fl, cache, beta);
-                        if (!xi_parity && !x_is_integer) {
-                            goto small_divisor_case_label;
-                        }
+                    if (!(xi_parity | (x_is_integer & interval_type.include_left_endpoint()))) {
+                        goto small_divisor_case_label;
                     }
                 }
                 ret_value.exponent = minus_k + kappa + 1;
@@ -1943,7 +1926,7 @@ namespace jkj::dragonbox {
                             // If z^(f) >= epsilon^(f), we might have a tie
                             // when z^(f) == epsilon^(f), or equivalently, when y is an integer.
                             // For tie-to-up case, we can just choose the upper one.
-                            if (BinaryToDecimalRoundingPolicy::prefer_round_down(ret_value) &&
+                            if (BinaryToDecimalRoundingPolicy::prefer_round_down(ret_value) &
                                 is_y_integer) {
                                 --ret_value.significand;
                             }
@@ -2517,7 +2500,7 @@ namespace jkj::dragonbox {
     ////////////////////////////////////////////////////////////////////////////////////////
 
     template <class Float, class FloatTraits = default_float_traits<Float>, class... Policies>
-    JKJ_SAFEBUFFERS auto
+    JKJ_FORCEINLINE JKJ_SAFEBUFFERS auto
     to_decimal(signed_significand_bits<Float, FloatTraits> signed_significand_bits,
                unsigned int exponent_bits, Policies... policies) noexcept {
         // Build policy holder type.
@@ -2658,7 +2641,7 @@ namespace jkj::dragonbox {
     }
 
     template <class Float, class FloatTraits = default_float_traits<Float>, class... Policies>
-    auto to_decimal(Float x, Policies... policies) noexcept {
+    JKJ_FORCEINLINE JKJ_SAFEBUFFERS auto to_decimal(Float x, Policies... policies) noexcept {
         auto const br = float_bits<Float, FloatTraits>(x);
         auto const exponent_bits = br.extract_exponent_bits();
         auto const s = br.remove_exponent_bits(exponent_bits);
