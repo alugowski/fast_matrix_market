@@ -377,7 +377,7 @@ namespace fast_matrix_market {
             ret.resize(result.ptr - ret.data());
             return ret;
         } else {
-            return value_to_string_fallback(value, precistion);
+            return value_to_string_fallback(value, precision);
         }
     }
 
@@ -395,7 +395,7 @@ namespace fast_matrix_market {
             ret.resize(result.ptr - ret.data());
             return ret;
         } else {
-            return value_to_string_fallback(value, precistion);
+            return value_to_string_fallback(value, precision);
         }
     }
 #endif
@@ -415,7 +415,7 @@ namespace fast_matrix_market {
             ret.resize(result.ptr - ret.data());
             return ret;
         } else {
-            return value_to_string_fallback(value, precistion);
+            return value_to_string_fallback(value, precision);
         }
     }
 #endif

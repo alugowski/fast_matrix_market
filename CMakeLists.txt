@@ -19,6 +19,10 @@ target_include_directories(
 
 target_compile_features(fast_matrix_market INTERFACE cxx_std_17)
 
+option(FMM_USE_FAST_FLOAT "Enable fast_float float/double parser" ON)
+option(FMM_USE_DRAGONBOX "Enable dragonbox float/double formatter for shortest representation" ON)
+option(FMM_USE_RYU "Enable Ryu float/double formatter with precision support" ON)
+
 ############################################
 # Test for available versions of std::from_chars.
 include(cmake/from_chars_tests.cmake)
@@ -34,14 +38,13 @@ endif()
 if (from_chars_double_supported)
     target_compile_definitions(fast_matrix_market INTERFACE FMM_FROM_CHARS_DOUBLE_SUPPORTED)
 else()
-    message("std::from_chars<double> not detected. Need fast_float.")
-    option(FMM_USE_FAST_FLOAT "Whether or not to use the fast_float library" ON)
+    message("std::from_chars<double> not detected.")
 endif()
 
 if (from_chars_long_double_supported)
     target_compile_definitions(fast_matrix_market INTERFACE FMM_FROM_CHARS_LONG_DOUBLE_SUPPORTED)
 else()
-    message("std::from_chars<long double> not detected. Using std::strtold() fallback.")
+    message("std::from_chars<long double> not detected.")
 endif()
 
 ###############################################
@@ -51,22 +54,21 @@ if (to_chars_int_supported)
     message("std::to_chars<int> detected.")
     target_compile_definitions(fast_matrix_market INTERFACE FMM_TO_CHARS_INT_SUPPORTED)
 else()
-    message("std::to_chars<int> not detected. Using std::to_string (write parallelism will suffer).")
+    message("std::to_chars<int> not detected.")
 endif()
 
 if (to_chars_double_supported)
     message("std::to_chars<double> detected.")
     target_compile_definitions(fast_matrix_market INTERFACE FMM_TO_CHARS_DOUBLE_SUPPORTED)
 else()
-    message("std::to_chars<double> not detected. Need Dragonbox.")
-    option(FMM_USE_DRAGONBOX "Whether or not to use the Dragonbox library" ON)
+    message("std::to_chars<double> not detected.")
 endif()
 
 if (to_chars_long_double_supported)
     message("std::to_chars<long double> detected.")
     target_compile_definitions(fast_matrix_market INTERFACE FMM_TO_CHARS_LONG_DOUBLE_SUPPORTED)
 else()
-    message("std::to_chars<long double> not detected. Using std::to_string (write parallelism will suffer).")
+    message("std::to_chars<long double> not detected.")
 endif()
 
 ###############################################
@@ -95,7 +97,6 @@ endif()
 
 # Setup Ryu.
 # float, double formatter with precision support. Slower than Dragonbox for shortest representation.
-option(FMM_USE_RYU "Whether or not to use Ryu floating-point to string library" ON)
 if (FMM_USE_RYU)
     message("Using ryu")
     add_subdirectory(dependencies/ryu)
