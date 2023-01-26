@@ -35,14 +35,10 @@ jobs:
         ctest -C Debug --output-on-failure --verbose
 
     - name: Python Build and Install
-        # On GitHub Action Windows runner scikit-build has a permission denied error against the
-        # fast_float and Dragonbox libraries. Workaround by disabling those libraries on Windows for now.
-        #
         # On some platforms pip uses a temporary build directory but only copies the python/ directory there.
         # This breaks the relative symbolic links to the C++ library. Workaround is to pass the checkout directory
         # as an environment variable so CMakeLists.txt can read it and know where to import the C++ library from.
       run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then export FMM_PYTHON_NO_DEPS=1; fi
         export FMM_PYTHON_DIR="$(pwd)" && pip install python/.[test] -v
       shell: bash
 
