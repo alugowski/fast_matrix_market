@@ -1,12 +1,16 @@
 cmake_minimum_required(VERSION 3.19) # needed for CheckSourceCompiles
 
 # Read the version from fast_matrix_market.hpp
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_version.sh include/fast_matrix_market/fast_matrix_market.hpp
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        OUTPUT_VARIABLE FMM_VERSION)
+set(VERSION_HEADER_FILE include/fast_matrix_market/fast_matrix_market.hpp)
+file(STRINGS ${VERSION_HEADER_FILE} VERSION_MAJOR_STR REGEX "define .*_VERSION_MAJOR")
+file(STRINGS ${VERSION_HEADER_FILE} VERSION_MINOR_STR REGEX "define .*_VERSION_MINOR")
+file(STRINGS ${VERSION_HEADER_FILE} VERSION_PATCH_STR REGEX "define .*_VERSION_PATCH")
+string(REGEX MATCH "[0-9]+" FMM_MAJOR ${VERSION_MAJOR_STR})
+string(REGEX MATCH "[0-9]+" FMM_MINOR ${VERSION_MINOR_STR})
+string(REGEX MATCH "[0-9]+" FMM_PATCH ${VERSION_PATCH_STR})
 
-project(fast_matrix_market VERSION ${FMM_VERSION} LANGUAGES CXX)
-message("Fast Matrix Market version ${PROJECT_VERSION}")
+project(fast_matrix_market VERSION "${FMM_MAJOR}.${FMM_MINOR}.${FMM_PATCH}" LANGUAGES CXX)
+message("fast_matrix_market version ${PROJECT_VERSION}")
 
 # Main
 add_library(fast_matrix_market INTERFACE)
