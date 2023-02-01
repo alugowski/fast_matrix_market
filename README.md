@@ -4,6 +4,9 @@
 
 A fast and full-featured Matrix Market I/O library for C++ and [Python](python).
 
+Ready-to-use bindings for [GraphBLAS](README.GraphBLAS.md), [Eigen](README.Eigen.md), [CXSparse](README.CXSparse.md), [Blaze](README.Blaze.md), [SciPy](python/README.md), `std::vector`.  
+Easy to integrate with any datastructure.
+
 [Matrix Market](https://math.nist.gov/MatrixMarket/formats.html) is a simple, human-readable, and widely used sparse matrix file format that looks like this:
 ```
 %%MatrixMarket matrix coordinate real general
@@ -25,8 +28,6 @@ This means loading data from external sources like the [SuiteSparse Matrix Colle
 hit or miss as some valid matrices cannot be loaded.
 
 Use this library to fix these shortcomings.
-
-Ready-to-use bindings for [Eigen](README.Eigen.md), [CXSparse](README.CXSparse.md), [Blaze](README.Blaze.md), [SciPy](python/README.md).
 
 # Fast
 
@@ -111,6 +112,14 @@ fast_matrix_market::read_matrix_market_array(
 ```
 
 1D dense vectors supported by the same method.
+
+## GraphBLAS
+`GrB_Matrix` and `GrB_Vector`s are supported, with zero-copy where possible. See [GraphBLAS README](README.GraphBLAS.md).
+```c++
+GrB_Matrix A;
+fast_matrix_market::read_matrix_market_graphblas(input_stream, &A);
+```
+
 
 ## Eigen
 Sparse and dense matrices and vectors are supported. See [Eigen README](README.Eigen.md).

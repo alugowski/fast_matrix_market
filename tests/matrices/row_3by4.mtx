@@ -1,4 +1,4 @@
-%%MatrixMarket matrix coordinate real general
+%%MatrixMarket matrix coordinate integer general
 % 3-by-4 matrix with just one row set
 3 4 4
 1 1 1

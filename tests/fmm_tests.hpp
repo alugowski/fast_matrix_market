@@ -49,7 +49,38 @@ struct array_matrix {
             return vals[col * nrows + row];
         }
     }
+
+    typename std::vector<VT>::const_reference operator()(int64_t row, int64_t col) const {
+        if (order == fast_matrix_market::row_major) {
+            return vals[row * ncols + col];
+        } else {
+            return vals[col * nrows + row];
+        }
+    }
 };
+
+template <typename FT>
+std::ostream& operator<<(std::ostream& os, const std::complex<FT>& c) {
+    os << c.real();
+    if (c.imag() != 0) {
+        os << "+" << c.imag() << "i";
+    }
+    return os;
+}
+
+template <typename VT>
+std::ostream& operator<<(std::ostream& os, const array_matrix<VT>& arr) {
+    std::string order = (arr.order == fast_matrix_market::row_major ? "row_major" : "col_major");
+    os << arr.nrows << "-by-" << arr.ncols << " " << order << " dense array" << std::endl;
+
+    for (int64_t row = 0; row < arr.nrows; ++row) {
+        for (int64_t col = 0; col < arr.ncols; ++col) {
+            os << " " << std::setw(5) << arr(row, col);
+        }
+        os << std::endl;
+    }
+    return os;
+}
 
 /**
  * Sort the elements of a triplet matrix for consistent equality checks.

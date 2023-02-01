@@ -80,4 +80,34 @@ if (FAST_MATRIX_MARKET_TEST_EXTERNAL_APPS)
     target_include_directories(blaze_test PUBLIC ${BLAZE_INCLUDE_DIR})
 
     gtest_discover_tests(blaze_test)
+
+    # GraphBLAS
+    option(FAST_MATRIX_MARKET_TEST_GRAPHBLAS "Enable tests for GraphBLAS. Requires GraphBLAS installed on system such that find_package will find it." ON)
+    if (FAST_MATRIX_MARKET_TEST_GRAPHBLAS)
+        include(../cmake/GraphBLAS.cmake)
+
+        if (GraphBLAS_FOUND)
+            message("GraphBLAS found.")
+            message("GRAPHBLAS_INCLUDE_DIR: ${GRAPHBLAS_INCLUDE_DIR}")
+            message("GRAPHBLAS_LIBRARIES: ${GRAPHBLAS_LIBRARIES}")
+            message("GRAPHBLAS_STATIC: ${GRAPHBLAS_STATIC}")
+            message("GRAPHBLAS_LIBRARY: ${GRAPHBLAS_LIBRARY}")
+
+            add_executable(graphblas_test graphblas_test.cpp)
+
+            if (NOT ("${GRAPHBLAS_INCLUDE_DIR}" STREQUAL "" ))
+                target_include_directories(graphblas_test PUBLIC ${GRAPHBLAS_INCLUDE_DIR})
+            endif()
+            target_link_libraries(graphblas_test GTest::gtest_main fast_matrix_market::fast_matrix_market ${GRAPHBLAS_LIBRARIES})
+
+            option(FMM_NO_GXB "Disable GxB_* extensions" OFF)
+            if (FMM_NO_GXB)
+                target_compile_definitions(graphblas_test PUBLIC FMM_NO_GXB)
+            endif()
+
+            gtest_discover_tests(graphblas_test)
+        else()
+            message("GraphBLAS not found, skipping GraphBLAS tests.")
+        endif()
+    endif()
 endif()

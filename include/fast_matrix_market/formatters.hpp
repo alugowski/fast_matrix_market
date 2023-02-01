@@ -20,6 +20,10 @@ namespace fast_matrix_market {
                                                                                            options(options) {}
 
         std::string coord_matrix(const IT& row, const IT& col, const VT& val) {
+            if (header.format == array) {
+                return array_matrix(row, col, val);
+            }
+
             std::string line{};
             line += int_to_string(row + 1);
             line += kSpace;

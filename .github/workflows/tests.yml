@@ -21,9 +21,23 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+# The GraphBLAS that is in the Ubuntu repos is so old it doesn't even have GrB_Scalar.
+#    - name: Install GraphBLAS (Ubuntu)
+#      if: contains(matrix.os, 'ubuntu')
+#        # install suitesparse-dev which installs GraphBLAS.h and libgraphblas.a and .so
+#        # These are very old, so disable all the fun features.
+#      run: |
+#        sudo apt-get install -y libsuitesparse-dev
+#        echo "FMM_CMAKE_FLAGS=-DFMM_NO_GXB=ON" >> $GITHUB_ENV
+
+    - name: Install GraphBLAS (macOS)
+      if: contains(matrix.os, 'macos')
+        # install suite-sparse which includes GraphBLAS and also FindGraphBLAS.cmake
+      run: brew install suite-sparse
+
     - name: Configure
       run: |
-        cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DFAST_MATRIX_MARKET_TEST=ON -DFAST_MATRIX_MARKET_TEST_COVERAGE=ON
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DFAST_MATRIX_MARKET_TEST=ON -DFAST_MATRIX_MARKET_TEST_COVERAGE=ON ${{ env.FMM_CMAKE_FLAGS }}
 
     - name: Build
       run: |
@@ -60,4 +74,4 @@ jobs:
       with:
         gcov: true
         gcov_include: include/*   # C++ coverage
-#        directory: python/tests   # Python coverage. This seems to confuse codedov, disable for now.
+#        directory: python/tests   # Python coverage. This seems to confuse codecov, disable for now.
