@@ -154,6 +154,16 @@ TEST(Utils, misc) {
     EXPECT_TRUE(fast_matrix_market::ends_with("foobar", "bar"));
     EXPECT_FALSE(fast_matrix_market::ends_with("", "bar"));
 
+    EXPECT_FALSE(fast_matrix_market::starts_with("foo", "bar"));
+    EXPECT_TRUE(fast_matrix_market::starts_with("foobar", "foo"));
+    EXPECT_FALSE(fast_matrix_market::starts_with("", "bar"));
+
+    EXPECT_EQ(fast_matrix_market::trim("foo"), "foo");
+    EXPECT_EQ(fast_matrix_market::trim(" foo"), "foo");
+    EXPECT_EQ(fast_matrix_market::trim(" \nfoo"), "foo");
+    EXPECT_EQ(fast_matrix_market::trim("foo "), "foo");
+    EXPECT_EQ(fast_matrix_market::trim("foo\n  \n"), "foo");
+
     std::string msg("error");
     EXPECT_EQ(fast_matrix_market::fmm_error(msg).what(), msg);
 }

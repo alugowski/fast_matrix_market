@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <complex>
 #include <future>
 #include <iostream>
@@ -193,11 +194,35 @@ namespace fast_matrix_market {
         return (flags & flag) == flag;
     }
 
+    inline bool starts_with(const std::string &str, const std::string& prefix) {
+        if (prefix.size() > str.size()) {
+            return false;
+        }
+        return std::equal(prefix.begin(), prefix.end(), str.begin());
+    }
+
     inline bool ends_with(const std::string &str, const std::string& suffix) {
         if (suffix.size() > str.size()) {
             return false;
         }
         return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+    }
+
+    /**
+     * Trim the whitespace from both ends of a string. Returns a copy.
+     */
+    inline std::string trim(std::string s) {
+        // ltrim
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+            return !std::isspace(ch);
+        }));
+
+        // rtrim
+        s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+            return !std::isspace(ch);
+        }).base(), s.end());
+
+        return s;
     }
 }
 

@@ -195,7 +195,12 @@ namespace fast_matrix_market {
                 } else {
                     header.nnz = header.nrows * header.ncols;
                 }
-                header.vector_length = -1;
+                if (std::min(header.nrows, header.ncols) == 1) {
+                    // row or column matrix. Either one can be loaded into a vector data structure.
+                    header.vector_length = std::max(header.nrows, header.ncols);
+                } else {
+                    header.vector_length = -1;
+                }
             }
         }
 
