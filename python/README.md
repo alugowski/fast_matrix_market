@@ -1,4 +1,5 @@
 [![PyPI version](https://badge.fury.io/py/fast_matrix_market.svg)](https://pypi.org/project/fast-matrix-market/)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/fast_matrix_market.svg)](https://anaconda.org/conda-forge/fast_matrix_market)
 
 Fast and full-featured Matrix Market file I/O package for Python.
 
@@ -8,6 +9,9 @@ Implemented as a Python binding of the C++ [fast_matrix_market](https://github.c
 
 ```shell
 pip install fast_matrix_market
+```
+```shell
+conda install fast_matrix_market
 ```
 
 # Compared to scipy.io.mmread()
