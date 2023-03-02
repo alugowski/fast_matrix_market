@@ -595,3 +595,22 @@ TEST_P(SymmetryArraySuite, SmallArray) {
 INSTANTIATE_TEST_SUITE_P(SymmetrySuite, SymmetrySuite, testing::ValuesIn(SymmetrySuite::get_symmetry_problems()));
 INSTANTIATE_TEST_SUITE_P(TripletLoadsArray, SymmetryTripletArraySuite, testing::ValuesIn(SymmetrySuite::get_array_symmetry_problems()));
 INSTANTIATE_TEST_SUITE_P(Array, SymmetryArraySuite, testing::ValuesIn(SymmetrySuite::get_array_symmetry_problems()));
+
+TEST(Whitespace, Whitespace) {
+    triplet_matrix<int64_t, double> expected, mat;
+    read_triplet_file("nist_ex1.mtx", expected);
+
+    for (int chunk_size : {1, 10, 15, 1000}) {
+        for (int p : {1, 4}) {
+            fast_matrix_market::read_options options;
+            options.chunk_size_bytes = chunk_size;
+            options.num_threads = p;
+
+            read_triplet_file("nist_ex1_freeformat.mtx", mat, options);
+            EXPECT_EQ(mat, expected);
+
+            read_triplet_file("nist_ex1_more_freeformat.mtx", mat, options);
+            EXPECT_EQ(mat, expected);
+        }
+    }
+}

@@ -1,0 +1,13 @@
+%%MatrixMarket  MATRIX    Coordinate    Real General
+
+   5  5         8
+
+1 1  1.0
+2 2       10.5
+3 3             1.5e-2
+4 4                     -2.8E2
+5 5                              12.
+     1      4      6
+     4      2      250.5
+     4      5      33.32
+

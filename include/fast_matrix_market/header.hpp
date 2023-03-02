@@ -5,6 +5,8 @@
 
 #include <fast_matrix_market/fast_matrix_market.hpp>
 
+#include "chunking.hpp"
+
 namespace fast_matrix_market {
 
     /**
@@ -37,6 +39,21 @@ namespace fast_matrix_market {
             delim = ", ";
         }
         throw invalid_argument(std::string("Invalid value. Must be one of: ") + acceptable);
+    }
+
+    inline bool is_line_all_spaces(const std::string& line) {
+        if (line.empty()) {
+            return true;
+        }
+
+        auto end = std::cend(line);
+
+        if (line[line.size()-1] == '\n') {
+            // ignore newline
+            --end;
+        }
+
+        return is_all_spaces(std::cbegin(line), end);
     }
 
     /**
@@ -90,7 +107,12 @@ namespace fast_matrix_market {
      * @return
      */
     inline bool read_comment(matrix_market_header& header, const std::string& line) {
-        if (line.empty() || line[0] != '%') {
+        // empty lines are allowed anywhere in the file and are to be ignored
+        if (is_line_all_spaces(line)) {
+            return true;
+        }
+
+        if (line[0] != '%') {
             return false;
         }
 
