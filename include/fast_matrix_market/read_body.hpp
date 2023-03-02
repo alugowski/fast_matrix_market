@@ -10,6 +10,11 @@
 
 namespace fast_matrix_market {
 
+    struct line_counts {
+        int64_t file_line = 0;
+        int64_t element_num = 0;
+    };
+
     /**
      * A handler wrapper for easily handling pattern matrices. This forwards a fixed value. For example, write 1.0 to
      * double matrices. Avoid using zero.
@@ -85,21 +90,25 @@ namespace fast_matrix_market {
     ///////////////////////////////////////////////////////////////////
 
     template<typename HANDLER>
-    int64_t read_chunk_matrix_coordinate(const std::string &chunk, const matrix_market_header &header, int64_t line_num,
-                                         HANDLER &handler, const read_options &options) {
+    line_counts read_chunk_matrix_coordinate(const std::string &chunk, const matrix_market_header &header,
+                                             line_counts line, HANDLER &handler, const read_options &options) {
         const char *pos = chunk.c_str();
         const char *end = pos + chunk.size();
 
         while (pos != end) {
             try {
-                if ((line_num - header.header_line_count) >= header.nnz) {
-                    throw invalid_mm("Too many lines in file (file too long)");
-                }
-
                 typename HANDLER::coordinate_type row, col;
                 typename HANDLER::value_type value;
 
-                pos = skip_spaces(pos);
+                pos = skip_spaces_and_newlines(pos, line.file_line);
+                if (pos == end) {
+                    // empty line
+                    break;
+                }
+                if (line.element_num >= header.nnz) {
+                    throw invalid_mm("Too many lines in file (file too long)");
+                }
+
                 pos = read_int(pos, end, row);
                 pos = skip_spaces(pos);
                 pos = read_int(pos, end, col);
@@ -148,31 +157,35 @@ namespace fast_matrix_market {
                 // Matrix Market is one-based
                 handler.handle(row - 1, col - 1, value);
 
-                ++line_num;
+                ++line.file_line;
+                ++line.element_num;
             } catch (invalid_mm& inv) {
-                inv.prepend_line_number(line_num + 1);
+                inv.prepend_line_number(line.file_line + 1);
                 throw;
             }
         }
-        return line_num;
+        return line;
     }
 
     template<typename HANDLER>
-    int64_t read_chunk_vector_coordinate(const std::string &chunk, const matrix_market_header &header, int64_t line_num,
-                                         HANDLER &handler, const read_options &options) {
+    line_counts read_chunk_vector_coordinate(const std::string &chunk, const matrix_market_header &header,
+                                             line_counts line, HANDLER &handler, const read_options &options) {
         const char *pos = chunk.c_str();
         const char *end = pos + chunk.size();
 
         while (pos != end) {
             try {
-                if ((line_num - header.header_line_count) >= header.nnz) {
-                    throw invalid_mm("Too many lines in file (file too long)");
-                }
-
                 typename HANDLER::coordinate_type row;
                 typename HANDLER::value_type value;
 
-                pos = skip_spaces(pos);
+                pos = skip_spaces_and_newlines(pos, line.file_line);
+                if (pos == end) {
+                    // empty line
+                    break;
+                }
+                if (line.element_num >= header.nnz) {
+                    throw invalid_mm("Too many lines in file (file too long)");
+                }
                 pos = read_int(pos, end, row);
                 pos = skip_spaces(pos);
                 pos = read_value(pos, end, value, options);
@@ -186,20 +199,21 @@ namespace fast_matrix_market {
                 // Matrix Market is one-based
                 handler.handle(row - 1, 0, value);
 
-                ++line_num;
+                ++line.file_line;
+                ++line.element_num;
             } catch (invalid_mm& inv) {
-                inv.prepend_line_number(line_num + 1);
+                inv.prepend_line_number(line.file_line + 1);
                 throw;
             }
         }
-        return line_num;
+        return line;
     }
 
     template<typename HANDLER>
-    int64_t read_chunk_array(const std::string &chunk, const matrix_market_header &header, int64_t line_num,
-                             HANDLER &handler, const read_options &options,
-                             typename HANDLER::coordinate_type &row,
-                             typename HANDLER::coordinate_type &col) {
+    line_counts read_chunk_array(const std::string &chunk, const matrix_market_header &header, line_counts line,
+                                 HANDLER &handler, const read_options &options,
+                                 typename HANDLER::coordinate_type &row,
+                                 typename HANDLER::coordinate_type &col) {
         const char *pos = chunk.c_str();
         const char *end = pos + chunk.size();
 
@@ -215,13 +229,17 @@ namespace fast_matrix_market {
 
         while (pos != end) {
             try {
+                typename HANDLER::value_type value;
+
+                pos = skip_spaces_and_newlines(pos, line.file_line);
+                if (pos == end) {
+                    // empty line
+                    break;
+                }
                 if (col >= header.ncols) {
                     throw invalid_mm("Too many values in array (file too long)");
                 }
 
-                typename HANDLER::value_type value;
-
-                pos = skip_spaces(pos);
                 pos = read_value(pos, end, value, options);
                 pos = bump_to_next_line(pos, end);
 
@@ -263,13 +281,14 @@ namespace fast_matrix_market {
                     }
                 }
 
-                ++line_num;
+                ++line.file_line;
+                ++line.element_num;
             } catch (invalid_mm& inv) {
-                inv.prepend_line_number(line_num + 1);
+                inv.prepend_line_number(line.file_line + 1);
                 throw;
             }
         }
-        return line_num;
+        return line;
     }
 
     ////////////////////////////////////////////////
@@ -283,9 +302,9 @@ namespace fast_matrix_market {
 namespace fast_matrix_market {
 
     template <typename HANDLER>
-    int64_t read_coordinate_body_sequential(std::istream& instream, const matrix_market_header& header,
-                                            HANDLER& handler, const read_options& options = {}) {
-        auto line_num = header.header_line_count;
+    line_counts read_coordinate_body_sequential(std::istream& instream, const matrix_market_header& header,
+                                                HANDLER& handler, const read_options& options = {}) {
+        line_counts lc{header.header_line_count, 0};
 
         // Read the file in chunks
         while (instream.good()) {
@@ -293,20 +312,20 @@ namespace fast_matrix_market {
 
             // parse the chunk
             if (header.object == matrix) {
-                line_num = read_chunk_matrix_coordinate(chunk, header, line_num, handler, options);
+                lc = read_chunk_matrix_coordinate(chunk, header, lc, handler, options);
             } else {
-                line_num = read_chunk_vector_coordinate(chunk, header, line_num, handler, options);
+                lc = read_chunk_vector_coordinate(chunk, header, lc, handler, options);
             }
         }
 
-        return line_num;
+        return lc;
     }
 
     template <typename HANDLER>
-    int64_t read_array_body_sequential(std::istream& instream, const matrix_market_header& header,
-                                       HANDLER& handler,
-                                       const read_options& options = {}) {
-        auto line_num = header.header_line_count;
+    line_counts read_array_body_sequential(std::istream& instream, const matrix_market_header& header,
+                                           HANDLER& handler,
+                                           const read_options& options = {}) {
+        line_counts lc{header.header_line_count, 0};
 
         typename HANDLER::coordinate_type row = 0;
         typename HANDLER::coordinate_type col = 0;
@@ -316,10 +335,10 @@ namespace fast_matrix_market {
             std::string chunk = get_next_chunk(instream, options);
 
             // parse the chunk
-            line_num = read_chunk_array(chunk, header, line_num, handler, options, row, col);
+            lc = read_chunk_array(chunk, header, lc, handler, options, row, col);
         }
 
-        return line_num;
+        return lc;
     }
 
     /**
@@ -335,10 +354,7 @@ namespace fast_matrix_market {
             }
         }
 
-        // compute how many lines we expect to see
-        auto expected_line_count = header.header_line_count + header.nnz;
-        int64_t line_num;
-
+        line_counts lc;
         bool threads = options.parallel_ok && options.num_threads != 1 && test_flag(HANDLER::flags, kParallelOk);
 
         threads = limit_parallelism_for_value_type<typename HANDLER::value_type>(threads);
@@ -354,20 +370,20 @@ namespace fast_matrix_market {
         }
 
         if (threads) {
-            line_num = read_body_threads(instream, header, handler, options);
+            lc = read_body_threads(instream, header, handler, options);
         } else {
             if (header.format == coordinate) {
-                line_num = read_coordinate_body_sequential(instream, header, handler, options);
+                lc = read_coordinate_body_sequential(instream, header, handler, options);
             } else {
-                line_num = read_array_body_sequential(instream, header, handler, options);
+                lc = read_array_body_sequential(instream, header, handler, options);
             }
         }
 
         // verify the file is not truncated
-        if (line_num < expected_line_count) {
+        if (lc.element_num < header.nnz) {
             if (!(header.symmetry != general && header.format == array)) {
                 throw invalid_mm(std::string("Truncated file. Expected another ") +
-                                 std::to_string(expected_line_count - line_num) + " lines.");
+                                 std::to_string(header.nnz - lc.element_num) + " lines.");
             }
         }
     }

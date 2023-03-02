@@ -48,21 +48,50 @@ namespace fast_matrix_market {
         return chunk;
     }
 
+    template <typename ITER>
+    bool is_all_spaces(ITER begin, ITER end) {
+        return std::all_of(begin, end, [](char c) { return c == ' ' || c == '\t'; });
+    }
+
     /**
-     * Find the number of lines in a multiline string.
+     * Find the number of total lines and empty lines in a multiline string.
      */
-    inline int64_t count_lines(std::string chunk) {
-        auto num_newlines = std::count(std::begin(chunk), std::end(chunk), '\n');
+    inline std::pair<int64_t, int64_t> count_lines(const std::string& chunk) {
+        int64_t num_newlines = 0;
+        int64_t num_empty_lines = 0;
+
+        auto pos = std::cbegin(chunk);
+        auto end = std::cend(chunk);
+        auto line_start = pos;
+        for (; pos != end; ++pos) {
+            if (*pos == '\n') {
+                ++num_newlines;
+                if (is_all_spaces(line_start, pos)) {
+                    ++num_empty_lines;
+                }
+                line_start = pos + 1;
+            }
+        }
+
+        if (line_start != end) {
+            // last line does not end in newline, but it might still be empty
+            if (is_all_spaces(line_start, end)) {
+                ++num_empty_lines;
+            }
+        }
 
         if (num_newlines == 0) {
             // single line is still a line
-            return 1;
+            if (chunk.empty()) {
+                num_empty_lines = 1;
+            }
+            return std::make_pair(1, num_empty_lines);
         }
 
-        if (chunk[chunk.size()-1] == '\n') {
-            return num_newlines;
-        } else {
-            return num_newlines + 1;
+        if (chunk[chunk.size()-1] != '\n') {
+            ++num_newlines;
         }
+
+        return std::make_pair(num_newlines, num_empty_lines);
     }
 }

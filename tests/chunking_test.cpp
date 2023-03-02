@@ -5,7 +5,7 @@
 
 #include "fmm_tests.hpp"
 
-std::string empty = "";
+std::string empty;
 
 std::string newline_only = "\n";
 
@@ -55,10 +55,25 @@ TEST_P(ChunkingSuite, Small) {
 INSTANTIATE_TEST_SUITE_P(Chunking, ChunkingSuite, testing::Range(0, 10),
                          ChunkingSuite::PrintToStringParamName());
 
+
+std::pair<int64_t, int64_t> make_i64_pair(int64_t lhs, int64_t rhs) {
+    return std::make_pair(lhs, rhs);
+}
+
 TEST(LineCount, LineCount) {
-    EXPECT_EQ(fast_matrix_market::count_lines(""), 1);
-    EXPECT_EQ(fast_matrix_market::count_lines("asdf"), 1);
-    EXPECT_EQ(fast_matrix_market::count_lines("dsafasfa\n"), 1);
-    EXPECT_EQ(fast_matrix_market::count_lines("asdfasdfa\n2sadfas"), 2);
-    EXPECT_EQ(fast_matrix_market::count_lines("asdfasdfa\n2sadfas\n"), 2);
+    EXPECT_EQ(fast_matrix_market::count_lines(""), make_i64_pair(1, 1));
+    EXPECT_EQ(fast_matrix_market::count_lines(" "), make_i64_pair(1, 1));
+    EXPECT_EQ(fast_matrix_market::count_lines("asdf"), make_i64_pair(1, 0));
+    EXPECT_EQ(fast_matrix_market::count_lines("\n"), make_i64_pair(1, 1));
+    EXPECT_EQ(fast_matrix_market::count_lines(" \n"), make_i64_pair(1, 1));
+    EXPECT_EQ(fast_matrix_market::count_lines("\n "), make_i64_pair(2, 2));
+    EXPECT_EQ(fast_matrix_market::count_lines(" \n "), make_i64_pair(2, 2));
+    EXPECT_EQ(fast_matrix_market::count_lines("  \t \n  "), make_i64_pair(2, 2));
+    EXPECT_EQ(fast_matrix_market::count_lines("aa\n"), make_i64_pair(1, 0));
+    EXPECT_EQ(fast_matrix_market::count_lines("aa\nbb"), make_i64_pair(2, 0));
+    EXPECT_EQ(fast_matrix_market::count_lines("aa\nbb\n"), make_i64_pair(2, 0));
+    EXPECT_EQ(fast_matrix_market::count_lines("aa\n "), make_i64_pair(2, 1));
+    EXPECT_EQ(fast_matrix_market::count_lines(" \nbb"), make_i64_pair(2, 1));
+    EXPECT_EQ(fast_matrix_market::count_lines("aa\n\n"), make_i64_pair(2, 1));
+    EXPECT_EQ(fast_matrix_market::count_lines("aa\n\n\n"), make_i64_pair(3, 2));
 }

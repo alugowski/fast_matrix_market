@@ -30,7 +30,17 @@ namespace fast_matrix_market {
     ///////////////////////////////////////////
 
     inline const char* skip_spaces(const char* pos) {
-        return pos + std::strspn(pos, " ");
+        return pos + std::strspn(pos, " \t");
+    }
+
+    inline const char* skip_spaces_and_newlines(const char* pos, int64_t& line_num) {
+        pos = skip_spaces(pos);
+        while (*pos == '\n') {
+            ++line_num;
+            ++pos;
+            pos = skip_spaces(pos);
+        }
+        return pos;
     }
 
     inline const char* bump_to_next_line(const char* pos, const char* end) {
