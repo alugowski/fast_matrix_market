@@ -28,68 +28,6 @@ namespace fast_matrix_market {
     constexpr std::string_view kSpace = " ";
     constexpr std::string_view kNewline = "\n";
 
-    enum storage_order {row_major = 1, col_major = 2};
-
-    struct read_options {
-        /**
-         * Chunk size for the parsing step, in bytes.
-         */
-        int64_t chunk_size_bytes = 2 << 20;
-
-        /**
-         * If true then any symmetries other than general are expanded out.
-         * For any symmetries other than general, only entries in the lower triangular portion need be supplied.
-         * symmetric: for (row, column, value), also generate (column, row, value) except if row==column
-         * skew-symmetric: for (row, column, value), also generate (column, row, -value) except if row==column
-         * hermitian: for (row, column, value), also generate (column, row, complex_conjugate(value)) except if row==column
-         */
-        bool generalize_symmetry = true;
-
-        /**
-         * Generalize Symmetry:
-         * How to handle a value on the diagonal of a symmetric coordinate matrix.
-         *  - DuplicateElement: Duplicate the diagonal element
-         *  - ExtraZeroElement: emit a zero along with the diagonal element. The zero will appear first.
-         *
-         *  The extra cannot simply be omitted because the handlers work by setting already-allocated memory. This
-         *  is necessary for efficient parallelization.
-         *
-         *  This value is ignored if the parse handler has the kAppending flag set. In that case only a single
-         *  diagonal element is emitted.
-         */
-        enum {ExtraZeroElement, DuplicateElement} generalize_coordinate_diagnonal_values = ExtraZeroElement;
-
-        /**
-         * Whether or not parallel implementation is allowed.
-         */
-        bool parallel_ok = true;
-
-        /**
-         * Number of threads to use. 0 means std::thread::hardware_concurrency().
-         */
-        int num_threads = 0;
-    };
-
-    struct write_options {
-        int64_t chunk_size_values = 2 << 12;
-
-        /**
-         * Whether or not parallel implementation is allowed.
-         */
-        bool parallel_ok = true;
-
-        /**
-         * Number of threads to use. 0 means std::thread::hardware_concurrency().
-         */
-        int num_threads = 0;
-
-        /**
-         * Floating-point formatting precision.
-         * Placeholder. Currently not used due to the various supported float rendering backends.
-         */
-        int precision = -1;
-    };
-
     template<class T> struct is_complex : std::false_type {};
     template<class T> struct is_complex<std::complex<T>> : std::true_type {};
 
@@ -120,6 +58,14 @@ namespace fast_matrix_market {
         void prepend_line_number(int64_t line_num) {
             msg = std::string("Line ") + std::to_string(line_num) + ": " + msg;
         }
+    };
+
+    /**
+     * A value was encountered that does not fit the provided type.
+     */
+    class out_of_range : public invalid_mm {
+    public:
+        explicit out_of_range(std::string msg): invalid_mm(std::move(msg)) {}
     };
 
     /**

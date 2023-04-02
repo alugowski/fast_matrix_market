@@ -104,7 +104,7 @@ namespace fast_matrix_market {
                 pos = skip_spaces(pos);
                 pos = read_int(pos, end, col);
                 pos = skip_spaces(pos);
-                pos = read_value(pos, end, value);
+                pos = read_value(pos, end, value, options);
                 pos = bump_to_next_line(pos, end);
 
                 // validate
@@ -159,7 +159,7 @@ namespace fast_matrix_market {
 
     template<typename HANDLER>
     int64_t read_chunk_vector_coordinate(const std::string &chunk, const matrix_market_header &header, int64_t line_num,
-                                         HANDLER &handler) {
+                                         HANDLER &handler, const read_options &options) {
         const char *pos = chunk.c_str();
         const char *end = pos + chunk.size();
 
@@ -175,7 +175,7 @@ namespace fast_matrix_market {
                 pos = skip_spaces(pos);
                 pos = read_int(pos, end, row);
                 pos = skip_spaces(pos);
-                pos = read_value(pos, end, value);
+                pos = read_value(pos, end, value, options);
                 pos = bump_to_next_line(pos, end);
 
                 // validate
@@ -222,7 +222,7 @@ namespace fast_matrix_market {
                 typename HANDLER::value_type value;
 
                 pos = skip_spaces(pos);
-                pos = read_value(pos, end, value);
+                pos = read_value(pos, end, value, options);
                 pos = bump_to_next_line(pos, end);
 
                 handler.handle(row, col, value);
@@ -295,7 +295,7 @@ namespace fast_matrix_market {
             if (header.object == matrix) {
                 line_num = read_chunk_matrix_coordinate(chunk, header, line_num, handler, options);
             } else {
-                line_num = read_chunk_vector_coordinate(chunk, header, line_num, handler);
+                line_num = read_chunk_vector_coordinate(chunk, header, line_num, handler, options);
             }
         }
 

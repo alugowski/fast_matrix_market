@@ -114,7 +114,7 @@ namespace fast_matrix_market {
                 }));
             } else {
                 parse_futures.push(pool.submit([=]() mutable {
-                    read_chunk_vector_coordinate(lcr.chunk, header, lcr.chunk_line_start, chunk_handler);
+                    read_chunk_vector_coordinate(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, options);
                 }));
             }
         }

@@ -166,15 +166,20 @@ namespace fast_matrix_market {
         // parse the dimension line
         {
             std::istringstream iss(line);
+            const char* pos = line.c_str();
+            const char* end = line.c_str() + line.size();
+            pos = skip_spaces(pos);
 
             if (header.object == vector) {
-                iss >> header.vector_length;
+                pos = read_int(pos, end, header.vector_length);
+
                 if (header.vector_length < 0) {
                     throw invalid_mm("Vector length can't be negative.", lines_read);
                 }
 
                 if (header.format == coordinate) {
-                    iss >> header.nnz;
+                    pos = skip_spaces(pos);
+                    pos = read_int(pos, end, header.nnz);
                 } else {
                     header.nnz = header.vector_length;
                 }
@@ -182,13 +187,16 @@ namespace fast_matrix_market {
                 header.nrows = header.vector_length;
                 header.ncols = 1;
             } else {
-                iss >> header.nrows >> header.ncols;
+                pos = read_int(pos, end, header.nrows);
+                pos = skip_spaces(pos);
+                pos = read_int(pos, end, header.ncols);
                 if (header.nrows < 0 || header.ncols < 0) {
                     throw invalid_mm("Matrix dimensions can't be negative.", lines_read);
                 }
 
                 if (header.format == coordinate) {
-                    iss >> header.nnz;
+                    pos = skip_spaces(pos);
+                    pos = read_int(pos, end, header.nnz);
                     if (header.nnz < 0) {
                         throw invalid_mm("Matrix NNZ can't be negative.", lines_read);
                     }
@@ -201,6 +209,11 @@ namespace fast_matrix_market {
                 } else {
                     header.vector_length = -1;
                 }
+            }
+
+            pos = skip_spaces(pos);
+            if (pos != end) {
+                throw invalid_mm("Unexpected value in header dimension line");
             }
         }
 

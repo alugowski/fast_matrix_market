@@ -1,0 +1,4 @@
+%%MatrixMarket matrix coordinate real general
+% matrix with a value that overflows a 128-bit float
+3 3 1
+3 3 1E9999

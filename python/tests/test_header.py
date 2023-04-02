@@ -7,6 +7,7 @@ from pathlib import Path
 import fast_matrix_market as fmm
 
 matrices = Path("matrices")
+cpp_matrices = matrices / ".." / ".." / ".." / "tests" / "matrices"
 
 
 class TestHeader(unittest.TestCase):
@@ -71,6 +72,14 @@ class TestHeader(unittest.TestCase):
 
         h2 = fmm.read_header(StringIO(s))
         self.assertEqual(h.to_dict(), h2.to_dict())
+
+    def test_header_overflow(self):
+        with self.assertRaises(OverflowError):
+            fmm.mmread(cpp_matrices / "overflow" / "overflow_dim_gt_int64.mtx")
+
+    def test_index_overflow(self):
+        with self.assertRaises(OverflowError):
+            fmm.mmread(cpp_matrices / "overflow" / "overflow_index_gt_int64.mtx")
 
 
 if __name__ == '__main__':

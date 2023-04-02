@@ -1,0 +1,4 @@
+%%MatrixMarket matrix coordinate real general
+% matrix with a value that overflows a 64-bit float but not an 80-bit float
+3 3 1
+3 3 1E310
