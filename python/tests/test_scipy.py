@@ -283,6 +283,25 @@ class TestSciPy(unittest.TestCase):
                     m2 = fmm.mmread(StringIO(fmms))
                     self.assertAlmostEqual(m2[0][0], float('%%.%dg' % precision % value))
 
+    def test_value_overflow(self):
+        with self.subTest("integer"):
+            with self.assertRaises(OverflowError):
+                # SciPy throws OverflowError for integer values larger than 64-bit
+                fmm.mmread(cpp_matrices / "overflow" / "overflow_value_gt_int64.mtx")
+
+            # values larger than 32-bit do not throw
+            fmm.mmread(cpp_matrices / "overflow" / "overflow_value_gt_int32.mtx")
+
+        with self.subTest("float"):
+            # Python floating-point returns closest match on overflow, matching strtod() behavior if ERANGE is ignored
+            m = fmm.mmread(cpp_matrices / "overflow" / "overflow_value_gt_float128.mtx")
+            self.assertEqual(m.data[0], float("inf"))
+
+        with self.subTest("complex"):
+            m = fmm.mmread(cpp_matrices / "overflow" / "overflow_value_gt_complex128.mtx")
+            self.assertEqual(m.data[-1].real, float("inf"))
+            self.assertEqual(m.data[-1].imag, float("inf"))
+
 
 if __name__ == '__main__':
     unittest.main()

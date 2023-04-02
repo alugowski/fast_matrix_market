@@ -147,3 +147,159 @@ TEST(LongDoubleSuite, Basic) {
     parse(fmm::value_to_string_fallback(val, 4), val2);
     EXPECT_FALSE(almost_equal(val, val2, 1E-6));
 }
+
+////////////
+///  Test reading integers
+////////////
+
+template <typename T>
+class ReadInt : public testing::Test {
+    T ignored = 0;
+};
+using ReadIntTypes = ::testing::Types<int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t>;
+TYPED_TEST_SUITE(ReadInt, ReadIntTypes);
+
+TYPED_TEST(ReadInt, Integer) {
+    TypeParam i;
+
+    std::string eight("8");
+    std::string invalid("asdf");
+
+#ifdef FMM_FROM_CHARS_INT_SUPPORTED
+    EXPECT_THROW(fmm::read_int_from_chars(invalid.c_str(), invalid.c_str() + invalid.size(), i), fmm::invalid_mm);
+    fmm::read_int_from_chars(eight.c_str(), eight.c_str() + eight.size(), i);
+    EXPECT_EQ(i, 8);
+#endif
+
+    EXPECT_THROW(fmm::read_int_fallback(invalid.c_str(), invalid.c_str() + invalid.size(), i), fmm::invalid_mm);
+    fmm::read_int_fallback(eight.c_str(), eight.c_str() + eight.size(), i);
+    EXPECT_EQ(i, 8);
+
+    EXPECT_THROW(fmm::read_int(invalid.c_str(), invalid.c_str() + invalid.size(), i), fmm::invalid_mm);
+    fmm::read_int(eight.c_str(), eight.c_str() + eight.size(), i);
+    EXPECT_EQ(i, 8);
+}
+
+TEST(ReadOverflow, Integer) {
+    int8_t i8;
+    int32_t i32;
+    int64_t i64;
+
+    std::string over_8("257");
+    std::string over_64("19223372036854775808");
+
+#ifdef FMM_FROM_CHARS_INT_SUPPORTED
+    EXPECT_THROW(fmm::read_int_from_chars(over_8.c_str(), over_8.c_str() + over_8.size(), i8), fmm::out_of_range);
+    EXPECT_THROW(fmm::read_int_from_chars(over_64.c_str(), over_64.c_str() + over_64.size(), i32), fmm::out_of_range);
+    EXPECT_THROW(fmm::read_int_from_chars(over_64.c_str(), over_64.c_str() + over_64.size(), i64), fmm::out_of_range);
+#endif
+
+    EXPECT_THROW(fmm::read_int_fallback(over_8.c_str(), over_8.c_str() + over_8.size(), i8), fmm::out_of_range);
+    EXPECT_THROW(fmm::read_int_fallback(over_64.c_str(), over_64.c_str() + over_64.size(), i32), fmm::out_of_range);
+    EXPECT_THROW(fmm::read_int_fallback(over_64.c_str(), over_64.c_str() + over_64.size(), i64), fmm::out_of_range);
+
+    EXPECT_THROW(fmm::read_int(over_8.c_str(), over_8.c_str() + over_8.size(), i8), fmm::out_of_range);
+    EXPECT_THROW(fmm::read_int(over_64.c_str(), over_64.c_str() + over_64.size(), i32), fmm::out_of_range);
+    EXPECT_THROW(fmm::read_int(over_64.c_str(), over_64.c_str() + over_64.size(), i64), fmm::out_of_range);
+}
+
+
+////////////
+///  Test reading floating-point
+////////////
+
+template <typename T>
+class ReadFloat : public testing::Test {
+    T ignored = 0;
+};
+using ReadFloatTypes = ::testing::Types<float, double>;
+TYPED_TEST_SUITE(ReadFloat, ReadFloatTypes);
+
+TYPED_TEST(ReadFloat, Float) {
+    TypeParam f;
+
+    std::string eight("8");
+    std::string invalid("asdf");
+
+#ifdef FMM_USE_FAST_FLOAT
+    EXPECT_THROW(fmm::read_float_fast_float(invalid.c_str(), invalid.c_str() + invalid.size(), f, fast_matrix_market::ThrowOutOfRange), fmm::invalid_mm);
+    fmm::read_float_fast_float(eight.c_str(), eight.c_str() + eight.size(), f, fast_matrix_market::ThrowOutOfRange);
+    EXPECT_EQ(f, 8);
+#endif
+
+#ifdef FMM_FROM_CHARS_DOUBLE_SUPPORTED
+    EXPECT_THROW(fmm::read_float_from_chars(invalid.c_str(), invalid.c_str() + invalid.size(), f, fast_matrix_market::ThrowOutOfRange), fmm::invalid_mm);
+    fmm::read_float_from_chars(eight.c_str(), eight.c_str() + eight.size(), f, fast_matrix_market::ThrowOutOfRange);
+    EXPECT_EQ(f, 8);
+#endif
+
+    EXPECT_THROW(fmm::read_float_fallback(invalid.c_str(), invalid.c_str() + invalid.size(), f, fast_matrix_market::ThrowOutOfRange), fmm::invalid_mm);
+    fmm::read_float_fallback(eight.c_str(), eight.c_str() + eight.size(), f, fast_matrix_market::ThrowOutOfRange);
+    EXPECT_EQ(f, 8);
+
+    EXPECT_THROW(fmm::read_float(invalid.c_str(), invalid.c_str() + invalid.size(), f, fast_matrix_market::ThrowOutOfRange), fmm::invalid_mm);
+    fmm::read_float(eight.c_str(), eight.c_str() + eight.size(), f, fast_matrix_market::ThrowOutOfRange);
+    EXPECT_EQ(f, 8);
+}
+
+TEST(ReadFloat, LongDouble) {
+    long double f;
+
+    std::string eight("8");
+    std::string invalid("asdf");
+
+#ifdef FMM_FROM_CHARS_LONG_DOUBLE_SUPPORTED
+    EXPECT_THROW(fmm::read_float_from_chars(invalid.c_str(), invalid.c_str() + invalid.size(), f, fast_matrix_market::ThrowOutOfRange), fmm::invalid_mm);
+    fmm::read_float_from_chars(eight.c_str(), eight.c_str() + eight.size(), f, fast_matrix_market::ThrowOutOfRange);
+    EXPECT_EQ(f, 8);
+#endif
+
+    EXPECT_THROW(fmm::read_float_fallback(invalid.c_str(), invalid.c_str() + invalid.size(), f, fast_matrix_market::ThrowOutOfRange), fmm::invalid_mm);
+    fmm::read_float_fallback(eight.c_str(), eight.c_str() + eight.size(), f, fast_matrix_market::ThrowOutOfRange);
+    EXPECT_EQ(f, 8);
+
+    EXPECT_THROW(fmm::read_float(invalid.c_str(), invalid.c_str() + invalid.size(), f, fast_matrix_market::ThrowOutOfRange), fmm::invalid_mm);
+    fmm::read_float(eight.c_str(), eight.c_str() + eight.size(), f, fast_matrix_market::ThrowOutOfRange);
+    EXPECT_EQ(f, 8);
+}
+
+TEST(ReadOverflow, Float) {
+    float f = -1;
+    double d = -1;
+    long double ld = -1;
+
+    std::string over_ld("1e99999");
+
+#ifdef FMM_USE_FAST_FLOAT
+    EXPECT_THROW(fmm::read_float_fast_float(over_ld.c_str(), over_ld.c_str() + over_ld.size(), f, fast_matrix_market::ThrowOutOfRange), fmm::out_of_range);
+    EXPECT_THROW(fmm::read_float_fast_float(over_ld.c_str(), over_ld.c_str() + over_ld.size(), d, fast_matrix_market::ThrowOutOfRange), fmm::out_of_range);
+
+    fmm::read_float_fast_float(over_ld.c_str(), over_ld.c_str() + over_ld.size(), f, fast_matrix_market::BestMatch);
+    EXPECT_EQ(std::numeric_limits<float>::infinity(), f);
+
+    fmm::read_float_fast_float(over_ld.c_str(), over_ld.c_str() + over_ld.size(), d, fast_matrix_market::BestMatch);
+    EXPECT_EQ(std::numeric_limits<double>::infinity(), d);
+
+#endif
+
+#ifdef FMM_FROM_CHARS_DOUBLE_SUPPORTED
+    EXPECT_THROW(fmm::read_float_from_chars(over_ld.c_str(), over_ld.c_str() + over_ld.size(), f, fast_matrix_market::ThrowOutOfRange), fmm::out_of_range);
+    EXPECT_THROW(fmm::read_float_from_chars(over_ld.c_str(), over_ld.c_str() + over_ld.size(), d, fast_matrix_market::ThrowOutOfRange), fmm::out_of_range);
+
+    fmm::read_float_from_chars(over_ld.c_str(), over_ld.c_str() + over_ld.size(), f, fast_matrix_market::BestMatch);
+    EXPECT_EQ(std::numeric_limits<float>::infinity(), f);
+
+    fmm::read_float_from_chars(over_ld.c_str(), over_ld.c_str() + over_ld.size(), d, fast_matrix_market::BestMatch);
+    EXPECT_EQ(std::numeric_limits<double>::infinity(), d);
+#endif
+#ifdef FMM_FROM_CHARS_LONG_DOUBLE_SUPPORTED
+    EXPECT_THROW(fmm::read_float_from_chars(over_ld.c_str(), over_ld.c_str() + over_ld.size(), ld, fast_matrix_market::ThrowOutOfRange), fmm::out_of_range);
+
+    fmm::read_float_from_chars(over_ld.c_str(), over_ld.c_str() + over_ld.size(), ld, fast_matrix_market::BestMatch);
+    EXPECT_EQ(std::numeric_limits<long double>::infinity(), ld);
+#endif
+
+    EXPECT_THROW(fmm::read_float_fallback(over_ld.c_str(), over_ld.c_str() + over_ld.size(), f, fast_matrix_market::ThrowOutOfRange), fmm::out_of_range);
+    EXPECT_THROW(fmm::read_float_fallback(over_ld.c_str(), over_ld.c_str() + over_ld.size(), d, fast_matrix_market::ThrowOutOfRange), fmm::out_of_range);
+    EXPECT_THROW(fmm::read_float_fallback(over_ld.c_str(), over_ld.c_str() + over_ld.size(), ld, fast_matrix_market::ThrowOutOfRange), fmm::out_of_range);
+}

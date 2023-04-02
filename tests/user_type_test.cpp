@@ -23,7 +23,7 @@ namespace fast_matrix_market {
      * @param out out parameter of parsed value
      * @return a pointer to the next character following the value. Likely the newline.
      */
-    const char *read_value(const char *pos, const char *end, std::string &out) {
+    const char *read_value(const char *pos, const char *end, std::string &out, [[maybe_unused]] const read_options& options = {}) {
         while (pos != end && *pos != '\n') {
             out += *pos;
             ++pos;

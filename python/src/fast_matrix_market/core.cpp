@@ -137,6 +137,8 @@ read_cursor open_read_file(const std::string& filename, int num_threads) {
     read_cursor cursor(filename);
     // Set options
     cursor.options.num_threads = num_threads;
+    // Python parses 1e9999 as Inf
+    cursor.options.float_out_of_range_behavior = fmm::BestMatch;
 
     open_read_rest(cursor);
     return cursor;
@@ -146,6 +148,8 @@ read_cursor open_read_stream(std::shared_ptr<pystream::istream>& external, int n
     read_cursor cursor(external);
     // Set options
     cursor.options.num_threads = num_threads;
+    // Python parses 1e9999 as Inf
+    cursor.options.float_out_of_range_behavior = fmm::BestMatch;
 
     open_read_rest(cursor);
     return cursor;
@@ -397,8 +401,10 @@ PYBIND11_MODULE(_core, m) {
             if (p) {
                 std::rethrow_exception(p);
             }
+        } catch (const fmm::out_of_range &e) {
+            PyErr_SetString(PyExc_OverflowError, e.what());
         } catch (const fmm::fmm_error &e) {
-            // Everything we throw maps best to ValueError
+            // Everything else we throw maps best to ValueError
             PyErr_SetString(PyExc_ValueError, e.what());
         }
     });
