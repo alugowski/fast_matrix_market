@@ -20,13 +20,14 @@ namespace fast_matrix_market {
             {coordinate, "coordinate"},
     };
 
-    enum field_type {real, double_, complex, integer, pattern};
+    enum field_type {real, double_, complex, integer, pattern, unsigned_integer};
     const std::map<field_type, const std::string> field_map = {
             {real, "real"},
-            {double_, "double"},
+            {double_, "double"},  // non-standard
             {complex, "complex"},
             {integer, "integer"},
             {pattern, "pattern"},
+            {unsigned_integer, "unsigned-integer"}, // SciPy only
     };
 
     enum symmetry_type {general, symmetric, skew_symmetric, hermitian};
