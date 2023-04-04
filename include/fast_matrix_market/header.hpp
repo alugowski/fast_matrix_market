@@ -188,6 +188,8 @@ namespace fast_matrix_market {
         // parse the dimension line
         {
             std::istringstream iss(line);
+            int expected_length = -1;
+
             const char* pos = line.c_str();
             const char* end = line.c_str() + line.size();
             pos = skip_spaces(pos);
@@ -202,8 +204,10 @@ namespace fast_matrix_market {
                 if (header.format == coordinate) {
                     pos = skip_spaces(pos);
                     pos = read_int(pos, end, header.nnz);
+                    expected_length = 2;
                 } else {
                     header.nnz = header.vector_length;
+                    expected_length = 1;
                 }
 
                 header.nrows = header.vector_length;
@@ -222,8 +226,10 @@ namespace fast_matrix_market {
                     if (header.nnz < 0) {
                         throw invalid_mm("Matrix NNZ can't be negative.", lines_read);
                     }
+                    expected_length = 3;
                 } else {
                     header.nnz = header.nrows * header.ncols;
+                    expected_length = 2;
                 }
                 if (std::min(header.nrows, header.ncols) == 1) {
                     // row or column matrix. Either one can be loaded into a vector data structure.
@@ -235,7 +241,8 @@ namespace fast_matrix_market {
 
             pos = skip_spaces(pos);
             if (pos != end) {
-                throw invalid_mm("Unexpected value in header dimension line");
+                // The text of this message is to be able to match SciPy's message to pass their unit test.
+                throw invalid_mm("Header dimension line not of length " + std::to_string(expected_length));
             }
         }
 
