@@ -39,6 +39,10 @@ class _TextToBytesWrapper(io.BufferedReader):
         self.encoding = encoding or text_io_buffer.encoding or 'utf-8'
         self.errors = errors or text_io_buffer.errors or 'strict'
 
+    def __del__(self):
+        # do not close the wrapped stream
+        self.detach()
+
     def _encoding_call(self, method_name, *args, **kwargs):
         raw_method = getattr(self.raw, method_name)
         val = raw_method(*args, **kwargs)
