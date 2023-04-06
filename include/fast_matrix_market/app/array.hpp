@@ -6,13 +6,45 @@
 #include "../fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
+
+#if __cplusplus >= 202002L
+    // If available, use C++20 concepts for programmer clarity and better error messages.
+    // If not using C++20 this shows what fast_matrix_market expects each template type to support.
+
     /**
-     * Read a Matrix Market file into a row-major array.
+     * We can read a matrix market file into any vector type that can be resized and iterated.
+     * Classic example is std::vector<>.
      */
-    template <typename VT>
+    template <typename VEC>
+    concept array_read_vector = requires(VEC v) {
+        v.empty();
+        v.resize(1);  // assumption is that the new elements are default constructed
+        v.begin();
+    };
+
+    /**
+     * We can write a matrix market file from any vector type that can report its size (for error checking) and
+     * can be iterated.
+     * Classic example is std::vector<>.
+     */
+    template <typename VEC>
+    concept array_write_vector = requires(VEC v) {
+        v.size();
+        v.begin();
+    };
+#else
+    // Make everything still work if concepts are not available
+#define array_read_vector typename
+#define array_write_vector typename
+#endif
+
+    /**
+     * Read a Matrix Market file into an array.
+     */
+    template <array_read_vector VEC>
     void read_matrix_market_array(std::istream &instream,
                                   matrix_market_header& header,
-                                  std::vector<VT>& values,
+                                  VEC& values,
                                   storage_order order = row_major,
                                   const read_options& options = {}) {
         read_header(instream, header);
@@ -29,10 +61,10 @@ namespace fast_matrix_market {
     /**
      * Convenience method that omits the header requirement if the user only cares about the dimensions.
      */
-    template <typename VT, typename DIM>
+    template <array_read_vector VEC, typename DIM>
     void read_matrix_market_array(std::istream &instream,
                                   DIM& nrows, DIM& ncols,
-                                  std::vector<VT>& values,
+                                  VEC& values,
                                   storage_order order = row_major,
                                   const read_options& options = {}) {
         matrix_market_header header;
@@ -45,9 +77,9 @@ namespace fast_matrix_market {
      * Convenience method that omits the header requirement if the user only cares about the values
      * (e.g. loading a 1D vector, where the std::vector length already includes the length).
      */
-    template <typename VT>
+    template <array_read_vector VEC>
     void read_matrix_market_array(std::istream &instream,
-                                  std::vector<VT>& values,
+                                  VEC& values,
                                   storage_order order = row_major,
                                   const read_options& options = {}) {
         matrix_market_header header;
@@ -55,14 +87,16 @@ namespace fast_matrix_market {
     }
 
     /**
-     * Write a row-major array to a Matrix Market file.
+     * Write an array to a Matrix Market file.
      */
-    template <typename VT>
+    template <array_write_vector VEC>
     void write_matrix_market_array(std::ostream &os,
                                    matrix_market_header header,
-                                   const std::vector<VT>& values,
+                                   const VEC& values,
                                    storage_order order = row_major,
                                    const write_options& options = {}) {
+        using VT = typename std::iterator_traits<decltype(values.begin())>::value_type;
+
         if (header.nrows * header.ncols != (int64_t)values.size()) {
             throw invalid_argument("Array length does not match matrix dimensions.");
         }
@@ -77,7 +111,13 @@ namespace fast_matrix_market {
         write_header(os, header);
 
         line_formatter<int64_t, VT> lf(header, options);
-        auto formatter = array_formatter(lf, values.cbegin(), order, header.nrows, header.ncols);
+        auto formatter = array_formatter(lf, values.begin(), order, header.nrows, header.ncols);
         write_body(os, formatter, options);
     }
+
+#if __cplusplus < 202002L
+// clean up after ourselves
+#undef array_read_vector
+#undef array_write_vector
+#endif
 }

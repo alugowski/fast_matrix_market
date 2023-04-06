@@ -82,6 +82,8 @@ Then simply run all the cells in the [benchmark_plots/plot.ipynb](benchmark_plot
 
 ## Coordinate / Triplets
 
+Matrix composed of row and column index vectors and a value vector. Any vector class that can be resized and iterated like `std::vector` will work. 
+
 ```c++
 struct triplet_matrix {
     int64_t nrows = 0, ncols = 0;
@@ -98,6 +100,10 @@ fast_matrix_market::read_matrix_market_triplet(
 Doublet sparse vectors, composed of index and value vectors, are supported in a similar way by `read_matrix_market_doublet()`.
 
 ## Dense arrays
+
+Any vector class that can be resized and iterated like `std::vector` will work.
+
+Be mindful of whether your code expects row or column major ordering.
 
 ```c++
 struct array_matrix {
