@@ -21,6 +21,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Install Integrations (Ubuntu)
+      if: contains(matrix.os, 'ubuntu')
+      run: sudo apt-get install -y libarmadillo-dev
+
 # The GraphBLAS that is in the Ubuntu repos is so old it doesn't even have GrB_Scalar.
 #    - name: Install GraphBLAS (Ubuntu)
 #      if: contains(matrix.os, 'ubuntu')
