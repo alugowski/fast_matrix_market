@@ -117,10 +117,10 @@ namespace fast_matrix_market {
                 pos = bump_to_next_line(pos, end);
 
                 // validate
-                if (row <= 0 || row > header.nrows) {
+                if (row <= 0 || static_cast<int64_t>(row) > header.nrows) {
                     throw invalid_mm("Row index out of bounds");
                 }
-                if (col <= 0 || col > header.ncols) {
+                if (col <= 0 || static_cast<int64_t>(col) > header.ncols) {
                     throw invalid_mm("Column index out of bounds");
                 }
 
@@ -192,7 +192,7 @@ namespace fast_matrix_market {
                 pos = bump_to_next_line(pos, end);
 
                 // validate
-                if (row <= 0 || row > header.vector_length) {
+                if (row <= 0 || static_cast<int64_t>(row) > header.vector_length) {
                     throw invalid_mm("Vector index out of bounds");
                 }
 
@@ -236,7 +236,7 @@ namespace fast_matrix_market {
                     // empty line
                     break;
                 }
-                if (col >= header.ncols) {
+                if (static_cast<int64_t>(col) >= header.ncols) {
                     throw invalid_mm("Too many values in array (file too long)");
                 }
 
@@ -263,7 +263,7 @@ namespace fast_matrix_market {
 
                 // Matrix Market is column-major, advance down the column
                 ++row;
-                if (row == header.nrows) {
+                if (static_cast<int64_t>(row) == header.nrows) {
                     ++col;
                     if (header.symmetry == general) {
                         row = 0;
@@ -274,7 +274,7 @@ namespace fast_matrix_market {
 //                            if (test_flag(HANDLER::flags, kDense)) {
 //                                handler.handle(row, col, get_zero<typename HANDLER::value_type>());
 //                            }
-                            if (row < header.nrows-1) {
+                            if (static_cast<int64_t>(row) < header.nrows-1) {
                                 ++row;
                             }
                         }
