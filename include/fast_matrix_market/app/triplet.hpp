@@ -6,14 +6,45 @@
 #include "../fast_matrix_market.hpp"
 
 namespace fast_matrix_market {
+#if __cplusplus >= 202002L
+    // If available, use C++20 concepts for programmer clarity.
+    // This shows what fast_matrix_market expects each template type to support.
+
+    /**
+     * We can read a matrix market file into any vector type that can be resized and iterated.
+     * Classic example is std::vector<>.
+     */
+    template <typename VEC>
+    concept triplet_read_vector = requires(VEC v) {
+        v.resize(1);
+        v.begin();
+    };
+
+    /**
+     * We can write a matrix market file from any vector type that can be iterated.
+     * Classic example is std::vector<>.
+     */
+    template <typename VEC>
+    concept triplet_write_vector = requires(VEC v) {
+        v.cbegin();
+        v.cend();
+    };
+#else
+    // Make everything still work if concepts are not available
+#define triplet_read_vector typename
+#define triplet_write_vector typename
+#endif
+
     /**
      * Read a Matrix Market file into a triplet (i.e. row, column, value vectors).
      */
-    template <typename IT, typename VT>
+    template <triplet_read_vector IVEC, triplet_read_vector VVEC>
     void read_matrix_market_triplet(std::istream &instream,
                                     matrix_market_header& header,
-                                    std::vector<IT>& rows, std::vector<IT>& cols, std::vector<VT>& values,
+                                    IVEC& rows, IVEC& cols, VVEC& values,
                                     const read_options& options = {}) {
+        using VT = typename std::iterator_traits<decltype(values.begin())>::value_type;
+
         read_header(instream, header);
 
         rows.resize(get_storage_nnz(header, options));
@@ -27,10 +58,10 @@ namespace fast_matrix_market {
     /**
      * Convenience method that omits the header requirement if the user only cares about the dimensions.
      */
-    template <typename IT, typename VT, typename DIM>
+    template <triplet_read_vector IVEC, triplet_read_vector VVEC, typename DIM>
     void read_matrix_market_triplet(std::istream &instream,
                                     DIM& nrows, DIM& ncols,
-                                    std::vector<IT>& rows, std::vector<IT>& cols, std::vector<VT>& values,
+                                    IVEC& rows, IVEC& cols, VVEC& values,
                                     const read_options& options = {}) {
         matrix_market_header header;
         read_matrix_market_triplet(instream, header, rows, cols, values, options);
@@ -41,13 +72,16 @@ namespace fast_matrix_market {
     /**
      * Write triplets to a Matrix Market file.
      */
-    template <typename IT, typename VT>
+    template <triplet_write_vector IVEC, triplet_write_vector VVEC>
     void write_matrix_market_triplet(std::ostream &os,
                                      matrix_market_header header,
-                                     const std::vector<IT>& rows,
-                                     const std::vector<IT>& cols,
-                                     const std::vector<VT>& values,
+                                     const IVEC& rows,
+                                     const IVEC& cols,
+                                     const VVEC& values,
                                      const write_options& options = {}) {
+        using IT = typename std::iterator_traits<decltype(rows.begin())>::value_type;
+        using VT = typename std::iterator_traits<decltype(values.begin())>::value_type;
+
         header.nnz = values.size();
 
         header.object = matrix;
@@ -63,4 +97,10 @@ namespace fast_matrix_market {
                                            values.cbegin(), header.field == pattern ? values.cbegin() : values.cend());
         write_body(os, formatter, options);
     }
+
+#if __cplusplus < 202002L
+    // clean up after ourselves
+#undef triplet_read_vector
+#undef triplet_write_vector
+#endif
 }
