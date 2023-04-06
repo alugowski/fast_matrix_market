@@ -110,4 +110,17 @@ if (FAST_MATRIX_MARKET_TEST_EXTERNAL_APPS)
             message("GraphBLAS not found, skipping GraphBLAS tests.")
         endif()
     endif()
+
+    # Armadillo
+    # Available since cmake 3.18: https://cmake.org/cmake/help/latest/module/FindArmadillo.html
+    find_package(Armadillo)
+    if (ARMADILLO_FOUND)
+        message("Found Armadillo ${ARMADILLO_VERSION_STRING}")
+        add_executable(armadillo_test armadillo_test.cpp)
+        target_include_directories(armadillo_test PUBLIC ${ARMADILLO_INCLUDE_DIRS})
+        target_link_libraries(armadillo_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+        target_link_libraries(armadillo_test ${ARMADILLO_LIBRARIES})
+    else()
+        message("Armadillo library not found. Skipping Armadillo binding tests.")
+    endif()
 endif()

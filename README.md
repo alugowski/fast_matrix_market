@@ -5,7 +5,7 @@
 
 A fast and full-featured Matrix Market I/O library for C++ and [Python](python).
 
-Ready-to-use bindings for [GraphBLAS](README.GraphBLAS.md), [Eigen](README.Eigen.md), [CXSparse](README.CXSparse.md), [Blaze](README.Blaze.md), [SciPy](python/README.md), `std::vector`.  
+Ready-to-use bindings for [GraphBLAS](README.GraphBLAS.md), [Eigen](README.Eigen.md), [CXSparse](README.CXSparse.md), [Blaze](README.Blaze.md), [Armadillo](README.Armadillo.md), [SciPy](python/README.md), `std::vector`.  
 Easy to integrate with any datastructure.
 
 [Matrix Market](https://math.nist.gov/MatrixMarket/formats.html) is a simple, human-readable, and widely used sparse matrix file format that looks like this:
@@ -147,6 +147,13 @@ fast_matrix_market::read_matrix_market_cxsparse(input_stream, &A, cs_dl_spalloc)
 ```c++
 blaze::CompressedMatrix<double> A;
 fast_matrix_market::read_matrix_market_blaze(input_stream, A);
+```
+
+## Armadillo
+[Armadillo](https://arma.sourceforge.net/) sparse and dense matrices are supported. See [Armadillo README](README.Armadillo.md).
+```c++
+arma::SpMat<double> A;
+fast_matrix_market::read_matrix_market_arma(input_stream, A);
 ```
 
 ## Your Own
