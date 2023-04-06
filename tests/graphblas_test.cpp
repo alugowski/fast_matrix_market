@@ -5,12 +5,6 @@
 #include <fstream>
 #include <sstream>
 
-#if defined(__clang__)
-// GraphBLAS index type, GrB_Index, is unsigned whereas all fast_matrix_market types are signed.
-//#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-#endif
-
 #include "fmm_tests.hpp"
 
 #if defined(__clang__)
@@ -208,7 +202,7 @@ bool is_equal(const GrB_Matrix& lhs, const GrB_Matrix& rhs) {
  * Equality check that prints the matrices if they're unequal. Useful for debugging when remote tests fail.
  */
 bool is_equal(const array_matrix<std::complex<double>>& lhs, const GrB_Matrix& rhs) {
-    if (lhs.nrows != nrows(rhs) || lhs.ncols != ncols(rhs)) {
+    if (lhs.nrows != (int64_t)nrows(rhs) || lhs.ncols != (int64_t)ncols(rhs)) {
         return false;
     }
 
@@ -279,7 +273,7 @@ bool element_equals(const array_matrix<std::complex<double>>& lhs, const GrB_Vec
  */
 bool is_equal(const array_matrix<std::complex<double>>& lhs, const GrB_Vector& rhs) {
     bool equal = true;
-    if (lhs.nrows != size(rhs)) {
+    if (lhs.nrows != (int64_t)size(rhs)) {
         equal = false;
     }
 
