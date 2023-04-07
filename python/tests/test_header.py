@@ -76,10 +76,12 @@ class TestHeader(unittest.TestCase):
         h2 = fmm.read_header(StringIO(s))
         self.assertEqual(h.to_dict(), h2.to_dict())
 
+    @unittest.skipIf(not cpp_matrices.exists(), "Matrices from C++ code not available.")
     def test_header_overflow(self):
         with self.assertRaises(OverflowError):
             fmm.mmread(cpp_matrices / "overflow" / "overflow_dim_gt_int64.mtx")
 
+    @unittest.skipIf(not cpp_matrices.exists(), "Matrices from C++ code not available.")
     def test_index_overflow(self):
         with self.assertRaises(OverflowError):
             fmm.mmread(cpp_matrices / "overflow" / "overflow_index_gt_int64.mtx")

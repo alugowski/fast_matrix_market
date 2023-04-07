@@ -291,6 +291,7 @@ class TestSciPy(unittest.TestCase):
                     m2 = fmm.mmread(StringIO(fmms))
                     self.assertAlmostEqual(m2[0][0], float('%%.%dg' % precision % value))
 
+    @unittest.skipIf(not cpp_matrices.exists(), "Matrices from C++ code not available.")
     def test_value_overflow(self):
         with self.subTest("integer"):
             with self.assertRaises(OverflowError):
