@@ -1,4 +1,4 @@
-# Armadillo (blaze-lib) Matrix Market
+# Armadillo Matrix Market
 
 `fast_matrix_market` provides read/write methods for [Armadillo](https://arma.sourceforge.net/) sparse and dense matrices.
 
@@ -14,6 +14,8 @@ arma::Mat<double> A;
 arma::SpMat<double> A;
 ```
 
+Not restricted to `double` matrices. Any type supported by Armadillo that makes sense in Matrix Market is also supported, such as `int64_t`, `float`, `std::complex<double>`, etc.
+
 ### Reading
 ```c++
 std::ifstream f("input.mtx");
@@ -22,7 +24,7 @@ fast_matrix_market::read_matrix_market_arma(f, A);
 ```
 
 **Note:** Armadillo versions older than 10.5 [did not zero-initialize memory](https://arma.sourceforge.net/docs.html#changelog).
-On those versions loading a sparse Matrix Market file into a dense `Mat` is not supported.
+On those versions reading any Matrix Market file into a dense `arma::Mat` is not supported.
 
 
 ### Writing

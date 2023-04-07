@@ -88,7 +88,7 @@ Matrix composed of row and column index vectors and a value vector. Any vector c
 struct triplet_matrix {
     int64_t nrows = 0, ncols = 0;
     std::vector<int64_t> rows, cols;
-    std::vector<double> vals;
+    std::vector<double> vals;       // or int64_t, float, std::complex<double>, etc.
 } mat;
 
 fast_matrix_market::read_matrix_market_triplet(
@@ -108,7 +108,7 @@ Be mindful of whether your code expects row or column major ordering.
 ```c++
 struct array_matrix {
     int64_t nrows = 0, ncols = 0;
-    std::vector<double> vals;
+    std::vector<double> vals;       // or int64_t, float, std::complex<double>, etc.
 } mat;
 
 fast_matrix_market::read_matrix_market_array(

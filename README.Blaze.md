@@ -17,6 +17,9 @@ blaze::CompressedVector<double> A;
 // or
 blaze::DynamicVector<double> A;
 ```
+
+Not restricted to `double` matrices. Any type supported by Blaze that makes sense in Matrix Market is also supported, such as `int64_t`, `float`, `std::complex<double>`, etc.
+
 ### Reading
 ```c++
 std::ifstream f("input.mtx");

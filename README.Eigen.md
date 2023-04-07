@@ -36,4 +36,6 @@ fast_matrix_market::write_matrix_market_eigen(f, mat);
 
 Again, for dense matrices/vectors use `write_matrix_market_eigen_dense`.
 
+Not restricted to `double` matrices. Any type supported by Eigen that makes sense in Matrix Market is also supported, such as `int64_t`, `float`, `std::complex<double>`, etc.
+
 Note that Vectors are written with object type = `matrix` for compatibility reasons. Eigen's `saveMarketVector()` does the same. As of writing Eigen's loader crashes on `vector` files.
