@@ -120,6 +120,8 @@ if (FAST_MATRIX_MARKET_TEST_EXTERNAL_APPS)
         target_include_directories(armadillo_test PUBLIC ${ARMADILLO_INCLUDE_DIRS})
         target_link_libraries(armadillo_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
         target_link_libraries(armadillo_test ${ARMADILLO_LIBRARIES})
+
+        gtest_discover_tests(armadillo_test)
     else()
         message("Armadillo library not found. Skipping Armadillo binding tests.")
     endif()
