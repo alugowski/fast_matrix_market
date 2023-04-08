@@ -133,7 +133,11 @@ namespace fast_matrix_market {
                                 handler.handle(col - 1, row - 1, value);
                                 break;
                             case skew_symmetric:
-                                handler.handle(col - 1, row - 1, negate(value));
+                                if constexpr (!std::is_unsigned_v<typename HANDLER::value_type>) {
+                                    handler.handle(col - 1, row - 1, negate(value));
+                                } else {
+                                    throw invalid_argument("Cannot load skew-symmetric matrix into unsigned value type.");
+                                }
                                 break;
                             case hermitian:
                                 handler.handle(col - 1, row - 1, complex_conjugate(value));
@@ -251,7 +255,11 @@ namespace fast_matrix_market {
                             handler.handle(col, row, value);
                             break;
                         case skew_symmetric:
-                            handler.handle(col, row, negate(value));
+                            if constexpr (!std::is_unsigned_v<typename HANDLER::value_type>) {
+                                handler.handle(col, row, negate(value));
+                            } else {
+                                throw invalid_argument("Cannot load skew-symmetric matrix into unsigned value type.");
+                            }
                             break;
                         case hermitian:
                             handler.handle(col, row, complex_conjugate(value));
