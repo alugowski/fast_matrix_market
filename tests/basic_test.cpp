@@ -596,6 +596,14 @@ INSTANTIATE_TEST_SUITE_P(SymmetrySuite, SymmetrySuite, testing::ValuesIn(Symmetr
 INSTANTIATE_TEST_SUITE_P(TripletLoadsArray, SymmetryTripletArraySuite, testing::ValuesIn(SymmetrySuite::get_array_symmetry_problems()));
 INSTANTIATE_TEST_SUITE_P(Array, SymmetryArraySuite, testing::ValuesIn(SymmetrySuite::get_array_symmetry_problems()));
 
+TEST(SymmetrySuite, TypeValidity) {
+    // Cannot load skew-symmetric matrices into an unsigned type.
+    triplet_matrix<int64_t, uint64_t> unsigned_triplet;
+    array_matrix<uint64_t> unsigned_array;
+    EXPECT_THROW(read_triplet_file("symmetry/coordinate_skew_symmetric_row.mtx", unsigned_triplet), fast_matrix_market::invalid_argument);
+    EXPECT_THROW(read_array_file("symmetry_array/array_skew-symmetric.mtx", unsigned_array), fast_matrix_market::invalid_argument);
+}
+
 TEST(Whitespace, Whitespace) {
     triplet_matrix<int64_t, double> expected, mat;
     read_triplet_file("nist_ex1.mtx", expected);
