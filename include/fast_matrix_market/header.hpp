@@ -157,8 +157,7 @@ namespace fast_matrix_market {
         std::getline(instream, line);
         lines_read++;
 
-        if (line.rfind(kMatrixMarketBanner, 0) != 0
-            && line.rfind(kMatrixMarketBanner2, 0) != 0) {
+        if (line.find("MatrixMarket", 0) == std::string::npos) {
             // not a matrix market file because the banner is missing
             throw invalid_mm("Not a Matrix Market file. Missing banner.", lines_read);
         }
@@ -168,6 +167,10 @@ namespace fast_matrix_market {
             std::istringstream iss(line);
             std::string banner, f_object, f_format, f_field, f_symmetry;
             iss >> banner >> f_object >> f_format >> f_field >> f_symmetry;
+            if (banner != kMatrixMarketBanner && banner != kMatrixMarketBanner2) {
+                // not a matrix market file because the banner is wrong
+                throw invalid_mm("Not a Matrix Market file. Missing banner.", lines_read);
+            }
 
             header.object = parse_header_enum(f_object, object_map, lines_read);
             header.format = parse_header_enum(f_format, format_map, lines_read);
