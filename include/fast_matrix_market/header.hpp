@@ -5,6 +5,8 @@
 
 #include <fast_matrix_market/fast_matrix_market.hpp>
 
+#include "chunking.hpp"
+
 namespace fast_matrix_market {
 
     /**
@@ -37,6 +39,21 @@ namespace fast_matrix_market {
             delim = ", ";
         }
         throw invalid_argument(std::string("Invalid value. Must be one of: ") + acceptable);
+    }
+
+    inline bool is_line_all_spaces(const std::string& line) {
+        if (line.empty()) {
+            return true;
+        }
+
+        auto end = std::cend(line);
+
+        if (line[line.size()-1] == '\n') {
+            // ignore newline
+            --end;
+        }
+
+        return is_all_spaces(std::cbegin(line), end);
     }
 
     /**
@@ -90,7 +107,12 @@ namespace fast_matrix_market {
      * @return
      */
     inline bool read_comment(matrix_market_header& header, const std::string& line) {
-        if (line.empty() || line[0] != '%') {
+        // empty lines are allowed anywhere in the file and are to be ignored
+        if (is_line_all_spaces(line)) {
+            return true;
+        }
+
+        if (line[0] != '%') {
             return false;
         }
 
@@ -166,34 +188,48 @@ namespace fast_matrix_market {
         // parse the dimension line
         {
             std::istringstream iss(line);
+            int expected_length = -1;
+
+            const char* pos = line.c_str();
+            const char* end = line.c_str() + line.size();
+            pos = skip_spaces(pos);
 
             if (header.object == vector) {
-                iss >> header.vector_length;
+                pos = read_int(pos, end, header.vector_length);
+
                 if (header.vector_length < 0) {
                     throw invalid_mm("Vector length can't be negative.", lines_read);
                 }
 
                 if (header.format == coordinate) {
-                    iss >> header.nnz;
+                    pos = skip_spaces(pos);
+                    pos = read_int(pos, end, header.nnz);
+                    expected_length = 2;
                 } else {
                     header.nnz = header.vector_length;
+                    expected_length = 1;
                 }
 
                 header.nrows = header.vector_length;
                 header.ncols = 1;
             } else {
-                iss >> header.nrows >> header.ncols;
+                pos = read_int(pos, end, header.nrows);
+                pos = skip_spaces(pos);
+                pos = read_int(pos, end, header.ncols);
                 if (header.nrows < 0 || header.ncols < 0) {
                     throw invalid_mm("Matrix dimensions can't be negative.", lines_read);
                 }
 
                 if (header.format == coordinate) {
-                    iss >> header.nnz;
+                    pos = skip_spaces(pos);
+                    pos = read_int(pos, end, header.nnz);
                     if (header.nnz < 0) {
                         throw invalid_mm("Matrix NNZ can't be negative.", lines_read);
                     }
+                    expected_length = 3;
                 } else {
                     header.nnz = header.nrows * header.ncols;
+                    expected_length = 2;
                 }
                 if (std::min(header.nrows, header.ncols) == 1) {
                     // row or column matrix. Either one can be loaded into a vector data structure.
@@ -201,6 +237,12 @@ namespace fast_matrix_market {
                 } else {
                     header.vector_length = -1;
                 }
+            }
+
+            pos = skip_spaces(pos);
+            if (pos != end) {
+                // The text of this message is to be able to match SciPy's message to pass their unit test.
+                throw invalid_mm("Header dimension line not of length " + std::to_string(expected_length));
             }
         }
 

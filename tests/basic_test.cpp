@@ -205,6 +205,42 @@ TEST_P(InvalidSuite, Small) {
 INSTANTIATE_TEST_SUITE_P(Invalid, InvalidSuite, testing::ValuesIn(InvalidSuite::get_invalid_matrix_files()));
 
 /**
+ * Overflow
+ */
+TEST(OverflowSuite, Small) {
+    triplet_matrix<int8_t, double> triplet_8d;
+    EXPECT_THROW(read_triplet_file("overflow/overflow_index_gt_int8.mtx", triplet_8d), fast_matrix_market::out_of_range);
+
+    fast_matrix_market::read_options best_match_options{};
+    fast_matrix_market::read_options throw_options{};
+    throw_options.float_out_of_range_behavior = fast_matrix_market::ThrowOutOfRange;
+    triplet_matrix<int64_t, float> triplet_lf;
+    EXPECT_THROW(read_triplet_file("overflow/overflow_value_gt_float64.mtx", triplet_lf, throw_options), fast_matrix_market::out_of_range);
+    EXPECT_NO_THROW(read_triplet_file("overflow/overflow_value_gt_float64.mtx", triplet_lf, best_match_options));
+
+    triplet_matrix<int64_t, double> triplet_ld;
+    EXPECT_THROW(read_triplet_file("overflow/overflow_value_gt_float64.mtx", triplet_ld, throw_options), fast_matrix_market::out_of_range);
+    EXPECT_NO_THROW(read_triplet_file("overflow/overflow_value_gt_float64.mtx", triplet_ld, best_match_options));
+
+    triplet_matrix<int64_t, long double> triplet_l_ld;
+    EXPECT_THROW(read_triplet_file("overflow/overflow_value_gt_float128.mtx", triplet_l_ld, throw_options), fast_matrix_market::out_of_range);
+    EXPECT_NO_THROW(read_triplet_file("overflow/overflow_value_gt_float128.mtx", triplet_l_ld, best_match_options));
+
+    triplet_matrix<int64_t, std::complex<double>> triplet_lc;
+    EXPECT_THROW(read_triplet_file("overflow/overflow_value_gt_complex128.mtx", triplet_lc, throw_options), fast_matrix_market::out_of_range);
+    EXPECT_NO_THROW(read_triplet_file("overflow/overflow_value_gt_complex128.mtx", triplet_lc, best_match_options));
+
+    triplet_matrix<int64_t, int64_t> triplet_l64;
+    EXPECT_THROW(read_triplet_file("overflow/overflow_value_gt_int64.mtx", triplet_l64), fast_matrix_market::out_of_range);
+
+    triplet_matrix<int64_t, int32_t> triplet_l32;
+    EXPECT_THROW(read_triplet_file("overflow/overflow_value_gt_int32.mtx", triplet_l32), fast_matrix_market::out_of_range);
+
+    triplet_matrix<int64_t, int8_t> triplet_l8;
+    EXPECT_THROW(read_triplet_file("overflow/overflow_value_gt_int32.mtx", triplet_l8), fast_matrix_market::out_of_range);
+}
+
+/**
  * Very basic tests: Triplet
  */
 template <typename MAT>
@@ -559,3 +595,30 @@ TEST_P(SymmetryArraySuite, SmallArray) {
 INSTANTIATE_TEST_SUITE_P(SymmetrySuite, SymmetrySuite, testing::ValuesIn(SymmetrySuite::get_symmetry_problems()));
 INSTANTIATE_TEST_SUITE_P(TripletLoadsArray, SymmetryTripletArraySuite, testing::ValuesIn(SymmetrySuite::get_array_symmetry_problems()));
 INSTANTIATE_TEST_SUITE_P(Array, SymmetryArraySuite, testing::ValuesIn(SymmetrySuite::get_array_symmetry_problems()));
+
+TEST(SymmetrySuite, TypeValidity) {
+    // Cannot load skew-symmetric matrices into an unsigned type.
+    triplet_matrix<int64_t, uint64_t> unsigned_triplet;
+    array_matrix<uint64_t> unsigned_array;
+    EXPECT_THROW(read_triplet_file("symmetry/coordinate_skew_symmetric_row.mtx", unsigned_triplet), fast_matrix_market::invalid_argument);
+    EXPECT_THROW(read_array_file("symmetry_array/array_skew-symmetric.mtx", unsigned_array), fast_matrix_market::invalid_argument);
+}
+
+TEST(Whitespace, Whitespace) {
+    triplet_matrix<int64_t, double> expected, mat;
+    read_triplet_file("nist_ex1.mtx", expected);
+
+    for (int chunk_size : {1, 10, 15, 1000}) {
+        for (int p : {1, 4}) {
+            fast_matrix_market::read_options options;
+            options.chunk_size_bytes = chunk_size;
+            options.num_threads = p;
+
+            read_triplet_file("nist_ex1_freeformat.mtx", mat, options);
+            EXPECT_EQ(mat, expected);
+
+            read_triplet_file("nist_ex1_more_freeformat.mtx", mat, options);
+            EXPECT_EQ(mat, expected);
+        }
+    }
+}

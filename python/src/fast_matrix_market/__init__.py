@@ -16,13 +16,21 @@ PARALLELISM = 0
 Number of threads to use. 0 means number of threads in the system.
 """
 
+ALWAYS_FIND_SYMMETRY = False
+"""
+If True then equivalent to always passing find_symmetry=True to mmwrite() and write_scipy().
+This matches scipy.io.mmwrite behavior, as well as its massive performance cost.
+"""
+
 _field_to_dtype = {
     "integer": "int64",
+    "unsigned-integer": "uint64",
     "real": "float64",
     "complex": "complex",
     "pattern": "float64",
 
     "long-integer": "int64",
+    "long-unsigned-integer": "uint64",
     "long-real": "longdouble",
     "long-complex": "longcomplex",
     "long-pattern": "float64",
@@ -38,6 +46,10 @@ class _TextToBytesWrapper(io.BufferedReader):
         super(_TextToBytesWrapper, self).__init__(text_io_buffer, **kwargs)
         self.encoding = encoding or text_io_buffer.encoding or 'utf-8'
         self.errors = errors or text_io_buffer.errors or 'strict'
+
+    def __del__(self):
+        # do not close the wrapped stream
+        self.detach()
 
     def _encoding_call(self, method_name, *args, **kwargs):
         raw_method = getattr(self.raw, method_name)
@@ -370,7 +382,7 @@ def write_scipy(target, a, comment=None, field=None, precision=None, symmetry=No
     if isinstance(a, list) or isinstance(a, tuple) or hasattr(a, '__array__'):
         a = np.asarray(a)
 
-    if find_symmetry:
+    if ALWAYS_FIND_SYMMETRY or find_symmetry:
         # Attempt to use scipy's method for finding matrix symmetry
         import scipy.io
         try:

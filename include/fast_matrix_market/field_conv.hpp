@@ -4,7 +4,9 @@
 #pragma once
 
 #include <charconv>
+#include <cmath>
 #include <complex>
+#include <limits>
 #include <iomanip>
 #include <type_traits>
 
@@ -28,7 +30,17 @@ namespace fast_matrix_market {
     ///////////////////////////////////////////
 
     inline const char* skip_spaces(const char* pos) {
-        return pos + std::strspn(pos, " ");
+        return pos + std::strspn(pos, " \t");
+    }
+
+    inline const char* skip_spaces_and_newlines(const char* pos, int64_t& line_num) {
+        pos = skip_spaces(pos);
+        while (*pos == '\n') {
+            ++line_num;
+            ++pos;
+            pos = skip_spaces(pos);
+        }
+        return pos;
     }
 
     inline const char* bump_to_next_line(const char* pos, const char* end) {
@@ -55,69 +67,143 @@ namespace fast_matrix_market {
      * Parse integer using std::from_chars
      */
     template <typename IT>
-    const char* read_int(const char* pos, const char* end, IT& out) {
+    const char* read_int_from_chars(const char* pos, const char* end, IT& out) {
         std::from_chars_result result = std::from_chars(pos, end, out);
         if (result.ec != std::errc()) {
-            throw invalid_mm("Invalid integer value.");
+            if (result.ec == std::errc::result_out_of_range) {
+                throw out_of_range("Integer out of range.");
+            } else {
+                throw invalid_mm("Invalid integer value.");
+            }
         }
         return result.ptr;
     }
-#else
+#endif
+
+    inline const char* read_int_fallback(const char* pos, [[maybe_unused]] const char* end, long long& out) {
+        errno = 0;
+
+        char* value_end;
+        out = std::strtoll(pos, &value_end, 10);
+        if (errno != 0 || pos == value_end) {
+            if (errno == ERANGE) {
+                throw out_of_range("Integer out of range.");
+            } else {
+                throw invalid_mm("Invalid integer value.");
+            }
+        }
+
+        return value_end;
+    }
+
+    inline const char* read_int_fallback(const char* pos, [[maybe_unused]] const char* end, unsigned long long& out) {
+        errno = 0;
+
+        char *value_end;
+        out = std::strtoull(pos, &value_end, 10);
+        if (errno != 0 || pos == value_end) {
+            if (errno == ERANGE) {
+              throw out_of_range("Integer out of range.");
+            } else {
+                throw invalid_mm("Invalid integer value.");
+            }
+        }
+        return value_end;
+    }
+
     /**
      * Parse integers using C routines.
      *
      * This is a compatibility fallback.
      */
     template <typename T>
-    const char* read_int(const char* pos, [[maybe_unused]] const char* end, T& out) {
-        errno = 0;
+    const char* read_int_fallback(const char* pos, const char* end, T& out) {
+        long long i64;
+        const char* ret = read_int_fallback(pos, end, i64);
 
-        char* value_end;
-        long long parsed_value = std::strtoll(pos, &value_end, 10);
-        if (errno != 0 || pos == value_end) {
-            throw invalid_mm("Invalid integer value.");
+        if (sizeof(T) < sizeof(long long)) {
+            if (i64 > (long long) std::numeric_limits<T>::max() ||
+                i64 < (long long) std::numeric_limits<T>::min()) {
+                throw out_of_range(std::string("Integer out of range."));
+            }
         }
-        out = static_cast<T>(parsed_value);
-        return value_end;
+        out = static_cast<T>(i64);
+        return ret;
     }
+
+    /**
+     * Parse integer using best available method
+     */
+    template <typename IT>
+    const char* read_int(const char* pos, const char* end, IT& out) {
+#ifdef FMM_FROM_CHARS_INT_SUPPORTED
+        return read_int_from_chars(pos, end, out);
+#else
+        return read_int_fallback(pos, end, out);
 #endif
+    }
 
 #ifdef FMM_USE_FAST_FLOAT
     /**
      * Parse float or double using fast_float::from_chars
      */
     template <typename FT>
-    const char* read_float(const char* pos, const char* end, FT& out) {
+    const char* read_float_fast_float(const char* pos, const char* end, FT& out, out_of_range_behavior oorb) {
         fast_float::from_chars_result result = fast_float::from_chars(pos, end, out, fast_float::chars_format::general);
+
         if (result.ec != std::errc()) {
-            throw invalid_mm("Invalid floating-point value.");
+            if (result.ec == std::errc::result_out_of_range) {
+                if (oorb == ThrowOutOfRange) {
+                    throw out_of_range("Floating-point value out of range.");
+                }
+            } else {
+                throw invalid_mm("Invalid floating-point value.");
+            }
         }
         return result.ptr;
     }
-#elif defined(FMM_FROM_CHARS_DOUBLE_SUPPORTED)
+#endif
+
+
+#ifdef FMM_FROM_CHARS_DOUBLE_SUPPORTED
     /**
      * Parse float or double using std::from_chars
      */
     template <typename FT>
-    const char* read_float(const char* pos, const char* end, FT& out) {
+    const char* read_float_from_chars(const char* pos, const char* end, FT& out, out_of_range_behavior oorb) {
         std::from_chars_result result = std::from_chars(pos, end, out);
         if (result.ec != std::errc()) {
-            throw invalid_mm("Invalid floating-point value.");
+            if (result.ec == std::errc::result_out_of_range) {
+                if (oorb == ThrowOutOfRange) {
+                    throw out_of_range("Floating-point overflow");
+                } else {
+                    // std::from_chars does not return a best match on under/overflow, so fall back to strtod
+                    out = std::strtod(pos, nullptr);
+                }
+            } else {
+                throw invalid_mm("Invalid floating-point value.");
+            }
         }
         return result.ptr;
     }
+#endif
 
-#else
     /**
      * Parse double using strtod(). This is a compatibility fallback.
      */
-    inline const char* read_float(const char* pos, [[maybe_unused]] const char* end, double& out) {
+    inline const char* read_float_fallback(const char* pos, [[maybe_unused]] const char* end, double& out, out_of_range_behavior oorb = ThrowOutOfRange) {
         errno = 0;
 
         char* value_end;
         out = std::strtod(pos, &value_end);
         if (errno != 0 || pos == value_end) {
-            throw invalid_mm("Invalid floating-point value.");
+            if (errno == ERANGE) {
+                if (oorb == ThrowOutOfRange) {
+                    throw out_of_range("Floating-point value out of range.");
+                }
+            } else {
+                throw invalid_mm("Invalid floating-point value.");
+            }
         }
         return value_end;
     }
@@ -125,47 +211,85 @@ namespace fast_matrix_market {
     /**
      * Parse float using strtof(). This is a compatibility fallback.
      */
-    inline const char* read_float(const char* pos, [[maybe_unused]] const char* end, float& out) {
+    inline const char* read_float_fallback(const char* pos, [[maybe_unused]] const char* end, float& out, out_of_range_behavior oorb) {
         errno = 0;
 
         char* value_end;
         out = std::strtof(pos, &value_end);
         if (errno != 0 || pos == value_end) {
-            throw invalid_mm("Invalid floating-point value.");
+            if (errno == ERANGE) {
+                if (oorb == ThrowOutOfRange) {
+                    throw out_of_range("Floating-point value out of range.");
+                }
+            } else {
+                throw invalid_mm("Invalid floating-point value.");
+            }
         }
         return value_end;
     }
 
+    template <typename FT>
+    const char* read_float(const char* pos, const char* end, FT& out, out_of_range_behavior oorb) {
+#ifdef FMM_USE_FAST_FLOAT
+        return read_float_fast_float(pos, end, out, oorb);
+#elif defined(FMM_FROM_CHARS_DOUBLE_SUPPORTED)
+        return read_float_from_chars(pos, end, out, oorb);
+#else
+        return read_float_fallback(pos, end, out, oorb);
 #endif
+    }
 
 #ifdef FMM_FROM_CHARS_LONG_DOUBLE_SUPPORTED
     /**
      * Parse long double using std::from_chars
      */
-    inline const char* read_float(const char* pos, const char* end, long double& out) {
+    inline const char* read_float_from_chars(const char* pos, const char* end, long double& out, out_of_range_behavior oorb) {
         std::from_chars_result result = std::from_chars(pos, end, out);
         if (result.ec != std::errc()) {
-            throw invalid_mm("Invalid floating-point value.");
+            if (result.ec == std::errc::result_out_of_range) {
+                if (oorb == ThrowOutOfRange) {
+                    throw out_of_range("Floating-point value out of range.");
+                } else {
+                    // std::from_chars does not return a best match on under/overflow, so fall back to strtold
+                    out = std::strtold(pos, nullptr);
+                }
+            } else {
+                throw invalid_mm("Invalid floating-point value.");
+            }
         }
         return result.ptr;
     }
-#else
+#endif
+
     /**
      * Parse `long double` using std::strtold().
      *
      * fast_float does not support long double.
      */
-    inline const char* read_float(const char* pos, [[maybe_unused]] const char* end, long double& out) {
+    inline const char* read_float_fallback(const char* pos, [[maybe_unused]] const char* end, long double& out, out_of_range_behavior oorb) {
         errno = 0;
 
         char* value_end;
         out = std::strtold(pos, &value_end);
         if (errno != 0 || pos == value_end) {
-            throw invalid_mm("Invalid floating-point value.");
+            if (errno == ERANGE) {
+                if (oorb == ThrowOutOfRange) {
+                    throw out_of_range("Floating-point value out of range.");
+                }
+            } else {
+                throw invalid_mm("Invalid floating-point value.");
+            }
         }
         return value_end;
     }
+
+    inline const char* read_float(const char* pos, [[maybe_unused]] const char* end, long double& out, out_of_range_behavior oorb) {
+#ifdef FMM_FROM_CHARS_LONG_DOUBLE_SUPPORTED
+        return read_float_from_chars(pos, end, out, oorb);
+#else
+        return read_float_fallback(pos, end, out, oorb);
 #endif
+    }
 
     //////////////////////////////////////
     // Read value. These evaluate to the field parsers above, depending on requested type
@@ -174,40 +298,40 @@ namespace fast_matrix_market {
     /**
      * Pattern values are no-ops.
      */
-    inline const char* read_value(const char* pos, [[maybe_unused]] const char* end, [[maybe_unused]] pattern_placeholder_type& out) {
+    inline const char* read_value(const char* pos, [[maybe_unused]] const char* end, [[maybe_unused]] pattern_placeholder_type& out, [[maybe_unused]] const read_options& options = {}) {
         return pos;
     }
 
     template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
-    const char* read_value(const char* pos, const char* end, T& out) {
+    const char* read_value(const char* pos, const char* end, T& out, [[maybe_unused]] const read_options& options = {}) {
         return read_int(pos, end, out);
     }
 
-    inline const char* read_value(const char* pos, const char* end, bool& out) {
+    inline const char* read_value(const char* pos, const char* end, bool& out, const read_options& options = {}) {
         double parsed;
-        auto ret = read_float(pos, end, parsed);
+        auto ret = read_float(pos, end, parsed, options.float_out_of_range_behavior);
         out = (parsed != 0);
         return ret;
     }
 
-    inline const char* read_value(const char* pos, const char* end, float& out) {
-        return read_float(pos, end, out);
+    inline const char* read_value(const char* pos, const char* end, float& out, const read_options& options = {}) {
+        return read_float(pos, end, out, options.float_out_of_range_behavior);
     }
 
-    inline const char* read_value(const char* pos, const char* end, double& out) {
-        return read_float(pos, end, out);
+    inline const char* read_value(const char* pos, const char* end, double& out, const read_options& options = {}) {
+        return read_float(pos, end, out, options.float_out_of_range_behavior);
     }
 
-    inline const char* read_value(const char* pos, const char* end, long double& out) {
-        return read_float(pos, end, out);
+    inline const char* read_value(const char* pos, const char* end, long double& out, const read_options& options = {}) {
+        return read_float(pos, end, out, options.float_out_of_range_behavior);
     }
 
     template <typename COMPLEX, typename std::enable_if<is_complex<COMPLEX>::value, int>::type = 0>
-    const char* read_value(const char* pos, const char* end, COMPLEX& out) {
+    const char* read_value(const char* pos, const char* end, COMPLEX& out, const read_options& options = {}) {
         typename COMPLEX::value_type real, imaginary;
-        pos = read_float(pos, end, real);
+        pos = read_float(pos, end, real, options.float_out_of_range_behavior);
         pos = skip_spaces(pos);
-        pos = read_float(pos, end, imaginary);
+        pos = read_float(pos, end, imaginary, options.float_out_of_range_behavior);
 
         out.real(real);
         out.imag(imaginary);

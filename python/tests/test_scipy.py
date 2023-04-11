@@ -4,6 +4,7 @@ import warnings
 from io import BytesIO, StringIO
 from pathlib import Path
 import unittest
+import sys
 
 import numpy as np
 import scipy.io
@@ -12,6 +13,7 @@ import fast_matrix_market as fmm
 
 matrices = Path("matrices")
 cpp_matrices = matrices / ".." / ".." / ".." / "tests" / "matrices"
+IS_PYPY = "PyPy" in sys.version
 
 
 class TestSciPy(unittest.TestCase):
@@ -91,6 +93,7 @@ class TestSciPy(unittest.TestCase):
                 self.assertGreater(m_fmm.shape[0], 0)
                 self.assertGreater(m_fmm.shape[1], 0)
 
+    @unittest.skipIf(IS_PYPY, "Writing into BytesIO has no effect on PyPy")
     def test_write(self):
         for mtx in sorted(list(matrices.glob("*.mtx"))):
             mtx_header = fmm.read_header(mtx)
@@ -110,6 +113,7 @@ class TestSciPy(unittest.TestCase):
 
                 self.assertMatrixEqual(m, m2)
 
+    @unittest.skipIf(IS_PYPY, "Writing into BytesIO has no effect on PyPy")
     def test_write_formats(self):
         for mtx in sorted(list(matrices.glob("*.mtx"))):
             mtx_header = fmm.read_header(mtx)
@@ -142,6 +146,7 @@ class TestSciPy(unittest.TestCase):
 
                     self.assertMatrixEqual(m, m2)
 
+    @unittest.skipIf(IS_PYPY, "Writing into BytesIO has no effect on PyPy")
     def test_write_fields(self):
         for mtx in sorted(list(matrices.glob("*.mtx"))):
             mtx_header = fmm.read_header(mtx)
@@ -218,6 +223,7 @@ class TestSciPy(unittest.TestCase):
                 self.assertMatrixEqual(m_gen, m_fmm_gen)
                 self.assertMatrixEqual(m_fmm, m_fmm_gen)
 
+    @unittest.skipIf(IS_PYPY, "Writing into BytesIO has no effect on PyPy")
     def test_symmetry_write(self):
         # use the symmetry matrices from the C++ tests
         paths = list((cpp_matrices / "symmetry").glob("*.mtx")) + list((cpp_matrices / "symmetry_array").glob("*.mtx"))
@@ -244,6 +250,7 @@ class TestSciPy(unittest.TestCase):
                 general = scipy.io.mmread(mtx_general)
                 self.assertMatrixEqual(m2_fmm, general)
 
+    @unittest.skipIf(IS_PYPY, "Writing into BytesIO has no effect on PyPy")
     def test_find_symmetry(self):
         # noinspection PyProtectedMember
         if not fmm._has_find_symmetry():
@@ -268,6 +275,7 @@ class TestSciPy(unittest.TestCase):
                     expected_symmetry = "symmetric"
                 self.assertIn(expected_symmetry, fmms)
 
+    @unittest.skipIf(IS_PYPY, "Writing into BytesIO has no effect on PyPy")
     def test_precision(self):
         test_values = [np.pi] + [10**i for i in range(0, -10, -1)]
         test_precisions = range(1, 10)
@@ -282,6 +290,26 @@ class TestSciPy(unittest.TestCase):
 
                     m2 = fmm.mmread(StringIO(fmms))
                     self.assertAlmostEqual(m2[0][0], float('%%.%dg' % precision % value))
+
+    @unittest.skipIf(not cpp_matrices.exists(), "Matrices from C++ code not available.")
+    def test_value_overflow(self):
+        with self.subTest("integer"):
+            with self.assertRaises(OverflowError):
+                # SciPy throws OverflowError for integer values larger than 64-bit
+                fmm.mmread(cpp_matrices / "overflow" / "overflow_value_gt_int64.mtx")
+
+            # values larger than 32-bit do not throw
+            fmm.mmread(cpp_matrices / "overflow" / "overflow_value_gt_int32.mtx")
+
+        with self.subTest("float"):
+            # Python floating-point returns closest match on overflow, matching strtod() behavior if ERANGE is ignored
+            m = fmm.mmread(cpp_matrices / "overflow" / "overflow_value_gt_float128.mtx")
+            self.assertEqual(m.data[0], float("inf"))
+
+        with self.subTest("complex"):
+            m = fmm.mmread(cpp_matrices / "overflow" / "overflow_value_gt_complex128.mtx")
+            self.assertEqual(m.data[-1].real, float("inf"))
+            self.assertEqual(m.data[-1].imag, float("inf"))
 
 
 if __name__ == '__main__':

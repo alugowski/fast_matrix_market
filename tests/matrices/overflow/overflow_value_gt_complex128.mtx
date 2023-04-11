@@ -1,0 +1,6 @@
+%%MatrixMarket matrix coordinate complex general
+% matrix with values that overflow a 128-bit float
+3 3 3
+2 2 1 1E9999
+3 3 1E9999 0
+1 1 1E9999 1E9999

@@ -5,10 +5,12 @@ from pathlib import Path
 import numpy as np
 import unittest
 import scipy
+import sys
 
 import fast_matrix_market as fmm
 
 matrices = Path("matrices")
+IS_PYPY = "PyPy" in sys.version
 
 
 class TestTriplet(unittest.TestCase):
@@ -40,6 +42,7 @@ class TestTriplet(unittest.TestCase):
                 fmm_scipy = scipy.sparse.coo_matrix(triplet, shape=shape)
                 self.assertMatrixEqual(m, fmm_scipy)
 
+    @unittest.skipIf(IS_PYPY, "Writing into BytesIO has no effect on PyPy")
     def test_write(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
             mtx_header = fmm.read_header(mtx)
@@ -61,6 +64,7 @@ class TestTriplet(unittest.TestCase):
                 fmm_scipy2 = scipy.sparse.coo_matrix(triplet2, shape=shape2)
                 self.assertMatrixEqual(fmm_scipy, fmm_scipy2)
 
+    @unittest.skipIf(IS_PYPY, "Writing into BytesIO has no effect on PyPy")
     def test_list(self):
         i = [0, 1, 2]
         j = [0, 1, 2]

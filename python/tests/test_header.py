@@ -3,10 +3,13 @@
 from io import BytesIO, StringIO
 import unittest
 from pathlib import Path
+import sys
 
 import fast_matrix_market as fmm
 
 matrices = Path("matrices")
+cpp_matrices = matrices / ".." / ".." / ".." / "tests" / "matrices"
+IS_PYPY = "PyPy" in sys.version
 
 
 class TestHeader(unittest.TestCase):
@@ -60,6 +63,7 @@ class TestHeader(unittest.TestCase):
                               object="matrix", format="coordinate", field="real", symmetry="general")
         self.assertEqual(h.to_dict(), expected.to_dict())
 
+    @unittest.skipIf(IS_PYPY, "Writing into BytesIO has no effect on PyPy")
     def test_read_write(self):
         h = fmm.header(shape=(3, 3), nnz=3, comment="3-by-3 identity matrix",
                        object="matrix", format="coordinate", field="real", symmetry="general")
@@ -71,6 +75,16 @@ class TestHeader(unittest.TestCase):
 
         h2 = fmm.read_header(StringIO(s))
         self.assertEqual(h.to_dict(), h2.to_dict())
+
+    @unittest.skipIf(not cpp_matrices.exists(), "Matrices from C++ code not available.")
+    def test_header_overflow(self):
+        with self.assertRaises(OverflowError):
+            fmm.mmread(cpp_matrices / "overflow" / "overflow_dim_gt_int64.mtx")
+
+    @unittest.skipIf(not cpp_matrices.exists(), "Matrices from C++ code not available.")
+    def test_index_overflow(self):
+        with self.assertRaises(OverflowError):
+            fmm.mmread(cpp_matrices / "overflow" / "overflow_index_gt_int64.mtx")
 
 
 if __name__ == '__main__':

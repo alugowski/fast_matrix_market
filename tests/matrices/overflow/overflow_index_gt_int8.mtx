@@ -1,0 +1,4 @@
+%%MatrixMarket matrix coordinate real general
+% matrix with indices that overflow an int8
+1000 1000 1
+300 1 1

@@ -5,7 +5,7 @@
 
 A fast and full-featured Matrix Market I/O library for C++ and [Python](python).
 
-Ready-to-use bindings for [GraphBLAS](README.GraphBLAS.md), [Eigen](README.Eigen.md), [CXSparse](README.CXSparse.md), [Blaze](README.Blaze.md), [SciPy](python/README.md), `std::vector`.  
+Ready-to-use bindings for [GraphBLAS](README.GraphBLAS.md), [Eigen](README.Eigen.md), [CXSparse](README.CXSparse.md), [Blaze](README.Blaze.md), [Armadillo](README.Armadillo.md), [SciPy](python/README.md), `std::vector`.  
 Easy to integrate with any datastructure.
 
 [Matrix Market](https://math.nist.gov/MatrixMarket/formats.html) is a simple, human-readable, and widely used sparse matrix file format that looks like this:
@@ -82,11 +82,13 @@ Then simply run all the cells in the [benchmark_plots/plot.ipynb](benchmark_plot
 
 ## Coordinate / Triplets
 
+Matrix composed of row and column index vectors and a value vector. Any vector class that can be resized and iterated like `std::vector` will work. 
+
 ```c++
 struct triplet_matrix {
     int64_t nrows = 0, ncols = 0;
     std::vector<int64_t> rows, cols;
-    std::vector<double> vals;
+    std::vector<double> vals;       // or int64_t, float, std::complex<double>, etc.
 } mat;
 
 fast_matrix_market::read_matrix_market_triplet(
@@ -99,10 +101,14 @@ Doublet sparse vectors, composed of index and value vectors, are supported in a 
 
 ## Dense arrays
 
+Any vector class that can be resized and iterated like `std::vector` will work.
+
+Be mindful of whether your code expects row or column major ordering.
+
 ```c++
 struct array_matrix {
     int64_t nrows = 0, ncols = 0;
-    std::vector<double> vals;
+    std::vector<double> vals;       // or int64_t, float, std::complex<double>, etc.
 } mat;
 
 fast_matrix_market::read_matrix_market_array(
@@ -141,6 +147,13 @@ fast_matrix_market::read_matrix_market_cxsparse(input_stream, &A, cs_dl_spalloc)
 ```c++
 blaze::CompressedMatrix<double> A;
 fast_matrix_market::read_matrix_market_blaze(input_stream, A);
+```
+
+## Armadillo
+[Armadillo](https://arma.sourceforge.net/) sparse and dense matrices are supported. See [Armadillo README](README.Armadillo.md).
+```c++
+arma::SpMat<double> A;
+fast_matrix_market::read_matrix_market_arma(input_stream, A);
 ```
 
 ## Your Own

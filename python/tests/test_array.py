@@ -5,10 +5,12 @@ from pathlib import Path
 import numpy as np
 import unittest
 import scipy
+import sys
 
 import fast_matrix_market as fmm
 
 matrices = Path("matrices")
+IS_PYPY = "PyPy" in sys.version
 
 
 class TestArray(unittest.TestCase):
@@ -33,6 +35,7 @@ class TestArray(unittest.TestCase):
                 m_fmm = fmm.read_array(mtx)
                 self.assertMatrixEqual(m, m_fmm)
 
+    @unittest.skipIf(IS_PYPY, "Writing into BytesIO has no effect on PyPy")
     def test_write(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
             mtx_header = fmm.read_header(mtx)

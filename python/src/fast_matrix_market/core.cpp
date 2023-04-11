@@ -8,6 +8,17 @@
 
 #include "pystreambuf.h"
 
+#include <fast_matrix_market/types.hpp>
+namespace fast_matrix_market {
+    // Be able to set unsigned-integer field type. This type is only used by SciPy to represent uint64 values.
+    field_type get_field_type([[maybe_unused]] const uint32_t* type) {
+        return unsigned_integer;
+    }
+
+    field_type get_field_type([[maybe_unused]] const uint64_t* type) {
+        return unsigned_integer;
+    }
+}
 #include <fast_matrix_market/fast_matrix_market.hpp>
 
 namespace py = pybind11;
@@ -137,6 +148,8 @@ read_cursor open_read_file(const std::string& filename, int num_threads) {
     read_cursor cursor(filename);
     // Set options
     cursor.options.num_threads = num_threads;
+    // Python parses 1e9999 as Inf
+    cursor.options.float_out_of_range_behavior = fmm::BestMatch;
 
     open_read_rest(cursor);
     return cursor;
@@ -146,6 +159,8 @@ read_cursor open_read_stream(std::shared_ptr<pystream::istream>& external, int n
     read_cursor cursor(external);
     // Set options
     cursor.options.num_threads = num_threads;
+    // Python parses 1e9999 as Inf
+    cursor.options.float_out_of_range_behavior = fmm::BestMatch;
 
     open_read_rest(cursor);
     return cursor;
@@ -320,7 +335,7 @@ void write_coo(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
     cursor.header.nnz = rows.size();
 
     cursor.header.object = fmm::matrix;
-    cursor.header.field = data.size() == 0 ? fmm::pattern : fmm::get_field_type((const VT*)nullptr);
+    cursor.header.field = (data.size() == 0 ? (cursor.header.nnz == 0 ? fmm::real : fmm::pattern) : fmm::get_field_type((const VT*)nullptr));
     cursor.header.format = fmm::coordinate;
 
     fmm::write_header(cursor.stream(), cursor.header);
@@ -346,9 +361,6 @@ void write_coo(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
 template <typename IT, typename VT>
 void write_csc(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
                    py::array_t<IT>& indptr, py::array_t<IT>& indices, py::array_t<VT>& data, bool is_csr) {
-    if (indptr.size() != std::get<1>(shape) + 1) {
-        throw std::invalid_argument("indptr length does not match matrix shape.");
-    }
     if (indices.size() != data.size() && data.size() != 0) {
         throw std::invalid_argument("len(indices) must equal len(data).");
     }
@@ -357,8 +369,13 @@ void write_csc(write_cursor& cursor, const std::tuple<int64_t, int64_t>& shape,
     cursor.header.ncols = std::get<1>(shape);
     cursor.header.nnz = indices.size();
 
+    if ((is_csr && indptr.size() != cursor.header.nrows + 1) ||
+       (!is_csr && indptr.size() != cursor.header.ncols + 1)) {
+        throw std::invalid_argument("indptr length does not match matrix shape.");
+    }
+
     cursor.header.object = fmm::matrix;
-    cursor.header.field = data.size() == 0 ? fmm::pattern : fmm::get_field_type((const VT*)nullptr);
+    cursor.header.field = (data.size() == 0 ? (cursor.header.nnz == 0 ? fmm::real : fmm::pattern) : fmm::get_field_type((const VT*)nullptr));
     cursor.header.format = fmm::coordinate;
     cursor.header.symmetry = fmm::general;
 
@@ -397,8 +414,10 @@ PYBIND11_MODULE(_core, m) {
             if (p) {
                 std::rethrow_exception(p);
             }
+        } catch (const fmm::out_of_range &e) {
+            PyErr_SetString(PyExc_OverflowError, e.what());
         } catch (const fmm::fmm_error &e) {
-            // Everything we throw maps best to ValueError
+            // Everything else we throw maps best to ValueError
             PyErr_SetString(PyExc_ValueError, e.what());
         }
     });
@@ -431,23 +450,31 @@ PYBIND11_MODULE(_core, m) {
     m.def("open_read_file", &open_read_file);
     m.def("open_read_stream", &open_read_stream);
 
-    // Write arrays
+    // Read arrays
     m.def("read_body_array", &read_body_array<int64_t>);
+    m.def("read_body_array", &read_body_array<uint64_t>);
+    m.def("read_body_array", &read_body_array<float>);
     m.def("read_body_array", &read_body_array<double>);
     m.def("read_body_array", &read_body_array<long double>);
+    m.def("read_body_array", &read_body_array<std::complex<float>>);
     m.def("read_body_array", &read_body_array<std::complex<double>>);
     m.def("read_body_array", &read_body_array<std::complex<long double>>);
 
-    // Write triplets
+    // Read triplets
     m.def("read_body_coo", &read_body_coo<int32_t, int64_t>);
+    m.def("read_body_coo", &read_body_coo<int32_t, uint64_t>);
+    m.def("read_body_coo", &read_body_coo<int32_t, float>);
     m.def("read_body_coo", &read_body_coo<int32_t, double>);
     m.def("read_body_coo", &read_body_coo<int32_t, long double>);
     m.def("read_body_coo", &read_body_coo<int32_t, std::complex<double>>);
     m.def("read_body_coo", &read_body_coo<int32_t, std::complex<long double>>);
 
     m.def("read_body_coo", &read_body_coo<int64_t, int64_t>);
+    m.def("read_body_coo", &read_body_coo<int64_t, uint64_t>);
+    m.def("read_body_coo", &read_body_coo<int64_t, float>);
     m.def("read_body_coo", &read_body_coo<int64_t, double>);
     m.def("read_body_coo", &read_body_coo<int64_t, long double>);
+    m.def("read_body_coo", &read_body_coo<int64_t, std::complex<float>>);
     m.def("read_body_coo", &read_body_coo<int64_t, std::complex<double>>);
     m.def("read_body_coo", &read_body_coo<int64_t, std::complex<long double>>);
 
@@ -459,35 +486,60 @@ PYBIND11_MODULE(_core, m) {
     m.def("open_write_stream", &open_write_stream);
 
     // Write arrays
+    m.def("write_array", &write_array<int32_t>);
+    m.def("write_array", &write_array<uint32_t>);
     m.def("write_array", &write_array<int64_t>);
+    m.def("write_array", &write_array<uint64_t>);
+    m.def("write_array", &write_array<float>);
     m.def("write_array", &write_array<double>);
     m.def("write_array", &write_array<long double>);
+    m.def("write_array", &write_array<std::complex<float>>);
     m.def("write_array", &write_array<std::complex<double>>);
     m.def("write_array", &write_array<std::complex<long double>>);
 
     // Write triplets
+    m.def("write_coo", &write_coo<int32_t, int32_t>);
+    m.def("write_coo", &write_coo<int32_t, uint32_t>);
     m.def("write_coo", &write_coo<int32_t, int64_t>);
+    m.def("write_coo", &write_coo<int32_t, uint64_t>);
+    m.def("write_coo", &write_coo<int32_t, float>);
     m.def("write_coo", &write_coo<int32_t, double>);
     m.def("write_coo", &write_coo<int32_t, long double>);
+    m.def("write_coo", &write_coo<int32_t, std::complex<float>>);
     m.def("write_coo", &write_coo<int32_t, std::complex<double>>);
     m.def("write_coo", &write_coo<int32_t, std::complex<long double>>);
 
+    m.def("write_coo", &write_coo<int64_t, int32_t>);
+    m.def("write_coo", &write_coo<int64_t, uint32_t>);
     m.def("write_coo", &write_coo<int64_t, int64_t>);
+    m.def("write_coo", &write_coo<int64_t, uint64_t>);
+    m.def("write_coo", &write_coo<int64_t, float>);
     m.def("write_coo", &write_coo<int64_t, double>);
     m.def("write_coo", &write_coo<int64_t, long double>);
+    m.def("write_coo", &write_coo<int64_t, std::complex<float>>);
     m.def("write_coo", &write_coo<int64_t, std::complex<double>>);
     m.def("write_coo", &write_coo<int64_t, std::complex<long double>>);
 
     // Write CSC/CSR
+    m.def("write_csc", &write_csc<int32_t, int32_t>);
+    m.def("write_csc", &write_csc<int32_t, uint32_t>);
     m.def("write_csc", &write_csc<int32_t, int64_t>);
+    m.def("write_csc", &write_csc<int32_t, uint64_t>);
+    m.def("write_csc", &write_csc<int32_t, float>);
     m.def("write_csc", &write_csc<int32_t, double>);
     m.def("write_csc", &write_csc<int32_t, long double>);
+    m.def("write_csc", &write_csc<int32_t, std::complex<float>>);
     m.def("write_csc", &write_csc<int32_t, std::complex<double>>);
     m.def("write_csc", &write_csc<int32_t, std::complex<long double>>);
 
+    m.def("write_csc", &write_csc<int64_t, int32_t>);
+    m.def("write_csc", &write_csc<int64_t, uint32_t>);
     m.def("write_csc", &write_csc<int64_t, int64_t>);
+    m.def("write_csc", &write_csc<int64_t, uint64_t>);
+    m.def("write_csc", &write_csc<int64_t, float>);
     m.def("write_csc", &write_csc<int64_t, double>);
     m.def("write_csc", &write_csc<int64_t, long double>);
+    m.def("write_csc", &write_csc<int64_t, std::complex<float>>);
     m.def("write_csc", &write_csc<int64_t, std::complex<double>>);
     m.def("write_csc", &write_csc<int64_t, std::complex<long double>>);
 

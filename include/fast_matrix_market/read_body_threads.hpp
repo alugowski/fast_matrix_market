@@ -13,18 +13,20 @@ namespace fast_matrix_market {
 
     struct line_count_result {
         std::string chunk;
-        int64_t chunk_line_start = -1;
-        int64_t chunk_line_count = -1;
+        line_counts counts;
     };
 
     inline line_count_result count_chunk_lines(line_count_result lcr) {
-        lcr.chunk_line_count = count_lines(lcr.chunk);
+        auto [lines, empties] = count_lines(lcr.chunk);
+
+        lcr.counts.file_line = lines;
+        lcr.counts.element_num = lines - empties;
         return lcr;
     }
 
     template <typename HANDLER>
-    int64_t read_body_threads(std::istream& instream, const matrix_market_header& header,
-                              HANDLER& handler, const read_options& options = {}) {
+    line_counts read_body_threads(std::istream& instream, const matrix_market_header& header,
+                                  HANDLER& handler, const read_options& options = {}) {
         /*
          * Pipeline:
          * 1. Read chunk
@@ -47,7 +49,7 @@ namespace fast_matrix_market {
          * The line count step is significantly faster than the parse step. As a form of backpressure we don't read
          * additional chunks if there are too many inflight chunks.
          */
-        auto line_num = header.header_line_count;
+        line_counts lc{header.header_line_count, 0};
 
         std::queue<std::future<line_count_result>> line_count_futures;
         std::queue<std::future<void>> parse_futures;
@@ -68,7 +70,7 @@ namespace fast_matrix_market {
             line_count_futures.push(pool.submit(count_chunk_lines, lcr));
         }
 
-        // Read chunks in order as they become available.
+        // Read chunks in order, as they become available.
         while (!line_count_futures.empty()) {
 
             // Wait on any parse results. This serves as backpressure.
@@ -90,33 +92,32 @@ namespace fast_matrix_market {
                 line_count_futures.push(pool.submit(count_chunk_lines, new_lcr));
             }
 
-            // Figure out where this chunk belongs
-            lcr.chunk_line_start = line_num;
-            line_num += lcr.chunk_line_count;
-
             // Parse it.
-            auto body_line = lcr.chunk_line_start - header.header_line_count;
-            if (body_line > header.nnz) {
-                throw invalid_mm("File too long", lcr.chunk_line_start + 1);
+            if (lc.element_num > header.nnz) {
+                throw invalid_mm("File too long", lc.file_line + 1);
             }
-            auto chunk_handler = handler.get_chunk_handler(body_line * generalizing_symmetry_factor);
+            auto chunk_handler = handler.get_chunk_handler(lc.element_num * generalizing_symmetry_factor);
             if (header.format == array) {
                 // compute the starting row/column for this array chunk
-                typename HANDLER::coordinate_type row = body_line % header.nrows;
-                typename HANDLER::coordinate_type col = body_line / header.nrows;
+                typename HANDLER::coordinate_type row = lc.element_num % header.nrows;
+                typename HANDLER::coordinate_type col = lc.element_num / header.nrows;
 
                 parse_futures.push(pool.submit([=]() mutable {
-                    read_chunk_array(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, options, row, col);
+                    read_chunk_array(lcr.chunk, header, lc, chunk_handler, options, row, col);
                 }));
             } else if (header.object == matrix) {
                 parse_futures.push(pool.submit([=]() mutable {
-                    read_chunk_matrix_coordinate(lcr.chunk, header, lcr.chunk_line_start, chunk_handler, options);
+                    read_chunk_matrix_coordinate(lcr.chunk, header, lc, chunk_handler, options);
                 }));
             } else {
                 parse_futures.push(pool.submit([=]() mutable {
-                    read_chunk_vector_coordinate(lcr.chunk, header, lcr.chunk_line_start, chunk_handler);
+                    read_chunk_vector_coordinate(lcr.chunk, header, lc, chunk_handler, options);
                 }));
             }
+
+            // Advance counts for next chunk
+            lc.file_line += lcr.counts.file_line;
+            lc.element_num += lcr.counts.element_num;
         }
 
         // Wait on any parse results. This will throw any parse errors.
@@ -125,6 +126,6 @@ namespace fast_matrix_market {
             parse_futures.pop();
         }
 
-        return line_num;
+        return lc;
     }
 }

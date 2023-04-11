@@ -1,0 +1,6 @@
+%%MatrixMarket matrix coordinate real general
+% Matrix with indices that overflow an int64.
+% This matrix is also invalid because the index value is greater than the declared dimension,
+% but is intended to test the index parser.
+1000 1000 1
+19223372036854775808 1 1
