@@ -205,6 +205,29 @@ TEST_P(InvalidSuite, Small) {
 INSTANTIATE_TEST_SUITE_P(Invalid, InvalidSuite, testing::ValuesIn(InvalidSuite::get_invalid_matrix_files()));
 
 /**
+ * Permissive matrices
+ *
+ * These are technically invalid, but can still be read.
+ */
+TEST(PermissiveSuite, Small) {
+    const std::string kPermissiveMatrixSubDir = "permissive/";
+
+    triplet_matrix<int64_t, double> eye3;
+    read_triplet_file("eye3.mtx", eye3);
+
+    {
+        triplet_matrix<int64_t, double> triplet_ld;
+        read_triplet_file(kPermissiveMatrixSubDir + "permissive_banner_one_percent_eye3.mtx", triplet_ld);
+        EXPECT_EQ(eye3, triplet_ld);
+    }
+    {
+        triplet_matrix<int64_t, double> triplet_ld;
+        read_triplet_file(kPermissiveMatrixSubDir + "permissive_banner_leading_spaces_eye3.mtx", triplet_ld);
+        EXPECT_EQ(eye3, triplet_ld);
+    }
+}
+
+/**
  * Overflow
  */
 TEST(OverflowSuite, Small) {
