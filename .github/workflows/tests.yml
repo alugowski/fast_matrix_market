@@ -25,14 +25,16 @@ jobs:
       if: contains(matrix.os, 'ubuntu')
       run: sudo apt-get install -y libarmadillo-dev
 
-# The GraphBLAS that is in the Ubuntu repos is so old it doesn't even have GrB_Scalar.
-#    - name: Install GraphBLAS (Ubuntu)
-#      if: contains(matrix.os, 'ubuntu')
-#        # install suitesparse-dev which installs GraphBLAS.h and libgraphblas.a and .so
-#        # These are very old, so disable all the fun features.
-#      run: |
-#        sudo apt-get install -y libsuitesparse-dev
-#        echo "FMM_CMAKE_FLAGS=-DFMM_NO_GXB=ON" >> $GITHUB_ENV
+    - name: Install GraphBLAS (ubuntu)
+      if: contains(matrix.os, 'ubuntu')
+      run: |
+        mkdir -p grb
+        cd grb
+        wget --quiet https://anaconda.org/conda-forge/graphblas/7.4.4/download/linux-64/graphblas-7.4.4-hcb278e6_0.conda
+        unzip graphblas-7.4.4-hcb278e6_0.conda
+        tar xvf pkg-graphblas-7.4.4-hcb278e6_0.tar.zst
+        cd ..
+        echo "FMM_CMAKE_FLAGS=-DCMAKE_MODULE_PATH=${{ github.workspace }}/grb/lib/cmake/SuiteSparse -DGraphBLAS_ROOT=${{ github.workspace }}/grb/" >> $GITHUB_ENV
 
     - name: Install GraphBLAS (macOS)
       if: contains(matrix.os, 'macos')
