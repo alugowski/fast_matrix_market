@@ -11,6 +11,12 @@ Tested with [SuiteSparse:GraphBLAS](https://github.com/DrTimothyAldenDavis/Graph
 ```
 
 ```c++
+// Initialize GraphBLAS.
+// GrB_init() has to be called before any other GraphBLAS methods else you get a GrB_PANIC.
+GrB_init(GrB_NONBLOCKING); // or GrB_BLOCKING
+```
+
+```c++
 GrB_Matrix A;
 // or
 GrB_Vector A;
