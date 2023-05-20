@@ -1,5 +1,6 @@
 // Copyright (C) 2022 Adam Lugowski. All rights reserved.
 // Use of this source code is governed by the BSD 2-clause license found in the LICENSE.txt file.
+// SPDX-License-Identifier: BSD-2-Clause
 
 #include <filesystem>
 #include <fstream>

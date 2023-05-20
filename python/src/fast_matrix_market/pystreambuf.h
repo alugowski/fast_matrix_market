@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BSD-3-Clause
 /*
 Based on https://gist.github.com/asford/544323a5da7dddad2c9174490eb5ed06
 
