@@ -7,7 +7,7 @@
 #include <queue>
 
 #include "fast_matrix_market.hpp"
-#include "3rdparty/BS_thread_pool_light.hpp"
+#include "thirdparty//task_thread_pool.hpp"
 
 namespace fast_matrix_market {
 
@@ -53,14 +53,14 @@ namespace fast_matrix_market {
 
         std::queue<std::future<line_count_result>> line_count_futures;
         std::queue<std::future<void>> parse_futures;
-        BS::thread_pool_light pool(options.num_threads);
+        task_thread_pool::task_thread_pool pool(options.num_threads);
 
         int generalizing_symmetry_factor = (header.symmetry != general && options.generalize_symmetry) ? 2 : 1;
 
         // Number of concurrent chunks available to work on.
         // Too few may starve workers (such as due to uneven chunk splits)
         // Too many increases costs, such as storing chunk results in memory before they're written.
-        const unsigned inflight_count = 5 * pool.get_thread_count();
+        const unsigned inflight_count = 5 * pool.get_num_threads();
 
         // Start reading chunks and counting lines.
         for (unsigned seed_i = 0; seed_i < inflight_count && instream.good(); ++seed_i) {

@@ -6,7 +6,7 @@
 #include <queue>
 
 #include "fast_matrix_market.hpp"
-#include "3rdparty/BS_thread_pool_light.hpp"
+#include "thirdparty//task_thread_pool.hpp"
 
 namespace fast_matrix_market {
     /**
@@ -33,12 +33,12 @@ namespace fast_matrix_market {
          * and a thread pool performs the parallel work.
          */
         std::queue<std::future<std::string>> futures;
-        BS::thread_pool_light pool(options.num_threads);
+        task_thread_pool::task_thread_pool pool(options.num_threads);
 
         // Number of concurrent chunks available to work on.
         // Too few may starve workers (such as due to uneven chunk splits)
         // Too many increases costs, such as storing chunk results in memory before they're written.
-        const int inflight_count = 5 * (int)pool.get_thread_count();
+        const int inflight_count = 5 * (int)pool.get_num_threads();
 
         // Start computing tasks.
         for (int batch_i = 0; batch_i < inflight_count && formatter.has_next(); ++batch_i) {
