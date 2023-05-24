@@ -422,7 +422,7 @@ class streambuf : public std::basic_streambuf<char>
         upper_bound = reinterpret_cast<std::streamsize>(farthest_pptr) + 1;
       }
       else {
-           std::runtime_error(
+           throw std::runtime_error(
              "Control flow passes through branch that should be unreachable.");
       }
 
@@ -438,7 +438,7 @@ class streambuf : public std::basic_streambuf<char>
         return false;
       }
       else {
-           std::runtime_error(
+           throw std::runtime_error(
              "Control flow passes through branch that should be unreachable.");
       }
 
