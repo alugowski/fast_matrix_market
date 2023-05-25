@@ -80,6 +80,12 @@ Then simply run all the cells in the [benchmark_plots/plot.ipynb](benchmark_plot
 
 `fast_matrix_market` provides both ready-to-use methods for common data structures and building blocks for your own. See [examples/](examples) for complete code.
 
+In general, the `read_matrix_market_*` methods accept a `std::istream` and a datastructure to read into. This datastructure can be sparse or dense, and will accept any Matrix Market file.
+
+The `write_matrix_market_*` methods accept a `std::ostream` and a datastructure. If the datastructure is sparse then a `coordinate` Matrix Market file is written, else an `array` file is written.
+
+The methods also accept an optional `header` argument that can be used to read and write file metadata, such as the comment or whether the matrix is a `pattern`.
+
 ## Coordinate / Triplets
 
 Matrix composed of row and column index vectors and a value vector. Any vector class that can be resized and iterated like `std::vector` will work. 
@@ -158,7 +164,9 @@ fast_matrix_market::read_matrix_market_arma(input_stream, A);
 
 ## Your Own
 
-Simply provide `parse_handler` and `formatter` classes to read and write from/to any datastructure, respectively. The class you need is likely already in the library.
+Use the provided methods to read or write the header.
+
+Next read or write the body. You'll mostly just need to provide `parse_handler` (reads) and `formatter` (writes) classes to read and write from/to your datastructure, respectively. The class you need is likely already in the library, though subtle differences between datastructures mean each one tends to need some customization.
 
 Follow the example of the triplet and array implementations in [include/fast_matrix_market/app/](include/fast_matrix_market/app).
 
