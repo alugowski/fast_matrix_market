@@ -2,7 +2,7 @@
 # Use of this source code is governed by the BSD 2-clause license found in the LICENSE.txt file.
 # SPDX-License-Identifier: BSD-2-Clause
 """
-The ultimate Matrix Market I/O library. Read and write MatrixMarket files.
+Read and write Matrix Market files.
 
 Supports sparse coo/triplet matrices, sparse scipy matrices, and numpy array dense matrices.
 """
@@ -14,13 +14,13 @@ from ._core import __version__, header
 
 PARALLELISM = 0
 """
-Number of threads to use. 0 means number of threads in the system.
+Number of threads to use. 0 means number of CPUs in the system.
 """
 
 ALWAYS_FIND_SYMMETRY = False
 """
-If True then equivalent to always passing find_symmetry=True to mmwrite() and write_scipy().
-This matches scipy.io.mmwrite behavior, as well as its massive performance cost.
+If True then equivalent to always passing find_symmetry=True to mmwrite().
+This matches scipy.io.mmwrite()'s behavior, as well as its performance cost.
 """
 
 _field_to_dtype = {
@@ -337,7 +337,7 @@ def read_array_or_coo(source, parallelism=None, long_type=False, generalize_symm
         return (data, (rows, cols)), shape
 
 
-def read_scipy(source, parallelism=None, long_type=False):
+def mmread(source, parallelism=None, long_type=False):
     """
     Read MatrixMarket file. If the file is dense, return a 2D numpy array. Else return a SciPy sparse matrix.
 
@@ -359,7 +359,7 @@ def read_scipy(source, parallelism=None, long_type=False):
         return coo_matrix(triplet, shape=shape)
 
 
-def write_scipy(target, a, comment=None, field=None, precision=None, symmetry=None,
+def mmwrite(target, a, comment=None, field=None, precision=None, symmetry=None,
                 parallelism=None, find_symmetry=False):
     """
     Write a matrix to a MatrixMarket file or file-like object.
@@ -433,10 +433,6 @@ def write_scipy(target, a, comment=None, field=None, precision=None, symmetry=No
     raise ValueError("unknown matrix type: %s" % type(a))
 
 
-mmread = read_scipy
-mmwrite = write_scipy
-
-
 def mminfo(source):
     """
     Same as scipy.io.mminfo()
@@ -446,3 +442,7 @@ def mminfo(source):
     """
     h = read_header(source)
     return h.nrows, h.ncols, h.nnz, h.format, h.field, h.symmetry
+
+
+read_scipy = mmread
+write_scipy = mmwrite
