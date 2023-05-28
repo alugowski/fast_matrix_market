@@ -1,6 +1,6 @@
 {
   "context": {
-    "date": "2023-01-18T15:22:21-08:00",
+    "date": "2023-05-27T21:05:03-07:00",
     "host_name": "notchie.local",
     "executable": "bench_fmm.py",
     "num_cpus": 8,
@@ -26,7 +26,7 @@
         "num_sharing": 1
       }
     ],
-    "load_avg": [3.19922,3.85059,4.88379],
+    "load_avg": [2.46436,2.93506,2.76855],
     "library_build_type": "release"
   },
   "benchmarks": [
@@ -40,10 +40,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 2.8780951400403863e+08,
-      "cpu_time": 2.8409199999999994e+08,
+      "real_time": 2.7772244461812079e+08,
+      "cpu_time": 2.7390133333333325e+08,
       "time_unit": "ns",
-      "bytes_per_second": 3.7440370021432966e+08
+      "bytes_per_second": 3.8800229901537132e+08
     },
     {
       "name": "op:read/matrix:Array/impl:FMM(Python)/lang:Python/p:2/iterations:3/real_time",
@@ -55,10 +55,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.7502605533324337e+08,
-      "cpu_time": 9.8698333333333328e+07,
+      "real_time": 1.7037922229307392e+08,
+      "cpu_time": 5.8734333333333522e+07,
       "time_unit": "ns",
-      "bytes_per_second": 6.1566231836074126e+08
+      "bytes_per_second": 6.3245356769292176e+08
     },
     {
       "name": "op:read/matrix:Array/impl:FMM(Python)/lang:Python/p:3/iterations:3/real_time",
@@ -70,10 +70,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.2772390266278915e+08,
-      "cpu_time": 9.4807333333333313e+07,
+      "real_time": 1.3339719432406127e+08,
+      "cpu_time": 6.2379666666666575e+07,
       "time_unit": "ns",
-      "bytes_per_second": 8.4367095550231504e+08
+      "bytes_per_second": 8.0779020537888134e+08
     },
     {
       "name": "op:read/matrix:Array/impl:FMM(Python)/lang:Python/p:4/iterations:3/real_time",
@@ -85,10 +85,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.1774073599857123e+08,
-      "cpu_time": 9.5448333333333269e+07,
+      "real_time": 1.0190105562408765e+08,
+      "cpu_time": 5.6219666666666776e+07,
       "time_unit": "ns",
-      "bytes_per_second": 9.1520531179036975e+08
+      "bytes_per_second": 1.0574664446805605e+09
     },
     {
       "name": "op:read/matrix:Array/impl:FMM(Python)/lang:Python/p:6/iterations:3/real_time",
@@ -100,10 +100,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.1822872233460657e+08,
-      "cpu_time": 9.4664333333333239e+07,
+      "real_time": 8.7632708329086497e+07,
+      "cpu_time": 5.5611000000000000e+07,
       "time_unit": "ns",
-      "bytes_per_second": 9.1142782288579810e+08
+      "bytes_per_second": 1.2296430072130270e+09
     },
     {
       "name": "op:read/matrix:Array/impl:FMM(Python)/lang:Python/p:8/iterations:3/real_time",
@@ -115,10 +115,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.1918201399870062e+08,
-      "cpu_time": 9.1663000000000194e+07,
+      "real_time": 9.4669958343729377e+07,
+      "cpu_time": 5.4365000000000067e+07,
       "time_unit": "ns",
-      "bytes_per_second": 9.0413765789504802e+08
+      "bytes_per_second": 1.1382380312110643e+09
     },
     {
       "name": "op:write/matrix:Array/impl:FMM(Python)/lang:Python/p:1/iterations:3/real_time",
@@ -130,10 +130,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 5.1620175000183129e+08,
-      "cpu_time": 5.1267933333333325e+08,
+      "real_time": 5.6395298599575961e+08,
+      "cpu_time": 5.5872133333333337e+08,
       "time_unit": "ns",
-      "bytes_per_second": 2.0874967393972942e+08
+      "bytes_per_second": 1.9107434427310619e+08
     },
     {
       "name": "op:write/matrix:Array/impl:FMM(Python)/lang:Python/p:2/iterations:3/real_time",
@@ -145,10 +145,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 2.1907966666913125e+08,
-      "cpu_time": 6.8939000000000015e+07,
+      "real_time": 2.4617763872568807e+08,
+      "cpu_time": 7.0306333333333507e+07,
       "time_unit": "ns",
-      "bytes_per_second": 4.9186192693428612e+08
+      "bytes_per_second": 4.3772028831616139e+08
     },
     {
       "name": "op:write/matrix:Array/impl:FMM(Python)/lang:Python/p:3/iterations:3/real_time",
@@ -160,10 +160,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.4584359699802008e+08,
-      "cpu_time": 6.9050999999999970e+07,
+      "real_time": 1.6507087500455478e+08,
+      "cpu_time": 6.8937666666666493e+07,
       "time_unit": "ns",
-      "bytes_per_second": 7.3885277940218985e+08
+      "bytes_per_second": 6.5279200220527494e+08
     },
     {
       "name": "op:write/matrix:Array/impl:FMM(Python)/lang:Python/p:4/iterations:3/real_time",
@@ -175,10 +175,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.1178690300342472e+08,
-      "cpu_time": 6.8090333333333150e+07,
+      "real_time": 1.2601783336140215e+08,
+      "cpu_time": 7.0896666666666463e+07,
       "time_unit": "ns",
-      "bytes_per_second": 9.6394965872432077e+08
+      "bytes_per_second": 8.5509283984408462e+08
     },
     {
       "name": "op:write/matrix:Array/impl:FMM(Python)/lang:Python/p:6/iterations:3/real_time",
@@ -190,10 +190,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 9.5084097333407640e+07,
-      "cpu_time": 8.4909333333333656e+07,
+      "real_time": 9.9844013961652920e+07,
+      "cpu_time": 9.0937666666666731e+07,
       "time_unit": "ns",
-      "bytes_per_second": 1.1332804330271511e+09
+      "bytes_per_second": 1.0792529539265740e+09
     },
     {
       "name": "op:write/matrix:Array/impl:FMM(Python)/lang:Python/p:8/iterations:3/real_time",
@@ -205,10 +205,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 9.1484944331265673e+07,
-      "cpu_time": 7.5829999999999836e+07,
+      "real_time": 1.0170726369445522e+08,
+      "cpu_time": 8.1402333333333433e+07,
       "time_unit": "ns",
-      "bytes_per_second": 1.1778653612097487e+09
+      "bytes_per_second": 1.0594813299050006e+09
     },
     {
       "name": "op:read/matrix:Array/impl:SciPy/lang:Python/real_time",
@@ -220,10 +220,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 2.4461336669919548e+09,
-      "cpu_time": 2.4449480000000000e+09,
+      "real_time": 2.6497797090560198e+09,
+      "cpu_time": 2.6475929999999986e+09,
       "time_unit": "ns",
-      "bytes_per_second": 4.4051945506522648e+07
+      "bytes_per_second": 4.0666379409474857e+07
     },
     {
       "name": "op:write/matrix:Array/impl:SciPy/lang:Python/real_time",
@@ -235,10 +235,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 5.4490099579998055e+09,
-      "cpu_time": 5.4229930000000000e+09,
+      "real_time": 5.1098250001668930e+09,
+      "cpu_time": 5.0893970000000019e+09,
       "time_unit": "ns",
-      "bytes_per_second": 4.2202100339785837e+07
+      "bytes_per_second": 4.5003432601407923e+07
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:1/iterations:3/real_time",
@@ -250,10 +250,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 6.1599072233366311e+08,
-      "cpu_time": 6.1001333333333409e+08,
+      "real_time": 5.5059705565993989e+08,
+      "cpu_time": 5.4096899999999988e+08,
       "time_unit": "ns",
-      "bytes_per_second": 4.3110046364652497e+08
+      "bytes_per_second": 4.8230168191093922e+08
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:2/iterations:3/real_time",
@@ -265,10 +265,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.4258298600131339e+08,
-      "cpu_time": 2.1681466666666675e+08,
+      "real_time": 3.1867479168189067e+08,
+      "cpu_time": 1.3916966666666636e+08,
       "time_unit": "ns",
-      "bytes_per_second": 7.7515199776728535e+08
+      "bytes_per_second": 8.3330684739282000e+08
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:3/iterations:3/real_time",
@@ -280,10 +280,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 2.6920530533728498e+08,
-      "cpu_time": 2.4937700000000024e+08,
+      "real_time": 2.3048220830969512e+08,
+      "cpu_time": 1.4430633333333334e+08,
       "time_unit": "ns",
-      "bytes_per_second": 9.8643630246175802e+08
+      "bytes_per_second": 1.1521665292410755e+09
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:4/iterations:3/real_time",
@@ -295,10 +295,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 2.6259601366958427e+08,
-      "cpu_time": 2.4794300000000057e+08,
+      "real_time": 1.8674079165793955e+08,
+      "cpu_time": 1.3767466666666669e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0112639650887371e+09
+      "bytes_per_second": 1.4220454119441965e+09
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:6/iterations:3/real_time",
@@ -310,10 +310,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 2.4167979166668376e+08,
-      "cpu_time": 2.2619999999999860e+08,
+      "real_time": 1.6193230535524586e+08,
+      "cpu_time": 1.3647700000000048e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0987839908693838e+09
+      "bytes_per_second": 1.6399067833773496e+09
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:8/iterations:3/real_time",
@@ -325,10 +325,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 2.3278544433317924e+08,
-      "cpu_time": 2.1631366666666570e+08,
+      "real_time": 1.6077709733508527e+08,
+      "cpu_time": 1.3414966666666691e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.1407667122860148e+09
+      "bytes_per_second": 1.6516897642861600e+09
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:1/iterations:3/real_time",
@@ -340,10 +340,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.3063162360000813e+09,
-      "cpu_time": 1.3008966666666677e+09,
+      "real_time": 1.2141708886095634e+09,
+      "cpu_time": 1.2051946666666663e+09,
       "time_unit": "ns",
-      "bytes_per_second": 2.0328453301102772e+08
+      "bytes_per_second": 2.1871211745498639e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:2/iterations:3/real_time",
@@ -355,10 +355,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 6.0857824999645042e+08,
-      "cpu_time": 1.6301966666666701e+08,
+      "real_time": 6.1694048632246745e+08,
+      "cpu_time": 1.5999233333333388e+08,
       "time_unit": "ns",
-      "bytes_per_second": 4.3635125968032682e+08
+      "bytes_per_second": 4.3043679558614361e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:3/iterations:3/real_time",
@@ -370,10 +370,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 4.4125386100010175e+08,
-      "cpu_time": 1.5919500000000042e+08,
+      "real_time": 4.6796799994384247e+08,
+      "cpu_time": 1.5195433333333358e+08,
       "time_unit": "ns",
-      "bytes_per_second": 6.0181657197995329e+08
+      "bytes_per_second": 5.6746163419692636e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:4/iterations:3/real_time",
@@ -385,10 +385,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.4632825000153393e+08,
-      "cpu_time": 1.6197666666666660e+08,
+      "real_time": 3.8381979164356989e+08,
+      "cpu_time": 1.5597700000000003e+08,
       "time_unit": "ns",
-      "bytes_per_second": 7.6676934670741951e+08
+      "bytes_per_second": 6.9187126818776393e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:6/iterations:3/real_time",
@@ -400,10 +400,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 2.5814611099970838e+08,
-      "cpu_time": 2.0900766666666588e+08,
+      "real_time": 3.1483059702441096e+08,
+      "cpu_time": 2.3999033333333251e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0286960550039043e+09
+      "bytes_per_second": 8.4348182327211928e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM(Python)/lang:Python/p:8/iterations:3/real_time",
@@ -415,10 +415,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 2.4381727799967241e+08,
-      "cpu_time": 1.9141533333333409e+08,
+      "real_time": 3.1533148597615463e+08,
+      "cpu_time": 2.0739000000000021e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0891512208595684e+09
+      "bytes_per_second": 8.4214199282364464e+08
     },
     {
       "name": "op:read/matrix:Coordinate/impl:SciPy/lang:Python/real_time",
@@ -430,10 +430,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 5.7696197920013218e+09,
-      "cpu_time": 5.7618949999999990e+09,
+      "real_time": 5.2077363340649757e+09,
+      "cpu_time": 5.1820880000000000e+09,
       "time_unit": "ns",
-      "bytes_per_second": 4.6026236662621871e+07
+      "bytes_per_second": 5.0992191033741906e+07
     },
     {
       "name": "op:write/matrix:Coordinate/impl:SciPy/lang:Python/real_time",
@@ -445,10 +445,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 1,
-      "real_time": 7.3405362080084162e+09,
-      "cpu_time": 7.3101020000000010e+09,
+      "real_time": 6.8757153749465942e+09,
+      "cpu_time": 6.8398980000000048e+09,
       "time_unit": "ns",
-      "bytes_per_second": 5.1464614885742262e+07
+      "bytes_per_second": 5.4943791067403562e+07
     }
   ]
 }

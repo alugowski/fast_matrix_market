@@ -1,6 +1,6 @@
 {
   "context": {
-    "date": "2023-01-20T13:12:00-08:00",
+    "date": "2023-05-27T21:20:52-07:00",
     "host_name": "notchie.local",
     "executable": "./cmake-build-release/benchmark/fmm_bench",
     "num_cpus": 8,
@@ -26,13 +26,133 @@
         "num_sharing": 1
       }
     ],
-    "load_avg": [5.27979,7.35742,8.20166],
+    "load_avg": [3.25049,3.28369,3.01367],
     "library_build_type": "release"
   },
   "benchmarks": [
     {
-      "name": "op:read/matrix:Array/impl:FMM/lang:C++/p:1/iterations:3/real_time",
+      "name": "op:chunking/impl:FMM/lang:C++/real_time",
       "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "op:chunking/impl:FMM/lang:C++/real_time",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 1,
+      "real_time": 5.6141358288004994e+08,
+      "cpu_time": 2.8292199999999988e+08,
+      "time_unit": "ns",
+      "bytes_per_second": 9.5628409495519161e+08
+    },
+    {
+      "name": "op:count_lines/impl:stdcount/lang:C++/real_time",
+      "family_index": 1,
+      "per_family_instance_index": 0,
+      "run_name": "op:count_lines/impl:stdcount/lang:C++/real_time",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 8,
+      "real_time": 8.6827052116859704e+07,
+      "cpu_time": 8.6826000000000015e+07,
+      "time_unit": "ns",
+      "bytes_per_second": 6.1832213222836428e+09
+    },
+    {
+      "name": "op:count_lines/impl:iter/lang:C++/real_time",
+      "family_index": 2,
+      "per_family_instance_index": 0,
+      "run_name": "op:count_lines/impl:iter/lang:C++/real_time",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 3,
+      "real_time": 1.9221543070549765e+08,
+      "cpu_time": 1.9221166666666651e+08,
+      "time_unit": "ns",
+      "bytes_per_second": 2.7930685795073614e+09
+    },
+    {
+      "name": "op:count_lines/impl:foreach/lang:C++/real_time",
+      "family_index": 3,
+      "per_family_instance_index": 0,
+      "run_name": "op:count_lines/impl:foreach/lang:C++/real_time",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 3,
+      "real_time": 1.9478220834086338e+08,
+      "cpu_time": 1.9474200000000003e+08,
+      "time_unit": "ns",
+      "bytes_per_second": 2.7562624152021680e+09
+    },
+    {
+      "name": "op:count_lines/impl:find/lang:C++/real_time",
+      "family_index": 4,
+      "per_family_instance_index": 0,
+      "run_name": "op:count_lines/impl:find/lang:C++/real_time",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 2,
+      "real_time": 3.2251924998126924e+08,
+      "cpu_time": 3.2234950000000006e+08,
+      "time_unit": "ns",
+      "bytes_per_second": 1.6646165462408199e+09
+    },
+    {
+      "name": "op:count_lines/impl:count_lines/lang:C++/real_time",
+      "family_index": 5,
+      "per_family_instance_index": 0,
+      "run_name": "op:count_lines/impl:count_lines/lang:C++/real_time",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 4,
+      "real_time": 1.9080669799586758e+08,
+      "cpu_time": 1.9076799999999982e+08,
+      "time_unit": "ns",
+      "bytes_per_second": 2.8136899052234912e+09
+    },
+    {
+      "name": "op:count_lines_empties/impl:stdcount/lang:C++/real_time",
+      "family_index": 6,
+      "per_family_instance_index": 0,
+      "run_name": "op:count_lines_empties/impl:stdcount/lang:C++/real_time",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 4,
+      "real_time": 1.9206628121901304e+08,
+      "cpu_time": 1.9204424999999991e+08,
+      "time_unit": "ns",
+      "bytes_per_second": 2.7952375429594879e+09
+    },
+    {
+      "name": "op:count_lines_empties/impl:adjacent_find/lang:C++/real_time",
+      "family_index": 7,
+      "per_family_instance_index": 0,
+      "run_name": "op:count_lines_empties/impl:adjacent_find/lang:C++/real_time",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 3,
+      "real_time": 2.2895381933388612e+08,
+      "cpu_time": 2.2891199999999991e+08,
+      "time_unit": "ns",
+      "bytes_per_second": 2.3448871984837899e+09
+    },
+    {
+      "name": "op:read/matrix:Array/impl:FMM/lang:C++/p:1/iterations:3/real_time",
+      "family_index": 8,
       "per_family_instance_index": 0,
       "run_name": "op:read/matrix:Array/impl:FMM/lang:C++/p:1/iterations:3/real_time",
       "run_type": "iteration",
@@ -40,14 +160,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 8.4397331933333445e+08,
-      "cpu_time": 8.4140833333333349e+08,
+      "real_time": 8.5801202772806084e+08,
+      "cpu_time": 8.5780100000000036e+08,
       "time_unit": "ns",
-      "bytes_per_second": 4.5940654771678156e+08
+      "bytes_per_second": 4.5188978297503132e+08
     },
     {
       "name": "op:read/matrix:Array/impl:FMM/lang:C++/p:2/iterations:3/real_time",
-      "family_index": 0,
+      "family_index": 8,
       "per_family_instance_index": 1,
       "run_name": "op:read/matrix:Array/impl:FMM/lang:C++/p:2/iterations:3/real_time",
       "run_type": "iteration",
@@ -55,14 +175,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 5.3752187500000060e+08,
-      "cpu_time": 3.2888233333333319e+08,
+      "real_time": 5.5171055564035976e+08,
+      "cpu_time": 1.6021566666666704e+08,
       "time_unit": "ns",
-      "bytes_per_second": 7.2132295825169814e+08
+      "bytes_per_second": 7.0277225084079266e+08
     },
     {
       "name": "op:read/matrix:Array/impl:FMM/lang:C++/p:3/iterations:3/real_time",
-      "family_index": 0,
+      "family_index": 8,
       "per_family_instance_index": 2,
       "run_name": "op:read/matrix:Array/impl:FMM/lang:C++/p:3/iterations:3/real_time",
       "run_type": "iteration",
@@ -70,14 +190,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.9164545833330065e+08,
-      "cpu_time": 2.6966133333333379e+08,
+      "real_time": 4.0476569432454807e+08,
+      "cpu_time": 1.7873266666666687e+08,
       "time_unit": "ns",
-      "bytes_per_second": 9.8999454927939999e+08
+      "bytes_per_second": 9.5790447272716248e+08
     },
     {
       "name": "op:read/matrix:Array/impl:FMM/lang:C++/p:4/iterations:3/real_time",
-      "family_index": 0,
+      "family_index": 8,
       "per_family_instance_index": 3,
       "run_name": "op:read/matrix:Array/impl:FMM/lang:C++/p:4/iterations:3/real_time",
       "run_type": "iteration",
@@ -85,14 +205,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.4591187499999404e+08,
-      "cpu_time": 3.2477933333333343e+08,
+      "real_time": 3.3207997229571146e+08,
+      "cpu_time": 1.8159933333333337e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.1208833723907475e+09
+      "bytes_per_second": 1.1675707701358635e+09
     },
     {
       "name": "op:read/matrix:Array/impl:FMM/lang:C++/p:5/iterations:3/real_time",
-      "family_index": 0,
+      "family_index": 8,
       "per_family_instance_index": 4,
       "run_name": "op:read/matrix:Array/impl:FMM/lang:C++/p:5/iterations:3/real_time",
       "run_type": "iteration",
@@ -100,14 +220,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.3835472233333045e+08,
-      "cpu_time": 3.2113966666666639e+08,
+      "real_time": 2.8551173629239202e+08,
+      "cpu_time": 1.7558833333333310e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.1459183023254232e+09
+      "bytes_per_second": 1.3580067636972010e+09
     },
     {
       "name": "op:read/matrix:Array/impl:FMM/lang:C++/p:6/iterations:3/real_time",
-      "family_index": 0,
+      "family_index": 8,
       "per_family_instance_index": 5,
       "run_name": "op:read/matrix:Array/impl:FMM/lang:C++/p:6/iterations:3/real_time",
       "run_type": "iteration",
@@ -115,14 +235,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.2795974999999088e+08,
-      "cpu_time": 3.1159233333333343e+08,
+      "real_time": 2.6940073600659770e+08,
+      "cpu_time": 1.8233733333333349e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.1822391894127581e+09
+      "bytes_per_second": 1.4392197836850173e+09
     },
     {
       "name": "op:read/matrix:Array/impl:FMM/lang:C++/p:7/iterations:3/real_time",
-      "family_index": 0,
+      "family_index": 8,
       "per_family_instance_index": 6,
       "run_name": "op:read/matrix:Array/impl:FMM/lang:C++/p:7/iterations:3/real_time",
       "run_type": "iteration",
@@ -130,14 +250,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.2301512499998349e+08,
-      "cpu_time": 3.0613033333333325e+08,
+      "real_time": 2.5906412497473261e+08,
+      "cpu_time": 1.7367433333333319e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.2003365755706325e+09
+      "bytes_per_second": 1.4966443888663330e+09
     },
     {
       "name": "op:read/matrix:Array/impl:FMM/lang:C++/p:8/iterations:3/real_time",
-      "family_index": 0,
+      "family_index": 8,
       "per_family_instance_index": 7,
       "run_name": "op:read/matrix:Array/impl:FMM/lang:C++/p:8/iterations:3/real_time",
       "run_type": "iteration",
@@ -145,14 +265,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.2078702800000280e+08,
-      "cpu_time": 3.0270699999999982e+08,
+      "real_time": 2.6243997233298919e+08,
+      "cpu_time": 1.8696800000000024e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.2086737777937725e+09
+      "bytes_per_second": 1.4773925844956434e+09
     },
     {
       "name": "op:write/matrix:Array/impl:FMM/lang:C++/p:1/iterations:3/real_time",
-      "family_index": 1,
+      "family_index": 9,
       "per_family_instance_index": 0,
       "run_name": "op:write/matrix:Array/impl:FMM/lang:C++/p:1/iterations:3/real_time",
       "run_type": "iteration",
@@ -160,14 +280,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.4583429583333328e+09,
-      "cpu_time": 1.4550786666666663e+09,
+      "real_time": 1.4681185416411610e+09,
+      "cpu_time": 1.4667626666666653e+09,
       "time_unit": "ns",
-      "bytes_per_second": 2.6586809829912278e+08
+      "bytes_per_second": 2.6409779455994952e+08
     },
     {
       "name": "op:write/matrix:Array/impl:FMM/lang:C++/p:2/iterations:3/real_time",
-      "family_index": 1,
+      "family_index": 9,
       "per_family_instance_index": 1,
       "run_name": "op:write/matrix:Array/impl:FMM/lang:C++/p:2/iterations:3/real_time",
       "run_type": "iteration",
@@ -175,14 +295,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 7.8858123599998939e+08,
-      "cpu_time": 1.9040966666666687e+08,
+      "real_time": 8.1866148595387745e+08,
+      "cpu_time": 1.8637800000000009e+08,
       "time_unit": "ns",
-      "bytes_per_second": 4.9167650877252829e+08
+      "bytes_per_second": 4.7361073612524158e+08
     },
     {
       "name": "op:write/matrix:Array/impl:FMM/lang:C++/p:3/iterations:3/real_time",
-      "family_index": 1,
+      "family_index": 9,
       "per_family_instance_index": 2,
       "run_name": "op:write/matrix:Array/impl:FMM/lang:C++/p:3/iterations:3/real_time",
       "run_type": "iteration",
@@ -190,14 +310,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 5.7606843033333158e+08,
-      "cpu_time": 2.0251633333333352e+08,
+      "real_time": 5.9250599999601638e+08,
+      "cpu_time": 1.9556899999999902e+08,
       "time_unit": "ns",
-      "bytes_per_second": 6.7305696438815236e+08
+      "bytes_per_second": 6.5438471340814579e+08
     },
     {
       "name": "op:write/matrix:Array/impl:FMM/lang:C++/p:4/iterations:3/real_time",
-      "family_index": 1,
+      "family_index": 9,
       "per_family_instance_index": 3,
       "run_name": "op:write/matrix:Array/impl:FMM/lang:C++/p:4/iterations:3/real_time",
       "run_type": "iteration",
@@ -205,14 +325,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 4.6179811133333713e+08,
-      "cpu_time": 1.9593266666666648e+08,
+      "real_time": 4.8003502764428657e+08,
+      "cpu_time": 1.9370033333333346e+08,
       "time_unit": "ns",
-      "bytes_per_second": 8.3960254380540180e+08
+      "bytes_per_second": 8.0770536871595061e+08
     },
     {
       "name": "op:write/matrix:Array/impl:FMM/lang:C++/p:5/iterations:3/real_time",
-      "family_index": 1,
+      "family_index": 9,
       "per_family_instance_index": 4,
       "run_name": "op:write/matrix:Array/impl:FMM/lang:C++/p:5/iterations:3/real_time",
       "run_type": "iteration",
@@ -220,14 +340,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.9812845833334142e+08,
-      "cpu_time": 1.8134300000000063e+08,
+      "real_time": 4.2252779162178439e+08,
+      "cpu_time": 2.0726133333333150e+08,
       "time_unit": "ns",
-      "bytes_per_second": 9.7387378592104435e+08
+      "bytes_per_second": 9.1763637017056715e+08
     },
     {
       "name": "op:write/matrix:Array/impl:FMM/lang:C++/p:6/iterations:3/real_time",
-      "family_index": 1,
+      "family_index": 9,
       "per_family_instance_index": 5,
       "run_name": "op:write/matrix:Array/impl:FMM/lang:C++/p:6/iterations:3/real_time",
       "run_type": "iteration",
@@ -235,14 +355,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.7090345833333534e+08,
-      "cpu_time": 2.3209533333333352e+08,
+      "real_time": 3.9263945833469433e+08,
+      "cpu_time": 2.3378633333333337e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0453579234398652e+09
+      "bytes_per_second": 9.8748829433615732e+08
     },
     {
       "name": "op:write/matrix:Array/impl:FMM/lang:C++/p:7/iterations:3/real_time",
-      "family_index": 1,
+      "family_index": 9,
       "per_family_instance_index": 6,
       "run_name": "op:write/matrix:Array/impl:FMM/lang:C++/p:7/iterations:3/real_time",
       "run_type": "iteration",
@@ -250,14 +370,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.6406133333336282e+08,
-      "cpu_time": 2.3735066666666663e+08,
+      "real_time": 3.9416208335508901e+08,
+      "cpu_time": 2.9861333333333325e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0650042547774971e+09
+      "bytes_per_second": 9.8367368494627190e+08
     },
     {
       "name": "op:write/matrix:Array/impl:FMM/lang:C++/p:8/iterations:3/real_time",
-      "family_index": 1,
+      "family_index": 9,
       "per_family_instance_index": 7,
       "run_name": "op:write/matrix:Array/impl:FMM/lang:C++/p:8/iterations:3/real_time",
       "run_type": "iteration",
@@ -265,29 +385,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 3.5627091666666883e+08,
-      "cpu_time": 2.3731433333333385e+08,
+      "real_time": 3.8020305568352342e+08,
+      "cpu_time": 2.8458066666666561e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0882922261172438e+09
-    },
-    {
-      "name": "op:chunking/impl:FMM/lang:C++/real_time",
-      "family_index": 2,
-      "per_family_instance_index": 0,
-      "run_name": "op:chunking/impl:FMM/lang:C++/real_time",
-      "run_type": "iteration",
-      "repetitions": 1,
-      "repetition_index": 0,
-      "threads": 1,
-      "iterations": 6,
-      "real_time": 1.1189920833332205e+08,
-      "cpu_time": 1.1178783333333324e+08,
-      "time_unit": "ns",
-      "bytes_per_second": 4.7978076699236774e+09
+      "bytes_per_second": 1.0197889343707414e+09
     },
     {
       "name": "op:read/matrix:Coordinate/impl:IOStream/lang:C++/real_time",
-      "family_index": 3,
+      "family_index": 10,
       "per_family_instance_index": 0,
       "run_name": "op:read/matrix:Coordinate/impl:IOStream/lang:C++/real_time",
       "run_type": "iteration",
@@ -295,14 +400,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 4.4518177100002277e+08,
-      "cpu_time": 4.4474600000000030e+08,
+      "real_time": 4.3204591702669859e+08,
+      "cpu_time": 4.3176350000000238e+08,
       "time_unit": "ns",
-      "bytes_per_second": 4.7107690310165301e+07
+      "bytes_per_second": 4.8539944884386100e+07
     },
     {
       "name": "op:write/matrix:Coordinate/impl:IOStream/lang:C++/real_time",
-      "family_index": 4,
+      "family_index": 11,
       "per_family_instance_index": 0,
       "run_name": "op:write/matrix:Coordinate/impl:IOStream/lang:C++/real_time",
       "run_type": "iteration",
@@ -310,14 +415,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 2,
-      "real_time": 3.2051241700003177e+08,
-      "cpu_time": 3.1997049999999839e+08,
+      "real_time": 3.0831897945608944e+08,
+      "cpu_time": 3.0830900000000125e+08,
       "time_unit": "ns",
-      "bytes_per_second": 5.8611788509891458e+07
+      "bytes_per_second": 6.0929774849217355e+07
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:1/iterations:3/real_time",
-      "family_index": 5,
+      "family_index": 12,
       "per_family_instance_index": 0,
       "run_name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:1/iterations:3/real_time",
       "run_type": "iteration",
@@ -325,14 +430,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.2331684723333182e+09,
-      "cpu_time": 1.2307980000000012e+09,
+      "real_time": 1.2713884863381584e+09,
+      "cpu_time": 1.2607229999999998e+09,
       "time_unit": "ns",
-      "bytes_per_second": 5.1515111053560144e+08
+      "bytes_per_second": 4.9966482694026387e+08
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:2/iterations:3/real_time",
-      "family_index": 5,
+      "family_index": 12,
       "per_family_instance_index": 1,
       "run_name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:2/iterations:3/real_time",
       "run_type": "iteration",
@@ -340,14 +445,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 8.1923897233332348e+08,
-      "cpu_time": 5.9735133333333457e+08,
+      "real_time": 8.3037205568204319e+08,
+      "cpu_time": 2.7116433333333135e+08,
       "time_unit": "ns",
-      "bytes_per_second": 7.7543687428669918e+08
+      "bytes_per_second": 7.6504032578289187e+08
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:3/iterations:3/real_time",
-      "family_index": 5,
+      "family_index": 12,
       "per_family_instance_index": 2,
       "run_name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:3/iterations:3/real_time",
       "run_type": "iteration",
@@ -355,14 +460,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 6.2910786099996579e+08,
-      "cpu_time": 5.8994133333333206e+08,
+      "real_time": 6.1870652763172984e+08,
+      "cpu_time": 3.0126833333333284e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0097920362817315e+09
+      "bytes_per_second": 1.0267680711753021e+09
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:4/iterations:3/real_time",
-      "family_index": 5,
+      "family_index": 12,
       "per_family_instance_index": 3,
       "run_name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:4/iterations:3/real_time",
       "run_type": "iteration",
@@ -370,14 +475,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 6.4047056933335018e+08,
-      "cpu_time": 6.2594300000000179e+08,
+      "real_time": 5.1784252763415378e+08,
+      "cpu_time": 3.3040266666666681e+08,
       "time_unit": "ns",
-      "bytes_per_second": 9.9187712662774611e+08
+      "bytes_per_second": 1.2267592445570736e+09
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:5/iterations:3/real_time",
-      "family_index": 5,
+      "family_index": 12,
       "per_family_instance_index": 4,
       "run_name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:5/iterations:3/real_time",
       "run_type": "iteration",
@@ -385,14 +490,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 6.1845358333331048e+08,
-      "cpu_time": 6.0863233333333254e+08,
+      "real_time": 4.3763830528284115e+08,
+      "cpu_time": 3.2263200000000107e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.0271880139752176e+09
+      "bytes_per_second": 1.4515825062192230e+09
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:6/iterations:3/real_time",
-      "family_index": 5,
+      "family_index": 12,
       "per_family_instance_index": 5,
       "run_name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:6/iterations:3/real_time",
       "run_type": "iteration",
@@ -400,14 +505,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 5.7729498633333755e+08,
-      "cpu_time": 5.6543133333333385e+08,
+      "real_time": 3.9752290265945101e+08,
+      "cpu_time": 3.1864700000000095e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.1004220078800199e+09
+      "bytes_per_second": 1.5980666868500407e+09
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:7/iterations:3/real_time",
-      "family_index": 5,
+      "family_index": 12,
       "per_family_instance_index": 6,
       "run_name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:7/iterations:3/real_time",
       "run_type": "iteration",
@@ -415,14 +520,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 5.6844458333334076e+08,
-      "cpu_time": 5.5763999999999928e+08,
+      "real_time": 4.0211994433775544e+08,
+      "cpu_time": 3.3465933333333451e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.1175550381266863e+09
+      "bytes_per_second": 1.5797975627550938e+09
     },
     {
       "name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:8/iterations:3/real_time",
-      "family_index": 5,
+      "family_index": 12,
       "per_family_instance_index": 7,
       "run_name": "op:read/matrix:Coordinate/impl:FMM/lang:C++/p:8/iterations:3/real_time",
       "run_type": "iteration",
@@ -430,14 +535,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 5.5581856966667449e+08,
-      "cpu_time": 5.4082400000000060e+08,
+      "real_time": 4.0246399996491766e+08,
+      "cpu_time": 3.1396233333333141e+08,
       "time_unit": "ns",
-      "bytes_per_second": 1.1429414968646541e+09
+      "bytes_per_second": 1.5784470363942504e+09
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:1/iterations:3/real_time",
-      "family_index": 6,
+      "family_index": 13,
       "per_family_instance_index": 0,
       "run_name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:1/iterations:3/real_time",
       "run_type": "iteration",
@@ -445,14 +550,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 2.9032053610000052e+09,
-      "cpu_time": 2.8925546666666665e+09,
+      "real_time": 2.9214571806757398e+09,
+      "cpu_time": 2.8600176666666689e+09,
       "time_unit": "ns",
-      "bytes_per_second": 2.1881611150689763e+08
+      "bytes_per_second": 2.1744905665639809e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:2/iterations:3/real_time",
-      "family_index": 6,
+      "family_index": 13,
       "per_family_instance_index": 1,
       "run_name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:2/iterations:3/real_time",
       "run_type": "iteration",
@@ -460,14 +565,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.6942343886666625e+09,
-      "cpu_time": 3.5384333333333254e+08,
+      "real_time": 1.5600345556934674e+09,
+      "cpu_time": 3.3788399999999779e+08,
       "time_unit": "ns",
-      "bytes_per_second": 3.7495880868050766e+08
+      "bytes_per_second": 4.0721412591890329e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:3/iterations:3/real_time",
-      "family_index": 6,
+      "family_index": 13,
       "per_family_instance_index": 2,
       "run_name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:3/iterations:3/real_time",
       "run_type": "iteration",
@@ -475,14 +580,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.3398573473333120e+09,
-      "cpu_time": 3.7254799999999952e+08,
+      "real_time": 1.2313230139358590e+09,
+      "cpu_time": 3.2145200000000077e+08,
       "time_unit": "ns",
-      "bytes_per_second": 4.7413115229345858e+08
+      "bytes_per_second": 5.1592319871403933e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:4/iterations:3/real_time",
-      "family_index": 6,
+      "family_index": 13,
       "per_family_instance_index": 3,
       "run_name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:4/iterations:3/real_time",
       "run_type": "iteration",
@@ -490,14 +595,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.1572503473333504e+09,
-      "cpu_time": 3.4504666666666847e+08,
+      "real_time": 1.1219743192971995e+09,
+      "cpu_time": 3.3293633333333379e+08,
       "time_unit": "ns",
-      "bytes_per_second": 5.4894613725011802e+08
+      "bytes_per_second": 5.6620556912383664e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:5/iterations:3/real_time",
-      "family_index": 6,
+      "family_index": 13,
       "per_family_instance_index": 4,
       "run_name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:5/iterations:3/real_time",
       "run_type": "iteration",
@@ -505,14 +610,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 1.0642772083333511e+09,
-      "cpu_time": 3.6277166666666716e+08,
+      "real_time": 1.1040036113311846e+09,
+      "cpu_time": 3.6483033333333260e+08,
       "time_unit": "ns",
-      "bytes_per_second": 5.9690097939316428e+08
+      "bytes_per_second": 5.7542212858706760e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:6/iterations:3/real_time",
-      "family_index": 6,
+      "family_index": 13,
       "per_family_instance_index": 5,
       "run_name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:6/iterations:3/real_time",
       "run_type": "iteration",
@@ -520,14 +625,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 9.9971045833334911e+08,
-      "cpu_time": 3.9123199999999982e+08,
+      "real_time": 1.0358135552766422e+09,
+      "cpu_time": 3.5589866666666836e+08,
       "time_unit": "ns",
-      "bytes_per_second": 6.3545209785949111e+08
+      "bytes_per_second": 6.1330352819174516e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:7/iterations:3/real_time",
-      "family_index": 6,
+      "family_index": 13,
       "per_family_instance_index": 6,
       "run_name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:7/iterations:3/real_time",
       "run_type": "iteration",
@@ -535,14 +640,14 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 9.4499388900002635e+08,
-      "cpu_time": 3.7063100000000066e+08,
+      "real_time": 9.7984511094788706e+08,
+      "cpu_time": 3.3827399999999839e+08,
       "time_unit": "ns",
-      "bytes_per_second": 6.7224573131602788e+08
+      "bytes_per_second": 6.4833523268330789e+08
     },
     {
       "name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:8/iterations:3/real_time",
-      "family_index": 6,
+      "family_index": 13,
       "per_family_instance_index": 7,
       "run_name": "op:write/matrix:Coordinate/impl:FMM/lang:C++/p:8/iterations:3/real_time",
       "run_type": "iteration",
@@ -550,10 +655,10 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 3,
-      "real_time": 9.0906743066667175e+08,
-      "cpu_time": 3.5807766666666651e+08,
+      "real_time": 9.1910761098066962e+08,
+      "cpu_time": 2.9390066666666573e+08,
       "time_unit": "ns",
-      "bytes_per_second": 6.9881296653001976e+08
+      "bytes_per_second": 6.9117924866510618e+08
     }
   ]
 }
