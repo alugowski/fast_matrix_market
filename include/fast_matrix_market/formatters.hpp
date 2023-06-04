@@ -280,7 +280,7 @@ namespace fast_matrix_market {
         };
 
         chunk next_chunk(const write_options& options) {
-            auto num_columns = (int64_t)(nnz_per_column * (double)options.chunk_size_values + 1);
+            auto num_columns = (int64_t)(((double)options.chunk_size_values / nnz_per_column) + 1);
 
             num_columns = std::min(num_columns, (int64_t)(ptr_end - ptr_iter));
             PTR_ITER ptr_chunk_end = ptr_iter + num_columns;

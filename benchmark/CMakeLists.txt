@@ -13,5 +13,12 @@ include(FetchContent)
 # Add Google Benchmark
 include(../cmake/GoogleBenchmark.cmake)
 
-add_executable(fmm_bench bench_chunking.cpp bench_array.cpp bench_iostream.cpp bench_triplet.cpp main.cpp fmm_bench.hpp)
+add_executable(fmm_bench
+        bench_chunking.cpp
+        bench_array.cpp
+        bench_iostream.cpp
+        bench_triplet.cpp
+        bench_csc.cpp
+        main.cpp
+        fmm_bench.hpp)
 target_link_libraries(fmm_bench benchmark::benchmark fast_matrix_market::fast_matrix_market)

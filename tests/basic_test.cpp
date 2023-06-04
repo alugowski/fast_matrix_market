@@ -226,6 +226,10 @@ TEST(PermissiveSuite, Small) {
         read_triplet_file(kPermissiveMatrixSubDir + "permissive_banner_leading_spaces_eye3.mtx", triplet_ld);
         EXPECT_EQ(eye3, triplet_ld);
     }
+    {
+        triplet_matrix<int64_t, double> triplet_ld;
+        read_triplet_file(kPermissiveMatrixSubDir + "permissive_lines_indented.mtx", triplet_ld);
+    }
 }
 
 /**

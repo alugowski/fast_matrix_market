@@ -490,7 +490,7 @@ namespace fast_matrix_market {
 #ifdef FMM_TO_CHARS_DOUBLE_SUPPORTED
     inline std::string value_to_string_to_chars(const float& value, int precision) {
         std::string ret(16, ' ');
-        std::to_chars_result result;
+        std::to_chars_result result{};
         if (precision < 0) {
             // shortest representation
             result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
@@ -508,7 +508,7 @@ namespace fast_matrix_market {
 
     inline std::string value_to_string_to_chars(const double& value, int precision) {
         std::string ret(25, ' ');
-        std::to_chars_result result;
+        std::to_chars_result result{};
         if (precision < 0) {
             // shortest representation
             result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
@@ -528,7 +528,7 @@ namespace fast_matrix_market {
 #ifdef FMM_TO_CHARS_LONG_DOUBLE_SUPPORTED
     inline std::string value_to_string_to_chars(const long double& value, int precision) {
         std::string ret(50, ' ');
-        std::to_chars_result result;
+        std::to_chars_result result{};
         if (precision < 0) {
             // shortest representation
             result = std::to_chars(ret.data(), ret.data() + ret.size(), value);
