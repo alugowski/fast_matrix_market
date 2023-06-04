@@ -43,6 +43,9 @@ target_link_libraries(user_type_test GTest::gtest_main fast_matrix_market::fast_
 add_executable(array_test array_test.cpp)
 target_link_libraries(array_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
 
+add_executable(csc_test csc_test.cpp)
+target_link_libraries(csc_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+
 add_executable(triplet_test triplet_test.cpp)
 target_link_libraries(triplet_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
 

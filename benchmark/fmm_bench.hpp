@@ -18,8 +18,20 @@ struct triplet_matrix {
     std::vector<IT> cols;
     std::vector<VT> vals;
 
-    size_t size_bytes() const {
+    [[nodiscard]] size_t size_bytes() const {
         return sizeof(IT)*rows.size() + sizeof(IT)*cols.size() + sizeof(VT)*vals.size();
+    }
+};
+
+template <typename IT, typename VT>
+struct csc_matrix {
+    int64_t nrows = 0, ncols = 0;
+    std::vector<IT> indptr;
+    std::vector<IT> indices;
+    std::vector<VT> vals;
+
+    [[nodiscard]] size_t size_bytes() const {
+        return sizeof(IT)*indptr.size() + sizeof(IT)*indices.size() + sizeof(VT)*vals.size();
     }
 };
 
@@ -28,7 +40,7 @@ struct array_matrix {
     int64_t nrows = 0, ncols = 0;
     std::vector<VT> vals;
 
-    size_t size_bytes() const {
+    [[nodiscard]] size_t size_bytes() const {
         return sizeof(VT)*vals.size();
     }
 };
@@ -53,6 +65,37 @@ triplet_matrix<IT, VT> construct_triplet(std::size_t byte_target) {
     for (auto i = 0; i < num_elements; ++i) {
         ret.rows.emplace_back(i);
         ret.cols.emplace_back(i);
+        ret.vals.emplace_back(static_cast<VT>(i) / 100);
+    }
+
+    return ret;
+}
+
+/**
+ * Construct a test matrix.
+ * @param byte_target How big the matrix should be
+ */
+template <typename IT, typename VT>
+csc_matrix<IT, VT> construct_csc(std::size_t byte_target, int ncols = 1000) {
+    int64_t num_elements = (byte_target - ((ncols+1) * sizeof(IT))) / (2*sizeof(IT) + sizeof(VT));
+
+    csc_matrix<IT, VT> ret;
+
+    ret.nrows = num_elements;
+    ret.ncols = ncols;
+
+    double num_elements_per_column = ((double)num_elements) / ncols;
+
+    ret.indptr.reserve(ncols+1);
+    for (auto i = 0; i < ncols; ++i) {
+        ret.indptr.emplace_back(static_cast<IT>(i * num_elements_per_column));
+    }
+    ret.indptr.emplace_back(num_elements);
+
+    ret.indices.reserve(num_elements);
+    ret.vals.reserve(num_elements);
+    for (auto i = 0; i < num_elements; ++i) {
+        ret.indices.emplace_back(i);
         ret.vals.emplace_back(static_cast<VT>(i) / 100);
     }
 

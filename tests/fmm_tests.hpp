@@ -18,6 +18,14 @@
 static const std::string kTestMatrixDir = TEST_MATRIX_DIR;  // configured in CMake
 
 template <typename IT, typename VT>
+struct csc_matrix {
+    int64_t nrows = 0, ncols = 0;
+    std::vector<IT> indptr;
+    std::vector<IT> indices;
+    std::vector<VT> vals;
+};
+
+template <typename IT, typename VT>
 struct triplet_matrix {
     using value_type = VT;
 

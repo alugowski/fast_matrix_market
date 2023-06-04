@@ -19,16 +19,25 @@ import fast_matrix_market as fmm
 def generate_large_coo_matrix(nnz):
     i = np.arange(nnz, dtype="int32")  # scipy uses intc indices (intc is usually int32)
     j = i
-    vals = np.arange(nnz, dtype="float64")
-    vals /= 100
+    vals = np.arange(nnz, dtype="float64") / 100
     return coo_matrix((vals, (i, j)), shape=(nnz, nnz))
+
+
+def generate_large_csc_matrix(nnz):
+    ncols = 1000
+    # nnz = int((size_bytes - (nrows + 1) * 4) / (4 + 8))
+    indptr = (np.arange(ncols + 1, dtype=np.float32) / ncols * nnz).astype(np.int32)
+    indptr[-1] = nnz
+    indices = np.arange(nnz, dtype=np.int32)
+    # vals = np.random.default_rng().uniform(low=0, high=1.0, size=nnz)
+    vals = np.arange(nnz, dtype="float64") / 100
+    return scipy.sparse.csc_matrix((vals, indices, indptr), shape=(nnz, ncols))
 
 
 def generate_large_array_matrix(nnz):
     n = int(math.sqrt(nnz))
     m = int(nnz / n)
-    mat = np.arange(m*n, dtype="float64")
-    mat /= 100
+    mat = np.arange(m*n, dtype="float64") / 100
     mat = np.reshape(mat, (m, n))
     return mat
 
@@ -52,6 +61,14 @@ large_coo_length = len(large_coo_bytes)   # About 265 MB for nnz=10M
 coo_read_path = Path(tempdir.name) / "readfile_coo.mtx"
 coo_read_path.write_bytes(large_coo_bytes)
 
+# Generate CSC matrix
+large_csc_matrix = generate_large_csc_matrix(num_elements)
+large_csc_bytes = matrix_to_bytes(large_csc_matrix)
+large_csc_length = len(large_csc_bytes)   # About 265 MB for nnz=10M
+
+csc_read_path = Path(tempdir.name) / "readfile_csc.mtx"
+csc_read_path.write_bytes(large_csc_bytes)
+
 # Generate array matrix
 large_array_matrix = generate_large_array_matrix(num_elements)
 
@@ -63,6 +80,7 @@ array_read_path.write_bytes(large_array_bytes)
 
 print(f"Array matrix has {large_array_matrix.size:,} elements and {large_array_length:,} bytes in MatrixMarket format.")
 print(f"Triplet matrix has {large_coo_matrix.size:,} elements and {large_coo_length:,} bytes in MatrixMarket format.")
+print(f"CSC matrix has {large_csc_matrix.size:,} elements and {large_csc_length:,} bytes in MatrixMarket format.")
 
 
 ##############################
@@ -192,6 +210,41 @@ def triplet_scipy(state):
         # Specifying a symmetry prevents scipy from searching for a symmetry.
         # This can greatly speed up mmwrite()
         scipy.io.mmwrite(write_path, large_coo_matrix, symmetry="general")
+    state.bytes_processed = state.iterations * write_path.stat().st_size
+
+
+##############################
+# CSC
+
+@benchmark.register(name="op:write/matrix:CSC/impl:FMM(Python)/lang:Python")
+@benchmark.option.use_real_time()
+@benchmark.option.iterations(3)
+@benchmark.option.arg_name("p")
+@benchmark.option.arg(1)
+@benchmark.option.arg_name("p")
+@benchmark.option.arg(2)
+@benchmark.option.arg_name("p")
+@benchmark.option.arg(3)
+@benchmark.option.arg_name("p")
+@benchmark.option.arg(4)
+@benchmark.option.arg_name("p")
+@benchmark.option.arg(6)
+@benchmark.option.arg_name("p")
+@benchmark.option.arg(8)
+def csc_write_fmm(state):
+    while state:
+        parallelism = state.range(0)
+        fmm.write_scipy(write_path, large_csc_matrix, parallelism=parallelism)
+    state.bytes_processed = state.iterations * write_path.stat().st_size
+
+
+@benchmark.register(name="op:write/matrix:CSC/impl:SciPy/lang:Python")
+@benchmark.option.use_real_time()
+def csc_write_scipy(state):
+    while state:
+        # Specifying a symmetry prevents scipy from searching for a symmetry.
+        # This can greatly speed up mmwrite()
+        scipy.io.mmwrite(write_path, large_csc_matrix, symmetry="general")
     state.bytes_processed = state.iterations * write_path.stat().st_size
 
 

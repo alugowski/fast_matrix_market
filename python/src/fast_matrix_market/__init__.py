@@ -9,18 +9,21 @@ Supports sparse coo/triplet matrices, sparse scipy matrices, and numpy array den
 import io
 import os
 
-from . import _core
-from ._core import __version__, header
+from . import _core  # type: ignore
+
+__version__ = _core.__version__
+header = _core.header
 
 PARALLELISM = 0
 """
-Number of threads to use. 0 means number of CPUs in the system.
+Default value for the parallelism argument to mmread() and mmwrite().
+0 means number of CPUs in the system.
 """
 
 ALWAYS_FIND_SYMMETRY = False
 """
-If True then equivalent to always passing find_symmetry=True to mmwrite().
-This matches scipy.io.mmwrite()'s behavior, as well as its performance cost.
+Whether mmwrite() with symmetry='AUTO' will always search for symmetry inside the matrix.
+This is scipy.io._mmio.mmwrite()'s default behavior, but has a significant performance cost on large matrices.
 """
 
 _field_to_dtype = {
@@ -34,7 +37,7 @@ _field_to_dtype = {
     "long-unsigned-integer": "uint64",
     "long-real": "longdouble",
     "long-complex": "longcomplex",
-    "long-pattern": "float64",
+    "long-pattern": "longdouble",
 }
 
 
@@ -77,8 +80,8 @@ def _read_body_array(cursor, long_type):
 def _read_body_coo(cursor, long_type, generalize_symmetry=True):
     import numpy as np
 
-    index_dtype = "int32"  # SciPy uses this size
-    if cursor.header.nrows > 2**31 or cursor.header.ncols > 2**31:
+    index_dtype = "int32"
+    if cursor.header.nrows >= 2**31 or cursor.header.ncols >= 2**31:
         # Dimensions are too large to fit in int32
         index_dtype = "int64"
 
@@ -190,7 +193,6 @@ def _apply_field(data, field, no_pattern=False):
         else:
             return np.zeros(0)
 
-    import numpy as np
     dtype = _field_to_dtype.get(field, None)
     if dtype is None:
         raise ValueError("Invalid field.")
@@ -255,8 +257,7 @@ def read_array(source, parallelism=None, long_type=False):
 
     :param source: path to MatrixMarket file or open file-like object
     :param parallelism: number of threads to use. 0 means auto.
-    :param long_type: Use long floating point datatypes (if available in your NumPy).
-    This means longdouble and longcomplex instead of float64 and complex64.
+    :param long_type: Whether to use 'longdouble' and 'longcomplex' extended-precision floating-point number types.
     :return: numpy array
     """
     return _read_body_array(_get_read_cursor(source, parallelism), long_type=long_type)
@@ -283,8 +284,7 @@ def read_coo(source, parallelism=None, long_type=False, generalize_symmetry=True
 
     :param source: path to MatrixMarket file or open file-like object
     :param parallelism: number of threads to use. 0 means auto.
-    :param long_type: Use long floating point datatypes (if available in your NumPy).
-    This means longdouble and longcomplex instead of float64 and complex64.
+    :param long_type: Whether to use 'longdouble' and 'longcomplex' extended-precision floating-point number types.
     :param generalize_symmetry: if the MatrixMarket file specifies a symmetry, emit the symmetric entries too.
     :return: (data, (row_indices, column_indices)) (same as scipy.io.mmread)
     """
@@ -321,8 +321,7 @@ def read_array_or_coo(source, parallelism=None, long_type=False, generalize_symm
 
     :param source: path to MatrixMarket file or open file-like object
     :param parallelism: number of threads to use. 0 means auto.
-    :param long_type: Use long floating point datatypes (if available in your NumPy).
-    This means longdouble and longcomplex instead of float64 and complex64.
+    :param long_type: Whether to use 'longdouble' and 'longcomplex' extended-precision floating-point number types.
     :param generalize_symmetry: if the MatrixMarket file specifies a symmetry, emit the symmetric entries too.
     Always True for dense files.
     :return: a tuple of (matrix, shape), where matrix is an ndarray if the MatrixMarket file is dense,
@@ -347,8 +346,7 @@ def mmread(source, parallelism=None, long_type=False):
 
     :param source: path to MatrixMarket file or open file-like object
     :param parallelism: number of threads to use. 0 means auto.
-    :param long_type: Use long floating point datatypes (if available in your NumPy).
-    This means longdouble and longcomplex instead of float64 and complex64.
+    :param long_type: Whether to use 'longdouble' and 'longcomplex' extended-precision floating-point number types.
     :return: an ndarray if the MatrixMarket file is dense, a scipy.sparse.coo_matrix if the MatrixMarket file is sparse.
     """
     cursor = _get_read_cursor(source, parallelism)
@@ -361,7 +359,7 @@ def mmread(source, parallelism=None, long_type=False):
         return coo_matrix(triplet, shape=shape)
 
 
-def mmwrite(target, a, comment=None, field=None, precision=None, symmetry=None,
+def mmwrite(target, a, comment=None, field=None, precision=None, symmetry="AUTO",
                 parallelism=None, find_symmetry=False):
     """
     Write a matrix to a MatrixMarket file or file-like object.
@@ -371,10 +369,10 @@ def mmwrite(target, a, comment=None, field=None, precision=None, symmetry=None,
     :param target: path to MatrixMarket file or open file-like object
     :param a: a 2D ndarray (or an array convertible to one) or a scipy.sparse matrix
     :param comment: comment to include in the MatrixMarket header
-    :param field: convert matrix values to this MatrixMarket field
-    :param precision: floating-point precision to use. If None then use shortest representation.
-    :param symmetry: if not None then the matrix is written as having this MatrixMarket symmetry. "pattern" means write
+    :param field: convert matrix values to this MatrixMarket field. "pattern" means write
     only the nonzero structure and no values.
+    :param precision: floating-point precision to use. If None then use shortest representation.
+    :param symmetry: if not None then the matrix is written as having this MatrixMarket symmetry.
     :param parallelism: number of threads to use. 0 means auto.
     :param find_symmetry: autodetect what symmetry the matrix contains and set the `symmetry` field accordingly. This
     can be slow. scipy.io.mmwrite always does this if symmetry is not set, but it is very slow on large matrices.
@@ -382,10 +380,16 @@ def mmwrite(target, a, comment=None, field=None, precision=None, symmetry=None,
     import numpy as np
     import scipy.sparse
 
-    if isinstance(a, list) or isinstance(a, tuple) or hasattr(a, '__array__'):
+    if isinstance(a, list) or isinstance(a, tuple) or hasattr(a, "__array__"):
         a = np.asarray(a)
 
-    if ALWAYS_FIND_SYMMETRY or find_symmetry:
+    if symmetry == "AUTO":
+        if ALWAYS_FIND_SYMMETRY or (hasattr(a, "shape") and max(a.shape) < 100):
+            symmetry = None
+        else:
+            symmetry = "general"
+
+    if symmetry is None or find_symmetry:
         # Attempt to use scipy's method for finding matrix symmetry
         import scipy.io
         try:

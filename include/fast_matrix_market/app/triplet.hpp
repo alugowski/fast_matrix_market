@@ -101,6 +101,39 @@ namespace fast_matrix_market {
         write_body(os, formatter, options);
     }
 
+    /**
+     * Write CSC/CSR to a Matrix Market file.
+     */
+    template <triplet_write_vector IVEC, triplet_write_vector VVEC>
+    void write_matrix_market_csc(std::ostream &os,
+                                 matrix_market_header header,
+                                 const IVEC& indptr,
+                                 const IVEC& indices,
+                                 const VVEC& values,
+                                 bool is_csr,
+                                 const write_options& options = {}) {
+        using IT = typename std::iterator_traits<decltype(indptr.begin())>::value_type;
+        using VT = typename std::iterator_traits<decltype(values.begin())>::value_type;
+
+        header.nnz = values.size();
+
+        header.object = matrix;
+        if (header.field != pattern) {
+            header.field = get_field_type((const VT *) nullptr);
+        }
+        header.format = coordinate;
+
+        write_header(os, header);
+
+        line_formatter<IT, VT> lf(header, options);
+        auto formatter = csc_formatter(lf,
+                                       indptr.cbegin(), indptr.cend() - 1,
+                                       indices.cbegin(), indices.cend(),
+                                       values.cbegin(), header.field == pattern ? values.cbegin() : values.cend(),
+                                       is_csr);
+        write_body(os, formatter, options);
+    }
+
 #if __cplusplus < 202002L
     // clean up after ourselves
 #undef triplet_read_vector

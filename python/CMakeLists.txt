@@ -20,7 +20,14 @@ set(FMM_DIR "${FMM_CWD}/fast_matrix_market")
 message("Including fast_matrix_market from: ${FMM_DIR}")
 add_subdirectory(${FMM_DIR} cmake-build)
 
-pybind11_add_module(_core MODULE src/fast_matrix_market/core.cpp)
+pybind11_add_module(_core MODULE
+        src/fast_matrix_market/_core.cpp
+        src/fast_matrix_market/_core_read_array.cpp
+        src/fast_matrix_market/_core_read_coo.cpp
+        src/fast_matrix_market/_core_write_array.cpp
+        src/fast_matrix_market/_core_write_coo.cpp
+        src/fast_matrix_market/_core_write_csc.cpp
+        )
 target_compile_definitions(_core PRIVATE VERSION_INFO=${PROJECT_VERSION})
 target_link_libraries(_core PRIVATE fast_matrix_market::fast_matrix_market)
 

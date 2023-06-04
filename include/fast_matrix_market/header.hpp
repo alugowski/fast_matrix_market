@@ -113,15 +113,25 @@ namespace fast_matrix_market {
             return true;
         }
 
-        if (line[0] != '%') {
+        unsigned int pos = 0;
+
+        // skip leading whitespace
+        while ((pos+1) < line.size() && std::isblank(line[pos])) {
+            ++pos;
+        }
+
+        if (line[pos] != '%') {
             return false;
         }
+
+        // skip the '%'
+        ++pos;
 
         // Line is a comment. Save it to the header.
         if (!header.comment.empty()) {
             header.comment += "\n";
         }
-        header.comment += line.substr(1);
+        header.comment += line.substr(pos);
         return true;
     }
 

@@ -185,23 +185,30 @@ TEST(ReadOverflow, Integer) {
     int8_t i8;
     int32_t i32;
     int64_t i64;
+    uint64_t u64;
 
     std::string over_8("257");
     std::string over_64("19223372036854775808");
+    std::string fits_u64("18446744073709551615");
 
 #ifdef FMM_FROM_CHARS_INT_SUPPORTED
     EXPECT_THROW(fmm::read_int_from_chars(over_8.c_str(), over_8.c_str() + over_8.size(), i8), fmm::out_of_range);
     EXPECT_THROW(fmm::read_int_from_chars(over_64.c_str(), over_64.c_str() + over_64.size(), i32), fmm::out_of_range);
     EXPECT_THROW(fmm::read_int_from_chars(over_64.c_str(), over_64.c_str() + over_64.size(), i64), fmm::out_of_range);
+    EXPECT_NO_THROW(fmm::read_int_from_chars(fits_u64.c_str(), fits_u64.c_str() + fits_u64.size(), u64));
 #endif
 
     EXPECT_THROW(fmm::read_int_fallback(over_8.c_str(), over_8.c_str() + over_8.size(), i8), fmm::out_of_range);
     EXPECT_THROW(fmm::read_int_fallback(over_64.c_str(), over_64.c_str() + over_64.size(), i32), fmm::out_of_range);
     EXPECT_THROW(fmm::read_int_fallback(over_64.c_str(), over_64.c_str() + over_64.size(), i64), fmm::out_of_range);
+    EXPECT_THROW(fmm::read_int_fallback(fits_u64.c_str(), fits_u64.c_str() + fits_u64.size(), i64), fmm::out_of_range);
+//    EXPECT_NO_THROW(fmm::read_int_fallback(fits_u64.c_str(), fits_u64.c_str() + fits_u64.size(), u64));
 
     EXPECT_THROW(fmm::read_int(over_8.c_str(), over_8.c_str() + over_8.size(), i8), fmm::out_of_range);
     EXPECT_THROW(fmm::read_int(over_64.c_str(), over_64.c_str() + over_64.size(), i32), fmm::out_of_range);
     EXPECT_THROW(fmm::read_int(over_64.c_str(), over_64.c_str() + over_64.size(), i64), fmm::out_of_range);
+//    EXPECT_NO_THROW(fmm::read_int(fits_u64.c_str(), fits_u64.c_str() + fits_u64.size(), u64));
+    // the fallbacks depend on strtoll and strtoull. The sizes these support can vary between systems.
 }
 
 
