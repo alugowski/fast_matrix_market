@@ -6,6 +6,7 @@ on:
 
 jobs:
   build:
+    name: Tests on ${{ matrix.os }} - py${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -48,6 +49,8 @@ jobs:
         cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DFAST_MATRIX_MARKET_TEST=ON -DFAST_MATRIX_MARKET_TEST_COVERAGE=ON ${{ env.FMM_CMAKE_FLAGS }}
 
     - name: Build
+      env:
+        CMAKE_BUILD_PARALLEL_LEVEL: 2
       run: |
         cmake --build build --config Debug
 

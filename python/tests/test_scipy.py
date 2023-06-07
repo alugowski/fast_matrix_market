@@ -5,6 +5,7 @@
 import warnings
 from io import BytesIO, StringIO
 from pathlib import Path
+import tempfile
 import unittest
 import sys
 
@@ -312,6 +313,104 @@ class TestSciPy(unittest.TestCase):
             m = fmm.mmread(cpp_matrices / "overflow" / "overflow_value_gt_complex128.mtx")
             self.assertEqual(m.data[-1].real, float("inf"))
             self.assertEqual(m.data[-1].imag, float("inf"))
+
+    def test_write_file(self):
+        rows = [0, 1, 2]
+        cols = [0, 1, 2]
+        data = [1.1, 2.2, 3.3]
+        mtx = scipy.sparse.coo_matrix((data, (rows, cols)), shape=(3, 3))
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            mtx_path = Path(temp_dir) / "matrix.mtx"
+
+            # Write with filename, read with filename
+            fmm.mmwrite(mtx_path, mtx)
+            a = fmm.mmread(mtx_path)
+            self.assertMatrixEqual(a, mtx)
+
+            # Write with filename, read with file object
+            fmm.mmwrite(mtx_path, mtx)
+            with open(mtx_path, 'r') as f:
+                a = fmm.mmread(f)
+            self.assertMatrixEqual(a, mtx)
+
+            # Write with file object (binary), read with filename
+            with open(mtx_path, 'wb') as f:
+                fmm.mmwrite(f, mtx)
+            a = fmm.mmread(mtx_path)
+            self.assertMatrixEqual(a, mtx)
+
+            # Write with file object (text)
+            # Not allowed. scipy.io._mmio.mmwrite() also throws TypeError here
+            with open(mtx_path, 'w') as f:
+                with self.assertRaises(TypeError):
+                    fmm.mmwrite(f, mtx)
+
+            # Write with file object (binary), read with file object (text)
+            with open(mtx_path, 'wb') as f:
+                fmm.mmwrite(f, mtx)
+            with open(mtx_path, 'r') as f:
+                a = fmm.mmread(f)
+            self.assertMatrixEqual(a, mtx)
+
+            # Write with file object (binary), read with file object (binary)
+            with open(mtx_path, 'wb') as f:
+                fmm.mmwrite(f, mtx)
+            with open(mtx_path, 'rb') as f:
+                a = fmm.mmread(f)
+            self.assertMatrixEqual(a, mtx)
+
+    def test_bz2(self):
+        try:
+            import bz2
+        except ImportError:
+            self.skipTest(reason="no bz2 module")
+            return
+
+        rows = [0, 1, 2]
+        cols = [0, 1, 2]
+        data = [1.1, 2.2, 3.3]
+        mtx = scipy.sparse.coo_matrix((data, (rows, cols)), shape=(3, 3))
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            mtx_path = temp_path / "matrix.mtx"
+            bz2_path = temp_path / "matrix.mtx.bz2"
+
+            fmm.mmwrite(mtx_path, mtx)
+
+            # create bz2
+            with open(mtx_path, 'rb') as f_in, bz2.BZ2File(bz2_path, 'wb') as f_out:
+                f_out.write(f_in.read())
+
+            a = fmm.mmread(bz2_path)
+            self.assertMatrixEqual(a, mtx)
+
+    def test_gzip(self):
+        try:
+            import gzip
+        except ImportError:
+            self.skipTest(reason="no gzip module")
+            return
+
+        rows = [0, 1, 2]
+        cols = [0, 1, 2]
+        data = [1.1, 2.2, 3.3]
+        mtx = scipy.sparse.coo_matrix((data, (rows, cols)), shape=(3, 3))
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            mtx_path = temp_path / "matrix.mtx"
+            gzip_path = temp_path / "matrix.mtx.gz"
+
+            fmm.mmwrite(mtx_path, mtx)
+
+            # create bz2
+            with open(mtx_path, 'rb') as f_in, gzip.GzipFile(gzip_path, 'wb') as f_out:
+                f_out.write(f_in.read())
+
+            a = fmm.mmread(gzip_path)
+            self.assertMatrixEqual(a, mtx)
 
 
 if __name__ == '__main__':
