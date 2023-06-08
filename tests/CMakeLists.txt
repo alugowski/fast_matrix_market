@@ -37,6 +37,10 @@ target_link_libraries(field_conv_test GTest::gtest_main fast_matrix_market::fast
 add_executable(basic_test basic_test.cpp)
 target_link_libraries(basic_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
 
+add_executable(no_vector_test no_vector_test.cpp)
+target_link_libraries(no_vector_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+target_compile_definitions(no_vector_test PUBLIC FMM_NO_VECTOR)
+
 add_executable(user_type_test user_type_test.cpp)
 target_link_libraries(user_type_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
 
