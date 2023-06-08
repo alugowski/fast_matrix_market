@@ -86,6 +86,14 @@ namespace fast_matrix_market {
     };
 
     /**
+     * Matrix Market file is a `vector` type, but vector support is disabled in this build.
+     */
+    class no_vector_support : public invalid_argument {
+    public:
+        explicit no_vector_support(std::string msg): invalid_argument(std::move(msg)) {}
+    };
+
+    /**
      * A value type to use for pattern matrices. Pattern Matrix Market files do not write a value column, only the
      * coordinates. Setting this as the value type signals the parser to not attempt to read a column that isn't there.
      */
