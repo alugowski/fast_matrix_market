@@ -25,8 +25,10 @@ pybind11_add_module(_core MODULE
         src/fast_matrix_market/_core_read_array.cpp
         src/fast_matrix_market/_core_read_coo.cpp
         src/fast_matrix_market/_core_write_array.cpp
-        src/fast_matrix_market/_core_write_coo.cpp
-        src/fast_matrix_market/_core_write_csc.cpp
+        src/fast_matrix_market/_core_write_coo_32.cpp
+        src/fast_matrix_market/_core_write_coo_64.cpp
+        src/fast_matrix_market/_core_write_csc_32.cpp
+        src/fast_matrix_market/_core_write_csc_64.cpp
         )
 target_compile_definitions(_core PRIVATE VERSION_INFO=${PROJECT_VERSION})
 target_link_libraries(_core PRIVATE fast_matrix_market::fast_matrix_market)
