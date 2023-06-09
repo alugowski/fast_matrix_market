@@ -558,7 +558,7 @@ namespace fast_matrix_market {
         if (header.field == pattern) {
             // read the indices
             auto handler = triplet_pattern_parse_handler(rows.begin(), cols.begin());
-            read_matrix_market_body_no_pattern(instream, header, handler, options);
+            read_matrix_market_body_no_adapters(instream, header, handler, options);
 
             // create the scalar
             GrB_Scalar one;
