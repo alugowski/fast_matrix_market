@@ -28,7 +28,7 @@ namespace fast_matrix_market {
         }
 
         auto handler = triplet_parse_handler((*cs)->i, (*cs)->p, (*cs)->x);
-        read_matrix_market_body_no_pattern(instream, header, handler, options);
+        read_matrix_market_body_no_adapters(instream, header, handler, options);
 
         // nz > 0 indicates a triplet matrix.
         (*cs)->nz = (*cs)->nzmax;
