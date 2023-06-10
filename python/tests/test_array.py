@@ -4,6 +4,8 @@
 
 from io import BytesIO, StringIO
 from pathlib import Path
+
+import numpy
 import numpy as np
 import unittest
 import scipy
@@ -23,6 +25,12 @@ class TestArray(unittest.TestCase):
         self.assertEqual(lhs.shape, rhs.shape)
         self.assertEqual(type(lhs), type(rhs))
         if types:
+            if np.dtype('intp') == np.dtype('int32'):
+                # 32-bit system. scipy.io._mmio will load integer arrays as int32
+                if lhs.dtype == np.dtype('int32'):
+                    lhs = lhs.astype('int64')
+                if rhs.dtype == np.dtype('int32'):
+                    rhs = rhs.astype('int64')
             self.assertEqual(lhs.dtype, rhs.dtype)
         np.testing.assert_almost_equal(lhs, rhs)
 

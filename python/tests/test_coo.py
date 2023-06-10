@@ -25,6 +25,12 @@ class TestTriplet(unittest.TestCase):
         rhs_csc = rhs.tocsc().sorted_indices()
 
         if types:
+            if np.dtype('intp') == np.dtype('int32'):
+                # 32-bit system. scipy.io._mmio will load integer arrays as int32
+                if lhs_csc.data.dtype == np.dtype('int32'):
+                    lhs_csc.data = lhs_csc.data.astype('int64')
+                if rhs_csc.data.dtype == np.dtype('int32'):
+                    rhs_csc.data = rhs_csc.data.astype('int64')
             self.assertEqual(lhs_csc.indptr.dtype, rhs_csc.indptr.dtype)
             self.assertEqual(lhs_csc.indices.dtype, rhs_csc.indices.dtype)
             self.assertEqual(lhs_csc.data.dtype, rhs_csc.data.dtype)
@@ -53,7 +59,6 @@ class TestTriplet(unittest.TestCase):
 
             with self.subTest(msg=mtx.stem):
                 triplet, shape = fmm.read_coo(mtx)
-                print(triplet)
 
                 bio = BytesIO()
                 fmm.write_coo(bio, triplet, shape=shape)

@@ -86,3 +86,28 @@ jobs:
         gcov: true
         gcov_include: include/*   # C++ coverage
 #        directory: python/tests   # Python coverage. This seems to confuse codecov, disable for now.
+
+  #################################################################################
+  linux_32bit:
+    name: Tests on 32-bit Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: build + test
+        run: |
+          set -euo pipefail
+          docker pull quay.io/pypa/manylinux2014_i686
+          docker run -v $(pwd):/fmm --platform=linux/i386 quay.io/pypa/manylinux2014_i686 /bin/bash -c "cd /fmm && \
+          uname -a && \
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DFAST_MATRIX_MARKET_TEST=ON && \
+          cmake --build build --config Debug && \
+          cd build && \
+          ctest -C Debug --output-on-failure --verbose && \
+          cd ../ && \
+          python3.9 -m venv env && \
+          source env/bin/activate && \
+          python -m pip install python/ -v &&\
+          python -m pip install --only-binary :all: numpy scipy pytest pytest-subtests && \
+          cd python/tests/ && \
+          pytest -v"
