@@ -49,6 +49,7 @@ namespace fast_matrix_market {
         typename FWD_HANDLER::value_type fwd_value;
     };
 
+#ifndef FMM_SCIPY_PRUNE
     /**
      * A handler wrapper so that real/integer files can be read into std::complex matrices by setting all
      * imaginary parts to zero.
@@ -80,6 +81,7 @@ namespace fast_matrix_market {
     protected:
         COMPLEX_HANDLER handler;
     };
+#endif
 
     ///////////////////////////////////////////////////////////////////
     // Limit bool parallelism
@@ -496,6 +498,7 @@ namespace fast_matrix_market {
         }
     }
 
+#ifndef FMM_SCIPY_PRUNE
     /**
      * Read the body by adapting real files to complex HANDLER.
      *
@@ -529,6 +532,7 @@ namespace fast_matrix_market {
             throw complex_incompatible("Matrix Market file has complex fields but passed data structure cannot handle complex values.");
         }
     }
+#endif
 
     /**
      * Main body reader entry point.
