@@ -84,6 +84,7 @@ jobs:
 #          CIBW_BUILD: "cp*"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           # No 32-bit builds. See https://cibuildwheel.readthedocs.io/en/stable/options/#archs
+          # Note: if trying 32-bit builds, add CIBW_BEFORE_TEST: "pip install --only-binary :all: numpy scipy"
           CIBW_SKIP: "*-win32 *_i686"
           # make cibuildwheel install test dependencies from pyproject.toml
           CIBW_TEST_EXTRAS: "test"

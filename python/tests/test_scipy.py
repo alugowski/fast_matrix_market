@@ -32,6 +32,13 @@ class TestSciPy(unittest.TestCase):
         if isinstance(lhs, np.ndarray):
             self.assertEqual(type(lhs), type(rhs))
             if types:
+                if np.dtype('intp') == np.dtype('int32'):
+                    # 32-bit system. scipy.io._mmio will load integer arrays as int32
+                    if lhs.dtype == np.dtype('int32'):
+                        lhs = lhs.astype('int64')
+                    if rhs.dtype == np.dtype('int32'):
+                        rhs = rhs.astype('int64')
+
                 self.assertEqual(lhs.dtype, rhs.dtype)
             np.testing.assert_almost_equal(lhs, rhs)
             return
@@ -42,6 +49,13 @@ class TestSciPy(unittest.TestCase):
         rhs_csc = rhs.tocsc().sorted_indices()
 
         if types:
+            if np.dtype('intp') == np.dtype('int32'):
+                # 32-bit system. scipy.io._mmio will load integer arrays as int32
+                if lhs_csc.data.dtype == np.dtype('int32'):
+                    lhs_csc.data = lhs_csc.data.astype('int64')
+                if rhs_csc.data.dtype == np.dtype('int32'):
+                    rhs_csc.data = rhs_csc.data.astype('int64')
+
             self.assertEqual(lhs_csc.indptr.dtype, rhs_csc.indptr.dtype)
             self.assertEqual(lhs_csc.indices.dtype, rhs_csc.indices.dtype)
             self.assertEqual(lhs_csc.data.dtype, rhs_csc.data.dtype)
@@ -153,7 +167,7 @@ class TestSciPy(unittest.TestCase):
     def test_write_fields(self):
         for mtx in sorted(list(matrices.glob("*.mtx"))):
             mtx_header = fmm.read_header(mtx)
-            mat = fmm.read_scipy(mtx)
+            mat = scipy.io.mmread(mtx)
 
             for field in ["integer", "real", "complex", "pattern"]:
                 if mtx_header.format == "array" and field == "pattern":
@@ -168,9 +182,11 @@ class TestSciPy(unittest.TestCase):
                         sio = BytesIO()
                         scipy.io.mmwrite(sio, mat, field=field)
                         scipys = sio.getvalue().decode("latin1")
-                    except OverflowError:
+                    except OverflowError as e:
                         if mtx_header.field != "integer" and field == "integer":
                             continue
+                        else:
+                            raise e
 
                     # Write FMM with this field
                     bio = BytesIO()
