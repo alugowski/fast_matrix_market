@@ -26,27 +26,3 @@ add_library(ryu::ryu ALIAS ryu)
 # Specify what to install if using CMake to install ryu.
 install(TARGETS ryu LIBRARY)
 install(FILES ryu/ryu.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ryu)
-
-
-# generic_128
-# Only builds on GCC/Clang/Intel due to __uint128_t. No MSVC.
-if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang"
-        OR "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU"
-        OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
-
-    add_library(generic_128
-            ryu/generic_128.c
-            ryu/generic_128.h
-            ryu/ryu_generic_128.h)
-
-    target_include_directories(generic_128 PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
-
-    add_library(ryu::generic_128 ALIAS generic_128)
-
-    install(TARGETS generic_128 LIBRARY)
-    install(FILES ryu/ryu_generic_128.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ryu)
-
-    set(RYU_GENERIC_128_AVAILABLE ON CACHE BOOL "generic_128 available." FORCE)
-else()
-    set(RYU_GENERIC_128_AVAILABLE OFF CACHE BOOL "generic_128 not available on this platform." FORCE)
-endif()
