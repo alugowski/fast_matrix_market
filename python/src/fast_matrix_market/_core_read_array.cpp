@@ -18,14 +18,11 @@ void read_body_array(read_cursor& cursor, py::array_t<T>& array) {
 
     // The mmread() will only call this method if the matrix is an array. Disable the code paths for reading
     // coordinate matrices here to reduce final library size and compilation time.
-    constexpr fmm::compile_format FORMAT =
 #ifdef FMM_SCIPY_PRUNE
-        fmm::compile_array_only;
+    fmm::read_matrix_market_body<decltype(handler), fmm::compile_array_only>(cursor.stream(), cursor.header, handler, 1, cursor.options);
 #else
-        fmm::compile_all;
+    fmm::read_matrix_market_body<decltype(handler), fmm::compile_all>(cursor.stream(), cursor.header, handler, 1, cursor.options);
 #endif
-
-    fmm::read_matrix_market_body<decltype(handler), FORMAT>(cursor.stream(), cursor.header, handler, 1, cursor.options);
 }
 
 
