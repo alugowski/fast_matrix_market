@@ -5,13 +5,11 @@
 from io import BytesIO, StringIO
 import unittest
 from pathlib import Path
-import sys
 
 import fast_matrix_market as fmm
 
 matrices = Path("matrices")
 cpp_matrices = matrices / ".." / ".." / ".." / "tests" / "matrices"
-IS_PYPY = "PyPy" in sys.version
 
 
 class TestHeader(unittest.TestCase):
@@ -65,7 +63,6 @@ class TestHeader(unittest.TestCase):
                               object="matrix", format="coordinate", field="real", symmetry="general")
         self.assertEqual(h.to_dict(), expected.to_dict())
 
-    @unittest.skipIf(IS_PYPY, "Writing into BytesIO has no effect on PyPy")
     def test_read_write(self):
         h = fmm.header(shape=(3, 3), nnz=3, comment="3-by-3 identity matrix",
                        object="matrix", format="coordinate", field="real", symmetry="general")
