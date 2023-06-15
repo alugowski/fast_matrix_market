@@ -83,10 +83,12 @@ namespace fast_matrix_market {
         using IT = typename std::iterator_traits<decltype(rows.begin())>::value_type;
         using VT = typename std::iterator_traits<decltype(values.begin())>::value_type;
 
-        header.nnz = values.size();
+        header.nnz = rows.size();
 
         header.object = matrix;
-        if (header.field != pattern) {
+        if (header.nnz > 0 && (values.cbegin() == values.cend())) {
+            header.field = pattern;
+        } else if (header.field != pattern) {
             header.field = get_field_type((const VT *) nullptr);
         }
         header.format = coordinate;
@@ -115,10 +117,12 @@ namespace fast_matrix_market {
         using IT = typename std::iterator_traits<decltype(indptr.begin())>::value_type;
         using VT = typename std::iterator_traits<decltype(values.begin())>::value_type;
 
-        header.nnz = values.size();
+        header.nnz = indices.size();
 
         header.object = matrix;
-        if (header.field != pattern) {
+        if (header.nnz > 0 && (values.cbegin() == values.cend())) {
+            header.field = pattern;
+        } else if (header.field != pattern) {
             header.field = get_field_type((const VT *) nullptr);
         }
         header.format = coordinate;

@@ -128,7 +128,7 @@ TRIPLET sorted_triplet(const TRIPLET& triplet) {
 
 template <typename VEC>
 void print_vec(const VEC& vec, const std::string& label) {
-    std::cout << label << " size=" << vec.size();
+    std::cout << label << " size=" << vec.size() << std::endl;
     for (const auto& v : vec) {
         std::cout << v << std::endl;
     }

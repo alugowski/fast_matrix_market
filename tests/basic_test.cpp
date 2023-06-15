@@ -436,6 +436,16 @@ TYPED_TEST(PlainVectorSuite, Basic) {
     sparse_vector<int64_t, TypeParam> vec_from_string;
     read_vector_string(vec_str, vec_from_string, header);
     EXPECT_EQ(vec, vec_from_string);
+
+    // pattern vector
+    vec.vals.clear();
+    std::string vec_pat_str = write_vector_string(vec);
+    EXPECT_NE(vec_pat_str.find("pattern"), std::string::npos);
+    sparse_vector<int64_t, TypeParam> vec_from_string_pat;
+    read_vector_string(vec_pat_str, vec_from_string_pat, header);
+    vec.vals.resize(vec.indices.size());
+    std::fill(vec.vals.begin(), vec.vals.end(), true);
+    EXPECT_EQ(vec, vec_from_string_pat);
 }
 
 TEST(PlainVectorSuite, Complex) {

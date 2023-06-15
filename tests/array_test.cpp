@@ -68,7 +68,7 @@ protected:
     fast_matrix_market::write_options woptions;
 };
 
-using MyTypes = ::testing::Types<float, double, std::complex<double>, int64_t, long double>;
+using MyTypes = ::testing::Types<bool, float, double, std::complex<double>, int64_t, long double>;
 TYPED_TEST_SUITE(ArrayTest, MyTypes);
 
 TYPED_TEST(ArrayTest, Generated) {
@@ -83,5 +83,28 @@ TYPED_TEST(ArrayTest, Generated) {
                 EXPECT_EQ(this->mat, b);
             }
         }
+    }
+}
+
+TEST(ArrayTest, BoolRaceConditions) {
+    // std::vector<bool> may be specialized such that accessing different elements is not thread safe.
+    // Ensure that the protection against this is working.
+    using Mat = array_matrix<bool>;
+
+    Mat mat;
+    construct_array(mat, 16);
+    std::fill(mat.vals.begin(), mat.vals.end(), true);
+    std::string mtx = write_mtx(mat, fast_matrix_market::write_options{});
+
+    fast_matrix_market::read_options roptions;
+    roptions.parallel_ok = true;
+    roptions.chunk_size_bytes = 1;
+    roptions.num_threads = 8;
+
+    for (int i = 0; i < 1000; ++i) {
+        Mat array = read_mtx<Mat>(mtx, roptions);
+        Mat array2 = read_mtx<Mat>(mtx, roptions);
+
+        EXPECT_EQ(array, array2);
     }
 }
