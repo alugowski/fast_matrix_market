@@ -288,7 +288,7 @@ def write_array(target, a, comment=None, parallelism=None):
     import numpy as np
     a = np.asarray(a)
     cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
-    _core.write_array(cursor, a)
+    _core.write_body_array(cursor, a)
 
 
 def read_coo(source, parallelism=None, long_type=False, generalize_symmetry=True):
@@ -323,7 +323,7 @@ def write_coo(target, a, shape, comment=None, parallelism=None):
     data, (row, col) = a
 
     cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
-    _core.write_coo(cursor, shape, row, col, data)
+    _core.write_body_coo(cursor, shape, row, col, data)
 
 
 def read_array_or_coo(source, parallelism=None, long_type=False, generalize_symmetry=True):
@@ -417,7 +417,7 @@ def mmwrite(target, a, comment=None, field=None, precision=None, symmetry="AUTO"
     if isinstance(a, np.ndarray):
         # Write dense numpy arrays
         a = _apply_field(a, field, no_pattern=True)
-        _core.write_array(cursor, a)
+        _core.write_body_array(cursor, a)
         return
 
     if scipy.sparse.isspmatrix(a):
@@ -444,9 +444,9 @@ def mmwrite(target, a, comment=None, field=None, precision=None, symmetry="AUTO"
         if is_compressed:
             # CSC and CSR can be written directly
             is_csr = isinstance(a, scipy.sparse.csr_matrix)
-            _core.write_csc(cursor, a.shape, a.indptr, a.indices, data, is_csr)
+            _core.write_body_csc(cursor, a.shape, a.indptr, a.indices, data, is_csr)
         else:
-            _core.write_coo(cursor, a.shape, a.row, a.col, data)
+            _core.write_body_coo(cursor, a.shape, a.row, a.col, data)
         return
 
     raise ValueError("unknown matrix type: %s" % type(a))
