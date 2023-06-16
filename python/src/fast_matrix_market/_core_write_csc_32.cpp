@@ -5,14 +5,14 @@
 #include "_core.hpp"
 
 void init_write_csc_32(py::module_ &m) {
-    m.def("write_csc", &write_csc<int32_t, int32_t>);
-    m.def("write_csc", &write_csc<int32_t, uint32_t>);
-    m.def("write_csc", &write_csc<int32_t, int64_t>);
-    m.def("write_csc", &write_csc<int32_t, uint64_t>);
-    m.def("write_csc", &write_csc<int32_t, float>);
-    m.def("write_csc", &write_csc<int32_t, double>);
-    m.def("write_csc", &write_csc<int32_t, long double>);
-    m.def("write_csc", &write_csc<int32_t, std::complex<float>>);
-    m.def("write_csc", &write_csc<int32_t, std::complex<double>>);
-    m.def("write_csc", &write_csc<int32_t, std::complex<long double>>);
+    m.def("write_body_csc", &write_body_csc<int32_t, int32_t>);
+    m.def("write_body_csc", &write_body_csc<int32_t, uint32_t>);
+    m.def("write_body_csc", &write_body_csc<int32_t, int64_t>);
+    m.def("write_body_csc", &write_body_csc<int32_t, uint64_t>);
+    m.def("write_body_csc", &write_body_csc<int32_t, float>);
+    m.def("write_body_csc", &write_body_csc<int32_t, double>);
+    m.def("write_body_csc", &write_body_csc<int32_t, long double>);
+    m.def("write_body_csc", &write_body_csc<int32_t, std::complex<float>>);
+    m.def("write_body_csc", &write_body_csc<int32_t, std::complex<double>>);
+    m.def("write_body_csc", &write_body_csc<int32_t, std::complex<long double>>);
 }
