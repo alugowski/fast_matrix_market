@@ -68,6 +68,20 @@ class TestSciPy(unittest.TestCase):
                 fmm_info = fmm.mminfo(mtx)
                 self.assertEqual(scipy_info, fmm_info)
 
+    def test_mminfo_docstring(self):
+        text = '''%%MatrixMarket matrix coordinate real general
+         5 5 7
+         2 3 1.0
+         3 4 2.0
+         3 5 3.0
+         4 1 4.0
+         4 2 5.0
+         4 3 6.0
+         4 4 7.0
+        '''
+        info = fmm.mminfo(StringIO(text))
+        self.assertEqual(info, (5, 5, 7, 'coordinate', 'real', 'general'))
+
     def test_read(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
             with self.subTest(msg=mtx.stem):
