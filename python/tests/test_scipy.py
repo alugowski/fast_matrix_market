@@ -310,8 +310,12 @@ class TestSciPy(unittest.TestCase):
                     m = np.array([[value]])
 
                     bio = BytesIO()
-                    fmm.mmwrite(bio, m, precision=precision)
+                    fmm.mmwrite(bio, m, precision=precision, comment="comment")
                     fmms = bio.getvalue().decode()
+
+                    # Pull out the line that contains the value
+                    value_str = fmms.splitlines()[3]
+                    self.assertEqual(value_str, '%%.%dg' % precision % value)
 
                     m2 = fmm.mmread(StringIO(fmms))
                     self.assertAlmostEqual(m2[0][0], float('%%.%dg' % precision % value))
