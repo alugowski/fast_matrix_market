@@ -105,8 +105,8 @@ if (FMM_USE_RYU)
     message("Using ryu")
     add_subdirectory(dependencies/ryu)
 
-#    target_link_libraries(fast_matrix_market INTERFACE ryu::ryu)
-#    target_compile_definitions(fast_matrix_market INTERFACE FMM_USE_RYU)
+    target_link_libraries(fast_matrix_market INTERFACE ryu::ryu)
+    target_compile_definitions(fast_matrix_market INTERFACE FMM_USE_RYU)
 endif()
 
 ###############################################
