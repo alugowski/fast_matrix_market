@@ -165,6 +165,12 @@ TEST(Utils, misc) {
     EXPECT_EQ(fast_matrix_market::trim("foo "), "foo");
     EXPECT_EQ(fast_matrix_market::trim("foo\n  \n"), "foo");
 
+    EXPECT_EQ(fast_matrix_market::replace_all("foo", "bar", "fff"), "foo");
+    EXPECT_EQ(fast_matrix_market::replace_all("foo", "", "fff"), "foo");
+    EXPECT_EQ(fast_matrix_market::replace_all("foobar", "bar", "foo"), "foofoo");
+    EXPECT_EQ(fast_matrix_market::replace_all("foobarbar", "bar", "foo"), "foofoofoo");
+    EXPECT_EQ(fast_matrix_market::replace_all("barfoobarbar", "bar", "foo"), "foofoofoofoo");
+
     std::string msg("error");
     EXPECT_EQ(fast_matrix_market::fmm_error(msg).what(), msg);
 }
@@ -459,17 +465,24 @@ TEST(Header, Comment) {
     sparse_vector<int64_t, double> vec;
     read_vector_file("vector_coordinate.mtx", vec);
 
-    fast_matrix_market::matrix_market_header header, header2;
-    header.vector_length = vec.length;
-
     // set a comment
-    header.comment = "multi-line\ncomment";
+    for (std::string comment : {
+        "",
+        "one-line",
+        "multi-line\ncomment",
+        "\npadded\n",
+        "\n",
+        " \n \n \n "}) {
+        fast_matrix_market::matrix_market_header header, header2;
+        header.vector_length = vec.length;
+        header.comment = comment;
 
-    // write and read into header2
-    std::string vec_str = write_vector_string(vec, header);
-    read_vector_string(vec_str, vec, header2);
+        // write and read into header2
+        std::string vec_str = write_vector_string(vec, header);
+        read_vector_string(vec_str, vec, header2);
 
-    EXPECT_EQ(header.comment, header2.comment);
+        EXPECT_EQ(header.comment, header2.comment);
+    }
 }
 
 /**

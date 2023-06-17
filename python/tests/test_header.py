@@ -53,6 +53,19 @@ class TestHeader(unittest.TestCase):
         with self.assertRaises(ValueError):
             fmm.header(symmetry="foo")
 
+    def test_comment(self):
+        for comment in ["", "one-line", "\n", "multi\nline", "\npadded\n"]:
+            h = fmm.header(shape=(1, 1), nnz=1, comment=comment,
+                           object="matrix", format="array", field="integer", symmetry="general")
+
+            # Write to a buffer
+            bio = BytesIO()
+            fmm.write_header(bio, h)
+            s = bio.getvalue().decode()
+
+            h2 = fmm.read_header(StringIO(s))
+            self.assertEqual(h.comment, h2.comment)
+
     def test_read_file(self):
         path = matrices / "eye3.mtx"
         if not path.exists():
