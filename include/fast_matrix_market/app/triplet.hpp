@@ -93,7 +93,7 @@ namespace fast_matrix_market {
         }
         header.format = coordinate;
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         line_formatter<IT, VT> lf(header, options);
         auto formatter = triplet_formatter(lf,
@@ -127,7 +127,7 @@ namespace fast_matrix_market {
         }
         header.format = coordinate;
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         line_formatter<IT, VT> lf(header, options);
         auto formatter = csc_formatter(lf,

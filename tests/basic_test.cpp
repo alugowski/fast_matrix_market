@@ -80,11 +80,11 @@ void read_vector_string(const std::string& str, VECTOR& vec, fast_matrix_market:
 }
 
 template <typename VECTOR>
-std::string write_vector_string(VECTOR& vec, fast_matrix_market::matrix_market_header header = {}) {
+std::string write_vector_string(VECTOR& vec, fast_matrix_market::matrix_market_header header = {}, fast_matrix_market::write_options options = {}) {
     std::ostringstream f;
 
     header.vector_length = vec.length;
-    fast_matrix_market::write_matrix_market_doublet(f, header, vec.indices, vec.vals);
+    fast_matrix_market::write_matrix_market_doublet(f, header, vec.indices, vec.vals, options);
     vec.length = header.vector_length;
 
     return f.str();
@@ -462,26 +462,41 @@ TEST(PlainVectorSuite, Complex) {
  */
 TEST(Header, Comment) {
     // Create a vector
-    sparse_vector<int64_t, double> vec;
-    read_vector_file("vector_coordinate.mtx", vec);
+    sparse_vector<int64_t, int> vec;
+    vec.indices = {0};
+    vec.vals = {100};
+    vec.length = 1;
 
-    // set a comment
-    for (std::string comment : {
-        "",
-        "one-line",
-        "multi-line\ncomment",
-        "\npadded\n",
-        "\n",
-        " \n \n \n "}) {
-        fast_matrix_market::matrix_market_header header, header2;
-        header.vector_length = vec.length;
-        header.comment = comment;
+    for (bool always_comment : {false, true}) {
+        fast_matrix_market::write_options options;
+        options.always_comment = always_comment;
 
-        // write and read into header2
-        std::string vec_str = write_vector_string(vec, header);
-        read_vector_string(vec_str, vec, header2);
+        // set a comment
+        for (std::string comment: {
+            "",
+            "one-line",
+            "multi-line\ncomment",
+            "\npadded\n",
+            "\n",
+            " \n \n \n "}) {
+            fast_matrix_market::matrix_market_header header, header2;
+            header.vector_length = vec.length;
+            header.comment = comment;
 
-        EXPECT_EQ(header.comment, header2.comment);
+            // write and read into header2
+            std::string vec_str = write_vector_string(vec, header, options);
+            read_vector_string(vec_str, vec, header2);
+
+            EXPECT_EQ(header.comment, header2.comment);
+        }
+    }
+
+    // test writing an empty comment with always_comment = true
+    {
+        fast_matrix_market::write_options options;
+        options.always_comment = true;
+        std::string vec_str = write_vector_string(vec, {}, options);
+        EXPECT_EQ(vec_str, "%%MatrixMarket vector coordinate integer general\n%\n1 1\n1 100\n");
     }
 }
 
