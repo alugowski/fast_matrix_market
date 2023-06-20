@@ -54,7 +54,7 @@ namespace fast_matrix_market {
         }
         header.format = coordinate;
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         if (cs->nz == -1) {
             // compressed

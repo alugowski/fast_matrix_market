@@ -210,7 +210,7 @@ namespace fast_matrix_market {
         }
         header.format = coordinate;
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         const bool is_row_major = blaze::IsRowMajorMatrix_v<SparseMatrix>;
 
@@ -238,7 +238,7 @@ namespace fast_matrix_market {
         header.field = get_field_type((const VT *) nullptr);
         header.format = array;
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         line_formatter<IT, VT> lf(header, options);
         auto formatter = dense_2d_call_formatter(lf, mat, header.nrows, header.ncols);
@@ -353,7 +353,7 @@ namespace fast_matrix_market {
         }
         header.format = coordinate;
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         // write the body
 
@@ -384,7 +384,7 @@ namespace fast_matrix_market {
         header.field = get_field_type((const VT *) nullptr);
         header.format = array;
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         line_formatter<int64_t, VT> lf(header, options);
         auto formatter = array_formatter(lf, vec.data(), row_major, vector_length, 1);

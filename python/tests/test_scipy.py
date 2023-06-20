@@ -141,6 +141,13 @@ class TestSciPy(unittest.TestCase):
 
                 self.assertMatrixEqual(m, m2)
 
+                if mtx_header.field in ["integer", "pattern"]:
+                    # should match byte for byte, except for reals
+                    bio = BytesIO()
+                    scipy.io.mmwrite(bio, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None))
+                    scipy_s = bio.getvalue().decode()
+                    self.assertEqual(fmms, scipy_s)
+
     def test_write_formats(self):
         for mtx in sorted(list(matrices.glob("*.mtx"))):
             mtx_header = fmm.read_header(mtx)
@@ -303,7 +310,7 @@ class TestSciPy(unittest.TestCase):
 
     def test_precision(self):
         test_values = [np.pi] + [10**i for i in range(0, -10, -1)]
-        test_precisions = range(1, 10)
+        test_precisions = range(0, 10)
         for value in test_values:
             for precision in test_precisions:
                 with self.subTest(msg=f"value={value}, precision={precision}"):
@@ -315,7 +322,10 @@ class TestSciPy(unittest.TestCase):
 
                     # Pull out the line that contains the value
                     value_str = fmms.splitlines()[3]
-                    self.assertEqual(value_str, '%%.%dg' % precision % value)
+                    if precision == 1 and value >= 1:
+                        self.assertEqual(value_str, '%%.%dg' % precision % value)
+                    else:
+                        self.assertAlmostEqual(float(value_str), float('%%.%dg' % precision % value), places=precision)
 
                     m2 = fmm.mmread(StringIO(fmms))
                     self.assertAlmostEqual(m2[0][0], float('%%.%dg' % precision % value))

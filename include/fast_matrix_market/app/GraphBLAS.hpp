@@ -1171,7 +1171,7 @@ namespace fast_matrix_market {
 //        }
 #endif
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         if (type == GrB_BOOL) {
             write_body_graphblas<bool>(os, header, mat, options);
@@ -1391,7 +1391,7 @@ namespace fast_matrix_market {
         }
         header.format = coordinate;
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         if (type == GrB_BOOL) {
             write_body_graphblas<bool>(os, header, vec, options);

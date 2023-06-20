@@ -158,7 +158,7 @@ namespace fast_matrix_market {
         }
         header.format = coordinate;
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         line_formatter<typename SparseType::Index, typename SparseType::Scalar> lf(header, options);
         auto formatter = sparse_Eigen_formatter(lf, mat);
@@ -181,7 +181,7 @@ namespace fast_matrix_market {
         header.field = get_field_type((const typename DenseType::Scalar*)nullptr);
         header.format = array;
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         line_formatter<typename DenseType::Index, typename DenseType::Scalar> lf(header, options);
         auto formatter = dense_2d_call_formatter(lf, mat, mat.rows(), mat.cols());

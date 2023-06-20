@@ -94,7 +94,7 @@ namespace fast_matrix_market {
         }
         header.format = coordinate;
 
-        write_header(os, header);
+        write_header(os, header, options);
 
         vector_line_formatter<IT, VT> lf(header, options);
         auto formatter = triplet_formatter(lf,
