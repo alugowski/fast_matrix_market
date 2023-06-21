@@ -180,6 +180,38 @@ class TestSciPy(unittest.TestCase):
 
                     self.assertMatrixEqual(m, m2)
 
+    def test_write_array_formats(self):
+        try:
+            from scipy.sparse import coo_array
+        except AttributeError:
+            self.skipTest("No scipy.sparse.coo_array")
+            return
+
+        rows = [0, 1, 2]
+        cols = [0, 1, 2]
+        data = [1.0, 2.0, 3.0]
+        coo = coo_array((data, (rows, cols)), shape=(3, 3))
+
+        formats = {
+            "coo": coo.tocoo(),
+            "csc": coo.tocsc(),
+            "csr": coo.tocsr(),
+            "bsr": coo.tobsr(),
+            "dok": coo.todok(),
+            "dia": coo.todia(),
+            "lil": coo.tolil(),
+        }
+
+        for name, a in formats.items():
+            with self.subTest(msg=f"{name}"):
+                bio = BytesIO()
+                fmm.mmwrite(bio, a)
+                fmms = bio.getvalue().decode()
+
+                m2 = scipy.io.mmread(StringIO(fmms))
+
+                self.assertMatrixEqual(a.toarray(), m2.toarray())
+
     def test_write_fields(self):
         for mtx in sorted(list(matrices.glob("*.mtx"))):
             mtx_header = fmm.read_header(mtx)
