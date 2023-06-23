@@ -14,6 +14,11 @@ from . import _core  # type: ignore
 __version__ = _core.__version__
 header = _core.header
 
+__all__ = [
+    "read_header", "write_header",
+    "read_array", "write_array", "read_coo", "write_coo", "read_array_or_coo",
+    "mminfo", "mmread", "mmwrite", "read_scipy", "write_scipy"]
+
 PARALLELISM = 0
 """
 Default value for the parallelism argument to mmread() and mmwrite().
