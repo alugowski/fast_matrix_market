@@ -16,6 +16,12 @@ import fast_matrix_market as fmm
 matrices = Path("matrices")
 cpp_matrices = matrices / ".." / ".." / ".." / "tests" / "matrices"
 
+try:
+    import bz2
+    HAVE_BZ2 = True
+except ImportError:
+    HAVE_BZ2 = False
+
 
 class TestSciPy(unittest.TestCase):
     """
@@ -63,6 +69,9 @@ class TestSciPy(unittest.TestCase):
 
     def test_mminfo(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
+            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+                continue
+
             with self.subTest(msg=mtx.stem):
                 scipy_info = scipy.io.mminfo(mtx)
                 fmm_info = fmm.mminfo(mtx)
@@ -84,6 +93,9 @@ class TestSciPy(unittest.TestCase):
 
     def test_read(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
+            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+                continue
+
             with self.subTest(msg=mtx.stem):
                 m = scipy.io.mmread(mtx)
                 header = fmm.read_header(mtx)
@@ -95,6 +107,9 @@ class TestSciPy(unittest.TestCase):
 
     def test_read_array_or_coo(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
+            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+                continue
+
             with self.subTest(msg=mtx.stem):
                 m = scipy.io.mmread(mtx)
                 header = fmm.read_header(mtx)

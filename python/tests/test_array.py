@@ -13,6 +13,12 @@ import fast_matrix_market as fmm
 
 matrices = Path("matrices")
 
+try:
+    import bz2
+    HAVE_BZ2 = True
+except ImportError:
+    HAVE_BZ2 = False
+
 
 class TestArray(unittest.TestCase):
     def assertMatrixEqual(self, lhs, rhs, types=True):
@@ -33,6 +39,8 @@ class TestArray(unittest.TestCase):
 
     def test_read(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
+            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+                continue
             mtx_header = fmm.read_header(mtx)
             if mtx_header.format != "array":
                 continue
@@ -44,6 +52,8 @@ class TestArray(unittest.TestCase):
 
     def test_write(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
+            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+                continue
             mtx_header = fmm.read_header(mtx)
             if mtx_header.format != "array":
                 continue
