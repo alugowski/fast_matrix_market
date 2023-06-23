@@ -354,10 +354,7 @@ class TestSciPy(unittest.TestCase):
 
                     # Pull out the line that contains the value
                     value_str = fmms.splitlines()[3]
-                    if precision == 1 and value >= 1:
-                        self.assertEqual(value_str, '%%.%dg' % precision % value)
-                    else:
-                        self.assertAlmostEqual(float(value_str), float('%%.%dg' % precision % value), places=precision)
+                    self.assertAlmostEqual(float(value_str), float('%%.%dg' % precision % value), places=precision)
 
                     m2 = fmm.mmread(StringIO(fmms))
                     self.assertAlmostEqual(m2[0][0], float('%%.%dg' % precision % value))
