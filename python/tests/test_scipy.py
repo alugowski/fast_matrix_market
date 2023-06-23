@@ -130,7 +130,8 @@ class TestSciPy(unittest.TestCase):
                 m_fmm = fmm.read_scipy(mtx)
 
                 bio = BytesIO()
-                fmm.mmwrite(bio, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None))
+                fmm.mmwrite(bio, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None),
+                            symmetry="general")
                 fmms = bio.getvalue().decode()
 
                 if mtx_header.field == "pattern":
@@ -143,10 +144,15 @@ class TestSciPy(unittest.TestCase):
 
                 if mtx_header.field in ["integer", "pattern"]:
                     # should match byte for byte, except for reals
-                    bio = BytesIO()
-                    scipy.io.mmwrite(bio, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None))
-                    scipy_s = bio.getvalue().decode()
-                    self.assertEqual(fmms, scipy_s)
+                    try:
+                        bio = BytesIO()
+                        scipy.io.mmwrite(bio, m_fmm, field=("pattern" if mtx_header.field == "pattern" else None),
+                                         symmetry="general")
+                        scipy_s = bio.getvalue().decode()
+                        self.assertEqual(fmms, scipy_s)
+                    except OverflowError:
+                        # Some matrices overflow on 32-bit platforms (scipy.io._mmio only).
+                        pass
 
     def test_write_formats(self):
         for mtx in sorted(list(matrices.glob("*.mtx"))):
@@ -183,7 +189,7 @@ class TestSciPy(unittest.TestCase):
     def test_write_array_formats(self):
         try:
             from scipy.sparse import coo_array
-        except AttributeError:
+        except AttributeError or ImportError:
             self.skipTest("No scipy.sparse.coo_array")
             return
 
