@@ -204,7 +204,7 @@ class TestSciPy(unittest.TestCase):
     def test_write_array_formats(self):
         try:
             from scipy.sparse import coo_array
-        except AttributeError or ImportError:
+        except ImportError:
             self.skipTest("No scipy.sparse.coo_array")
             return
 
