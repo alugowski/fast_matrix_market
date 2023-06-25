@@ -63,6 +63,7 @@ gtest_discover_tests(basic_test)
 gtest_discover_tests(user_type_test)
 gtest_discover_tests(array_test)
 gtest_discover_tests(triplet_test)
+gtest_discover_tests(csc_test)
 gtest_discover_tests(cxsparse_test)
 
 
