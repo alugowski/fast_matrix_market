@@ -86,6 +86,8 @@ The `write_matrix_market_*` methods accept a `std::ostream` and a datastructure.
 
 The methods also accept an optional `header` argument that can be used to read and write file metadata, such as the comment or whether the matrix is a `pattern`.
 
+**Important: Open files in binary mode.**
+
 ## Coordinate / Triplets
 
 Matrix composed of row and column index vectors and a value vector. Any vector class that can be resized and iterated like `std::vector` will work. 
@@ -104,6 +106,8 @@ fast_matrix_market::read_matrix_market_triplet(
 ```
 
 Doublet sparse vectors, composed of index and value vectors, are supported in a similar way by `read_matrix_market_doublet()`.
+
+CSC and CSR matrices composed of `indptr`, `indices`, and `values` arrays can be written directly with `write_matrix_market_csc()`.
 
 ## Dense arrays
 
