@@ -381,7 +381,7 @@ def mmread(source, parallelism=None, long_type=False):
 
 
 def mmwrite(target, a, comment=None, field=None, precision=None, symmetry="AUTO",
-                parallelism=None, find_symmetry=False):
+            parallelism=None, find_symmetry=False):
     """
     Write a matrix to a MatrixMarket file or file-like object.
 
@@ -428,20 +428,51 @@ def mmwrite(target, a, comment=None, field=None, precision=None, symmetry="AUTO"
         _core.write_body_array(cursor, a)
         return
 
-    if scipy.sparse.isspmatrix(a):
+    # handle both scipy.sparse.*_matrix and scipy.sparse.*_array
+    # Both have the same interface as far as this method is concerned, so let duck typing do its thing.
+    # Support for these types varies between scipy versions, so attempt to support all possibilities.
+    is_sparse = False
+    is_compressed = False
+    coo_type = None
+    csr_types = []
+
+    # check for *_matrix
+    try:
+        if scipy.sparse.isspmatrix(a):
+            is_sparse = True
+            from scipy.sparse import coo_matrix
+            coo_type = coo_matrix
+            # CSC and CSR have specialized writers.
+            is_compressed = (isinstance(a, scipy.sparse.csc_matrix) or isinstance(a, scipy.sparse.csr_matrix))
+            csr_types.append(scipy.sparse.csr_matrix)
+    except ImportError:
+        pass
+
+    # check for *_array
+    try:
+        if scipy.sparse.issparse(a):
+            is_sparse = True
+            from scipy.sparse import coo_array
+            coo_type = coo_array
+            # CSC and CSR have specialized writers. The type may already be a cs*_matrix.
+            is_compressed = is_compressed or \
+                            (isinstance(a, scipy.sparse.csc_array) or isinstance(a, scipy.sparse.csr_array))
+            csr_types.append(scipy.sparse.csr_array)
+    except ImportError:
+        pass
+
+    if is_sparse:
         # Write sparse scipy matrices
         if symmetry is not None and symmetry != "general":
             # A symmetric matrix only specifies the elements below the diagonal.
             # Ensure that the matrix satisfies this requirement.
-            from scipy.sparse import coo_matrix
+
             a = a.tocoo()
             lower_triangle_mask = a.row >= a.col
-            a = coo_matrix((a.data[lower_triangle_mask],
-                            (a.row[lower_triangle_mask],
-                             a.col[lower_triangle_mask])), shape=a.shape)
-
-        # CSC and CSR have specialized writers.
-        is_compressed = (isinstance(a, scipy.sparse.csc_matrix) or isinstance(a, scipy.sparse.csr_matrix))
+            a = coo_type((a.data[lower_triangle_mask],
+                          (a.row[lower_triangle_mask],
+                           a.col[lower_triangle_mask])), shape=a.shape)
+            is_compressed = False
 
         if not is_compressed:
             # convert everything except CSC/CSR to coo
@@ -451,7 +482,7 @@ def mmwrite(target, a, comment=None, field=None, precision=None, symmetry="AUTO"
 
         if is_compressed:
             # CSC and CSR can be written directly
-            is_csr = isinstance(a, scipy.sparse.csr_matrix)
+            is_csr = any([isinstance(a, t) for t in csr_types])
             _core.write_body_csc(cursor, a.shape, a.indptr, a.indices, data, is_csr)
         else:
             _core.write_body_coo(cursor, a.shape, a.row, a.col, data)
