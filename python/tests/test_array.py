@@ -79,7 +79,7 @@ class TestArray(unittest.TestCase):
                 self.assertMatrixEqual(m, m_fmm)
 
     def test_write_file(self):
-        mtx = np.array([[11, 0, 0], [0, 22, 0], [0, 0, 33]])
+        mtx = np.array([[11.1, 0, 0], [0, 22.2, 0], [0, 0, 33.3]], dtype="float64")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             mtx_path = Path(temp_dir) / "matrix.mtx"
@@ -128,7 +128,7 @@ class TestArray(unittest.TestCase):
             self.skipTest(reason="no bz2 module")
             return
 
-        mtx = np.array([[11, 0, 0], [0, 22, 0], [0, 0, 33]])
+        mtx = np.array([[11.1, 0, 0], [0, 22.2, 0], [0, 0, 33.3]], dtype="float64")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -151,7 +151,7 @@ class TestArray(unittest.TestCase):
             self.skipTest(reason="no gzip module")
             return
 
-        mtx = np.array([[11, 0, 0], [0, 22, 0], [0, 0, 33]])
+        mtx = np.array([[11.1, 0, 0], [0, 22.2, 0], [0, 0, 33.3]], dtype="float64")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
