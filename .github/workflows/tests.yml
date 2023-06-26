@@ -6,13 +6,13 @@ on:
 
 jobs:
   build:
-    name: Tests on ${{ matrix.os }} - py${{ matrix.python-version }}
+    name: Tests on ${{ matrix.os }} - ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.7", "3.11", "pypy3.9"]
+        python-version: ['3.7', '3.11', 'pypy-3.9']
 
     steps:
     - uses: actions/checkout@v3
@@ -44,24 +44,25 @@ jobs:
       run: brew install suite-sparse
 
     - name: Configure
+      if: ${{ !contains(matrix.python-version, 'pypy') }}
       run: |
         cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DFAST_MATRIX_MARKET_TEST=ON -DFAST_MATRIX_MARKET_TEST_COVERAGE=ON ${{ env.FMM_CMAKE_FLAGS }}
 
     - name: Build
-      if: !contains(matrix.python-version, 'pypy)
+      if: ${{ !contains(matrix.python-version, 'pypy') }}
       env:
         CMAKE_BUILD_PARALLEL_LEVEL: 2
       run: |
         cmake --build build --config Debug
 
     - name: Test
-      if: !contains(matrix.python-version, 'pypy)
+      if: ${{ !contains(matrix.python-version, 'pypy') }}
       run: |
         cd build
         ctest -C Debug --output-on-failure --verbose
 
     - name: Python Build and Install
-      if: !contains(matrix.python-version, 'pypy)
+      if: ${{ !contains(matrix.python-version, 'pypy') }}
         # On some platforms pip uses a temporary build directory but only copies the python/ directory there.
         # This breaks the relative symbolic links to the C++ library. Workaround is to pass the checkout directory
         # as an environment variable so CMakeLists.txt can read it and know where to import the C++ library from.
@@ -70,7 +71,7 @@ jobs:
       shell: bash
 
     - name: Python Build and Install (PyPy)
-      if: contains(matrix.python-version, 'pypy)
+      if: contains(matrix.python-version, 'pypy')
         # SciPy does not ship PyPy wheels, so to avoid building scipy from source each time instead only
         # install numpy and skip the tests that require scipy.
       run: |
