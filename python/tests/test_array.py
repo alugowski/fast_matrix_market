@@ -4,6 +4,7 @@
 
 from io import BytesIO, StringIO
 from pathlib import Path
+import tempfile
 
 import numpy as np
 import unittest
@@ -76,6 +77,95 @@ class TestArray(unittest.TestCase):
                 m = fmm.read_array(StringIO(fmms))
 
                 self.assertMatrixEqual(m, m_fmm)
+
+    def test_write_file(self):
+        mtx = np.array([[11, 0, 0], [0, 22, 0], [0, 0, 33]])
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            mtx_path = Path(temp_dir) / "matrix.mtx"
+
+            # Write with filename, read with filename
+            fmm.write_array(mtx_path, mtx)
+            a = fmm.read_array(mtx_path)
+            self.assertMatrixEqual(a, mtx)
+
+            # Write with filename, read with file object
+            fmm.write_array(mtx_path, mtx)
+            with open(mtx_path, 'r') as f:
+                a = fmm.read_array(f)
+            self.assertMatrixEqual(a, mtx)
+
+            # Write with file object (binary), read with filename
+            with open(mtx_path, 'wb') as f:
+                fmm.write_array(f, mtx)
+            a = fmm.read_array(mtx_path)
+            self.assertMatrixEqual(a, mtx)
+
+            # Write with file object (text)
+            # Not allowed. scipy.io._mmio.mmwrite() also throws TypeError here
+            with open(mtx_path, 'w') as f:
+                with self.assertRaises(TypeError):
+                    fmm.write_array(f, mtx)
+
+            # Write with file object (binary), read with file object (text)
+            with open(mtx_path, 'wb') as f:
+                fmm.write_array(f, mtx)
+            with open(mtx_path, 'r') as f:
+                a = fmm.read_array(f)
+            self.assertMatrixEqual(a, mtx)
+
+            # Write with file object (binary), read with file object (binary)
+            with open(mtx_path, 'wb') as f:
+                fmm.write_array(f, mtx)
+            with open(mtx_path, 'rb') as f:
+                a = fmm.read_array(f)
+            self.assertMatrixEqual(a, mtx)
+
+    def test_bz2(self):
+        try:
+            import bz2
+        except ImportError:
+            self.skipTest(reason="no bz2 module")
+            return
+
+        mtx = np.array([[11, 0, 0], [0, 22, 0], [0, 0, 33]])
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            mtx_path = temp_path / "matrix.mtx"
+            bz2_path = temp_path / "matrix.mtx.bz2"
+
+            fmm.write_array(mtx_path, mtx)
+
+            # create bz2
+            with open(mtx_path, 'rb') as f_in, bz2.BZ2File(bz2_path, 'wb') as f_out:
+                f_out.write(f_in.read())
+
+            a = fmm.read_array(bz2_path)
+            self.assertMatrixEqual(a, mtx)
+
+    def test_gzip(self):
+        try:
+            import gzip
+        except ImportError:
+            self.skipTest(reason="no gzip module")
+            return
+
+        mtx = np.array([[11, 0, 0], [0, 22, 0], [0, 0, 33]])
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            mtx_path = temp_path / "matrix.mtx"
+            gzip_path = temp_path / "matrix.mtx.gz"
+
+            fmm.write_array(mtx_path, mtx)
+
+            # create bz2
+            with open(mtx_path, 'rb') as f_in, gzip.GzipFile(gzip_path, 'wb') as f_out:
+                f_out.write(f_in.read())
+
+            a = fmm.read_array(gzip_path)
+            self.assertMatrixEqual(a, mtx)
 
 
 if __name__ == '__main__':
