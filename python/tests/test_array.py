@@ -7,7 +7,12 @@ from pathlib import Path
 
 import numpy as np
 import unittest
-import scipy
+
+try:
+    import scipy
+    HAVE_SCIPY = True
+except ImportError:
+    HAVE_SCIPY = False
 
 import fast_matrix_market as fmm
 
@@ -46,8 +51,11 @@ class TestArray(unittest.TestCase):
                 continue
 
             with self.subTest(msg=mtx.stem):
-                m = scipy.io.mmread(mtx)
                 m_fmm = fmm.read_array(mtx)
+                if not HAVE_SCIPY:
+                    continue
+
+                m = scipy.io.mmread(mtx)
                 self.assertMatrixEqual(m, m_fmm)
 
     def test_write(self):

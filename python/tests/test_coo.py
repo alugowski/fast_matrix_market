@@ -6,7 +6,12 @@ from io import BytesIO, StringIO
 from pathlib import Path
 import numpy as np
 import unittest
-import scipy
+
+try:
+    import scipy
+    HAVE_SCIPY = True
+except ImportError:
+    HAVE_SCIPY = False
 
 import fast_matrix_market as fmm
 
@@ -51,8 +56,11 @@ class TestTriplet(unittest.TestCase):
                 continue
 
             with self.subTest(msg=mtx.stem):
-                m = scipy.io.mmread(mtx)
                 triplet, shape = fmm.read_coo(mtx)
+                if not HAVE_SCIPY:
+                    continue
+
+                m = scipy.io.mmread(mtx)
                 fmm_scipy = scipy.sparse.coo_matrix(triplet, shape=shape)
                 self.assertMatrixEqual(m, fmm_scipy)
 
@@ -74,6 +82,10 @@ class TestTriplet(unittest.TestCase):
                 triplet2, shape2 = fmm.read_coo(StringIO(fmms))
 
                 self.assertEqual(shape, shape2)
+
+                if not HAVE_SCIPY:
+                    continue
+
                 fmm_scipy = scipy.sparse.coo_matrix(triplet, shape=shape)
                 fmm_scipy2 = scipy.sparse.coo_matrix(triplet2, shape=shape2)
                 self.assertMatrixEqual(fmm_scipy, fmm_scipy2)
@@ -88,6 +100,9 @@ class TestTriplet(unittest.TestCase):
         fmms = bio.getvalue().decode()
 
         lists_fmm_triplet, lists_fmm_shape = fmm.read_coo(StringIO(fmms))
+
+        if not HAVE_SCIPY:
+            return
 
         lists = scipy.sparse.coo_matrix((data, (i, j)), shape=(3, 3))
         lists_fmm = scipy.sparse.coo_matrix(lists_fmm_triplet, shape=lists_fmm_shape)

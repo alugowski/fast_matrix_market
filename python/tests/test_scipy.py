@@ -9,7 +9,12 @@ import tempfile
 import unittest
 
 import numpy as np
-import scipy.io
+
+try:
+    import scipy.io
+    HAVE_SCIPY = True
+except ImportError:
+    HAVE_SCIPY = False
 
 import fast_matrix_market as fmm
 
@@ -23,6 +28,7 @@ except ImportError:
     HAVE_BZ2 = False
 
 
+@unittest.skipIf(not HAVE_SCIPY, "SciPy not installed")
 class TestSciPy(unittest.TestCase):
     """
     Test compatibility with SciPy
