@@ -91,7 +91,7 @@ jobs:
         pytest --cov=fast_matrix_market --cov-report term --cov-report=xml
 
     - name: Upload Coverage to Codecov
-      if: contains(matrix.os, 'ubuntu')
+      if: ${{ contains(matrix.os, 'ubuntu') && !contains(matrix.python-version, 'pypy') }}
       uses: codecov/codecov-action@v3
       with:
         gcov: true
