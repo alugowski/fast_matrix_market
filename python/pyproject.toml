@@ -5,7 +5,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "fast_matrix_market"
-version = "1.7.1"
+version = "1.7.2"
 description="Fast and full-featured Matrix Market file I/O"
 readme = "README.md"
 authors = [

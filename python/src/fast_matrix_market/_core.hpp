@@ -56,8 +56,13 @@ struct read_cursor {
      * Finish using the cursor. If a file has been opened it will be closed.
      */
     void close() {
+        // If stream is a std::ifstream() then close the file.
+        std::ifstream* f = dynamic_cast<std::ifstream*>(stream_ptr.get());
+        if (f != nullptr) {
+            f->close();
+        }
+
         // Remove this reference to the stream.
-        // If stream is a std::ofstream() then this is the only reference and the file is closed.
         stream_ptr.reset();
     }
 };
@@ -91,10 +96,15 @@ struct write_cursor {
      * Finish using the cursor. Flush the backing stream, and if a file has been opened it will be closed.
      */
     void close() {
-        stream_ptr->flush();
+        // If stream is a std::ofstream() then close the file.
+        std::ofstream* f = dynamic_cast<std::ofstream*>(stream_ptr.get());
+        if (f != nullptr) {
+            f->close();
+        } else {
+            stream_ptr->flush();
+        }
 
         // Remove this reference to the stream.
-        // If stream is a std::ofstream() then this is the only reference and the file is closed.
         stream_ptr.reset();
     }
 };

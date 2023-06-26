@@ -131,6 +131,7 @@ def _get_read_cursor(source, parallelism=None):
     """
     Open file for reading.
     """
+    ret_stream_to_close = None
     if parallelism is None:
         parallelism = PARALLELISM
 
@@ -146,17 +147,19 @@ def _get_read_cursor(source, parallelism=None):
         if path.endswith('.gz'):
             import gzip
             source = gzip.GzipFile(path, 'r')
+            ret_stream_to_close = source
         elif path.endswith('.bz2'):
             import bz2
             source = bz2.BZ2File(path, 'rb')
+            ret_stream_to_close = source
         else:
-            return _core.open_read_file(path, parallelism)
+            return _core.open_read_file(path, parallelism), ret_stream_to_close
 
     # Stream object.
     if hasattr(source, "read"):
         if isinstance(source, io.TextIOBase):
             source = _TextToBytesWrapper(source)
-        return _core.open_read_stream(source, parallelism)
+        return _core.open_read_stream(source, parallelism), ret_stream_to_close
     else:
         raise TypeError("Unknown source type")
 
@@ -256,9 +259,11 @@ def read_header(source) -> header:
     :param source: filename or open file-like object
     :return: parsed header object
     """
-    cursor = _get_read_cursor(source, 1)
+    cursor, stream_to_close = _get_read_cursor(source, 1)
     h = cursor.header
     cursor.close()
+    if stream_to_close:
+        stream_to_close.close()
     return h
 
 
@@ -281,7 +286,11 @@ def read_array(source, parallelism=None, long_type=False):
     :param long_type: Whether to use 'longdouble' and 'longcomplex' extended-precision floating-point number types.
     :return: numpy array
     """
-    return _read_body_array(_get_read_cursor(source, parallelism), long_type=long_type)
+    cursor, stream_to_close = _get_read_cursor(source, parallelism)
+    mat = _read_body_array(cursor, long_type=long_type)
+    if stream_to_close:
+        stream_to_close.close()
+    return mat
 
 
 def write_array(target, a, comment=None, parallelism=None):
@@ -309,8 +318,11 @@ def read_coo(source, parallelism=None, long_type=False, generalize_symmetry=True
     :param generalize_symmetry: if the MatrixMarket file specifies a symmetry, emit the symmetric entries too.
     :return: (data, (row_indices, column_indices)) (same as scipy.io.mmread)
     """
-    (data, (rows, cols)), shape = _read_body_coo(_get_read_cursor(source, parallelism),
+    cursor, stream_to_close = _get_read_cursor(source, parallelism)
+    (data, (rows, cols)), shape = _read_body_coo(cursor,
                                                  long_type=long_type, generalize_symmetry=generalize_symmetry)
+    if stream_to_close:
+        stream_to_close.close()
     return (data, (rows, cols)), shape
 
 
@@ -348,14 +360,18 @@ def read_array_or_coo(source, parallelism=None, long_type=False, generalize_symm
     :return: a tuple of (matrix, shape), where matrix is an ndarray if the MatrixMarket file is dense,
     a triplet tuple if the MatrixMarket file is sparse.
     """
-    cursor = _get_read_cursor(source, parallelism)
+    cursor, stream_to_close = _get_read_cursor(source, parallelism)
 
     if cursor.header.format == "array":
         arr = _read_body_array(cursor, long_type=long_type)
+        if stream_to_close:
+            stream_to_close.close()
         return arr, arr.shape
     else:
         (data, (rows, cols)), shape = _read_body_coo(cursor, long_type=long_type,
                                                      generalize_symmetry=generalize_symmetry)
+        if stream_to_close:
+            stream_to_close.close()
         return (data, (rows, cols)), shape
 
 
@@ -370,13 +386,18 @@ def mmread(source, parallelism=None, long_type=False):
     :param long_type: Whether to use 'longdouble' and 'longcomplex' extended-precision floating-point number types.
     :return: an ndarray if the MatrixMarket file is dense, a scipy.sparse.coo_matrix if the MatrixMarket file is sparse.
     """
-    cursor = _get_read_cursor(source, parallelism)
+    cursor, stream_to_close = _get_read_cursor(source, parallelism)
 
     if cursor.header.format == "array":
-        return _read_body_array(cursor, long_type=long_type)
+        mat = _read_body_array(cursor, long_type=long_type)
+        if stream_to_close:
+            stream_to_close.close()
+        return mat
     else:
         from scipy.sparse import coo_matrix
         triplet, shape = _read_body_coo(cursor, long_type=long_type, generalize_symmetry=True)
+        if stream_to_close:
+            stream_to_close.close()
         return coo_matrix(triplet, shape=shape)
 
 
