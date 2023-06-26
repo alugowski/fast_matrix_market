@@ -256,7 +256,10 @@ def read_header(source) -> header:
     :param source: filename or open file-like object
     :return: parsed header object
     """
-    return _get_read_cursor(source, 1).header
+    cursor = _get_read_cursor(source, 1)
+    h = cursor.header
+    cursor.close()
+    return h
 
 
 def write_header(target, h: header):
