@@ -70,9 +70,14 @@ TEST(LineCount, LineCount) {
     EXPECT_EQ(fast_matrix_market::count_lines("\n "), make_i64_pair(2, 2));
     EXPECT_EQ(fast_matrix_market::count_lines(" \n "), make_i64_pair(2, 2));
     EXPECT_EQ(fast_matrix_market::count_lines("  \t \n  "), make_i64_pair(2, 2));
+    EXPECT_EQ(fast_matrix_market::count_lines("\r"), make_i64_pair(1, 1));
+    EXPECT_EQ(fast_matrix_market::count_lines(" \r"), make_i64_pair(1, 1));
+    EXPECT_EQ(fast_matrix_market::count_lines("\r\n"), make_i64_pair(1, 1));
     EXPECT_EQ(fast_matrix_market::count_lines("aa\n"), make_i64_pair(1, 0));
+    EXPECT_EQ(fast_matrix_market::count_lines("aa\r\n"), make_i64_pair(1, 0));
     EXPECT_EQ(fast_matrix_market::count_lines("aa\nbb"), make_i64_pair(2, 0));
     EXPECT_EQ(fast_matrix_market::count_lines("aa\nbb\n"), make_i64_pair(2, 0));
+    EXPECT_EQ(fast_matrix_market::count_lines("aa\r\nbb\r\n"), make_i64_pair(2, 0));
     EXPECT_EQ(fast_matrix_market::count_lines("aa\n "), make_i64_pair(2, 1));
     EXPECT_EQ(fast_matrix_market::count_lines(" \nbb"), make_i64_pair(2, 1));
     EXPECT_EQ(fast_matrix_market::count_lines("aa\n\n"), make_i64_pair(2, 1));
