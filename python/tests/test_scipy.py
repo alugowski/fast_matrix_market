@@ -143,6 +143,13 @@ class TestSciPy(unittest.TestCase):
                 self.assertGreater(m_fmm.shape[0], 0)
                 self.assertGreater(m_fmm.shape[1], 0)
 
+    @unittest.skipIf(not cpp_matrices.exists(), "Matrices from C++ code not available.")
+    def test_read_windows_lineendings(self):
+        path = cpp_matrices / "permissive" / "windows_lineendings_nist_ex1_more_freeformat.mtx"
+
+        fmm.mmread(path)
+        # scipy.io._mmio.mmread() cannot read CRLF files on Unix
+
     def test_write(self):
         for mtx in sorted(list(matrices.glob("*.mtx"))):
             mtx_header = fmm.read_header(mtx)

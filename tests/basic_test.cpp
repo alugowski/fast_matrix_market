@@ -685,6 +685,9 @@ TEST(Whitespace, Whitespace) {
 
             read_triplet_file("nist_ex1_more_freeformat.mtx", mat, options);
             EXPECT_EQ(mat, expected);
+
+            read_triplet_file("permissive/windows_lineendings_nist_ex1_more_freeformat.mtx", mat, options);
+            EXPECT_EQ(mat, expected);
         }
     }
 }
