@@ -19,7 +19,7 @@ fast_matrix_market::read_matrix_market_eigen(f, mat);
 
 Dense Matrix/Vector is the same, using `read_matrix_market_eigen_dense`:
 ```c++
-std::ifstream f("input.mtx");
+std::ifstream f("input.mtx", std::ios_base::binary);
 
 Eigen::VectorXd vec;
 fast_matrix_market::read_matrix_market_eigen_dense(f, vec);
@@ -28,7 +28,7 @@ fast_matrix_market::read_matrix_market_eigen_dense(f, vec);
 ### Writing
 
 ```c++
-std::ofstream f("output.mtx");
+std::ofstream f("output.mtx", std::ios_base::binary);
 
 Eigen::SparseMatrix<double> mat;
 fast_matrix_market::write_matrix_market_eigen(f, mat);

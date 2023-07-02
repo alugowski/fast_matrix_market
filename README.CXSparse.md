@@ -29,7 +29,7 @@ cs_dl *csc_A = cs_dl_compress(A);
 ```c++
 cs_dl *A;
 
-std::ofstream f("output.mtx");
+std::ofstream f("output.mtx", std::ios_base::binary);
 fast_matrix_market::write_matrix_market_cxsparse(f, A);
 ```
 

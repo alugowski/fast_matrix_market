@@ -41,7 +41,7 @@ User types are not supported at this time. If you have a use case for user types
 ### Writing
 
 ```c++
-std::ofstream f("output.mtx");
+std::ofstream f("output.mtx", std::ios_base::binary);
 
 fast_matrix_market::write_matrix_market_graphblas(f, A);
 ```
