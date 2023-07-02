@@ -30,7 +30,7 @@ On those versions reading any Matrix Market file into a dense `arma::Mat` is not
 ### Writing
 
 ```c++
-std::ofstream f("output.mtx");
+std::ofstream f("output.mtx", std::ios_base::binary);
 
 fast_matrix_market::write_matrix_market_arma(f, A);
 ```

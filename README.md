@@ -86,7 +86,7 @@ The `write_matrix_market_*` methods accept a `std::ostream` and a datastructure.
 
 The methods also accept an optional `header` argument that can be used to read and write file metadata, such as the comment or whether the matrix is a `pattern`.
 
-**Important: Open files in binary mode.**
+**Important: Open output file streams in binary mode.** Text mode on Windows will naturally emit files with CRLF line endings. FMM can read such files on any platform, but that is not always true of other MatrixMarket loaders.
 
 ## Coordinate / Triplets
 
