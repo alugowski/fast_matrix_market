@@ -93,6 +93,8 @@ The methods also accept an optional `header` argument that can be used to read a
 Matrix composed of row and column index vectors and a value vector. Any vector class that can be resized and iterated like `std::vector` will work. 
 
 ```c++
+#include <fast_matrix_market/fast_matrix_market.hpp>
+
 struct triplet_matrix {
     int64_t nrows = 0, ncols = 0;
     std::vector<int64_t> rows, cols;
@@ -116,6 +118,8 @@ Any vector class that can be resized and iterated like `std::vector` will work.
 Be mindful of whether your code expects row or column major ordering.
 
 ```c++
+#include <fast_matrix_market/fast_matrix_market.hpp>
+
 struct array_matrix {
     int64_t nrows = 0, ncols = 0;
     std::vector<double> vals;       // or int64_t, float, std::complex<double>, etc.
@@ -133,6 +137,8 @@ fast_matrix_market::read_matrix_market_array(
 ## GraphBLAS
 `GrB_Matrix` and `GrB_Vector`s are supported, with zero-copy where possible. See [GraphBLAS README](README.GraphBLAS.md).
 ```c++
+#include <fast_matrix_market/app/GraphBLAS.hpp>
+
 GrB_Matrix A;
 fast_matrix_market::read_matrix_market_graphblas(input_stream, &A);
 ```
@@ -141,6 +147,8 @@ fast_matrix_market::read_matrix_market_graphblas(input_stream, &A);
 ## Eigen
 Sparse and dense matrices and vectors are supported. See [Eigen README](README.Eigen.md).
 ```c++
+#include <fast_matrix_market/app/Eigen.hpp>
+
 Eigen::SparseMatrix<double> mat;
 fast_matrix_market::read_matrix_market_eigen(input_stream, mat);
 ```
@@ -148,6 +156,8 @@ fast_matrix_market::read_matrix_market_eigen(input_stream, mat);
 ## SuiteSparse CXSparse
 `cs_xx` structures (in both COO and CSC modes) are supported. See [CXSparse README](README.CXSparse.md).
 ```c++
+#include <fast_matrix_market/app/CXSparse.hpp>
+
 cs_dl *A;
 fast_matrix_market::read_matrix_market_cxsparse(input_stream, &A, cs_dl_spalloc);
 ```
@@ -155,6 +165,8 @@ fast_matrix_market::read_matrix_market_cxsparse(input_stream, &A, cs_dl_spalloc)
 ## Blaze
 [Blaze](https://bitbucket.org/blaze-lib/blaze) sparse and dense matrices and vectors are supported. See [Blaze README](README.Blaze.md).
 ```c++
+#include <fast_matrix_market/app/Blaze.hpp>
+
 blaze::CompressedMatrix<double> A;
 fast_matrix_market::read_matrix_market_blaze(input_stream, A);
 ```
@@ -162,6 +174,8 @@ fast_matrix_market::read_matrix_market_blaze(input_stream, A);
 ## Armadillo
 [Armadillo](https://arma.sourceforge.net/) sparse and dense matrices are supported. See [Armadillo README](README.Armadillo.md).
 ```c++
+#include <fast_matrix_market/app/Armadillo.hpp>
+
 arma::SpMat<double> A;
 fast_matrix_market::read_matrix_market_arma(input_stream, A);
 ```
@@ -173,6 +187,24 @@ Use the provided methods to read or write the header.
 Next read or write the body. You'll mostly just need to provide `parse_handler` (reads) and `formatter` (writes) classes to read and write from/to your datastructure, respectively. The class you need is likely already in the library, though subtle differences between datastructures mean each one tends to need some customization.
 
 Follow the example of the triplet and array implementations in [include/fast_matrix_market/app/](include/fast_matrix_market/app).
+
+## Generator
+
+The `fast_matrix_market` write mechanism can write procedurally generated data as well as materialized datastructures.
+See [generator README](README.generator.md).
+
+For example, write a 10-by-10 identity matrix to `output_stream`:
+```c++
+#include <fast_matrix_market/app/generator.hpp>
+
+fast_matrix_market::write_matrix_market_generated_triplet<int64_t, double>(
+    output_stream, {10, 10}, 10,
+    [](auto coo_index, auto& row, auto& col, auto& value) {
+        row = coo_index;
+        col = coo_index;
+        value = 1;
+    });
+```
 
 # Installation
 
