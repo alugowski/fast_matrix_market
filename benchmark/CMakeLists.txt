@@ -19,6 +19,7 @@ add_executable(fmm_bench
         bench_iostream.cpp
         bench_triplet.cpp
         bench_csc.cpp
+        bench_generator.cpp
         main.cpp
         fmm_bench.hpp)
 target_link_libraries(fmm_bench benchmark::benchmark fast_matrix_market::fast_matrix_market)

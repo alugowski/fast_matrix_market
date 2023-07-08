@@ -12,6 +12,7 @@
 #endif
 
 #include "fmm_tests.hpp"
+#include <fast_matrix_market/app/generator.hpp>
 
 #if defined(__clang__)
 // for TYPED_TEST_SUITE
@@ -30,6 +31,14 @@ fast_matrix_market::matrix_market_header read_header_file(const std::string& mat
 template <typename TRIPLET>
 void read_triplet_file(const std::string& matrix_filename, TRIPLET& triplet, fast_matrix_market::read_options options = {}) {
     std::ifstream f(kTestMatrixDir + "/" + matrix_filename);
+    options.chunk_size_bytes = 1;
+
+    fast_matrix_market::read_matrix_market_triplet(f, triplet.nrows, triplet.ncols, triplet.rows, triplet.cols, triplet.vals, options);
+}
+
+template <typename TRIPLET>
+void read_triplet_string(const std::string& s, TRIPLET& triplet, fast_matrix_market::read_options options = {}) {
+    std::istringstream f(s);
     options.chunk_size_bytes = 1;
 
     fast_matrix_market::read_matrix_market_triplet(f, triplet.nrows, triplet.ncols, triplet.rows, triplet.cols, triplet.vals, options);
@@ -689,5 +698,53 @@ TEST(Whitespace, Whitespace) {
             read_triplet_file("permissive/windows_lineendings_nist_ex1_more_freeformat.mtx", mat, options);
             EXPECT_EQ(mat, expected);
         }
+    }
+}
+
+TEST(Generator, Generator) {
+    {
+        // Generate a 3x3 identity matrix
+        std::string gen_mtx;
+        {
+            std::ostringstream f;
+            fast_matrix_market::write_matrix_market_generated_triplet<int64_t, double>(
+                f, {3, 3}, 3,
+                [](auto coo_index, auto& row, auto& col, auto& value) {
+                    row = coo_index;
+                    col = coo_index;
+                    value = 1;
+                });
+
+            gen_mtx = f.str();
+        }
+
+        triplet_matrix<int64_t, double> triplet, triplet2;
+        read_triplet_file("eye3.mtx", triplet);
+        read_triplet_string(gen_mtx, triplet2);
+        EXPECT_EQ(triplet, triplet2);
+    }
+    {
+        // Generate a 3x3 pattern matrix
+        std::string gen_mtx;
+        {
+            std::ostringstream f;
+            fast_matrix_market::matrix_market_header pattern_header{3, 3};
+            pattern_header.field = fast_matrix_market::pattern;
+            fast_matrix_market::write_matrix_market_generated_triplet<int64_t, double>(
+                f, pattern_header, 3,
+                [](auto coo_index, auto& row, auto& col, auto& value) {
+                    row = coo_index;
+                    col = coo_index;
+                    value = 1;
+                });
+
+            gen_mtx = f.str();
+        }
+
+        EXPECT_NE(gen_mtx.find("pattern"), std::string::npos);
+        triplet_matrix<int64_t, double> triplet, triplet2;
+        read_triplet_file("eye3_pattern.mtx", triplet);
+        read_triplet_string(gen_mtx, triplet2);
+        EXPECT_EQ(triplet, triplet2);
     }
 }
