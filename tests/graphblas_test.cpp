@@ -313,6 +313,11 @@ public:
         {
             std::ifstream f(load_path);
             fast_matrix_market::read_header(f, header);
+
+            if (param.find("dupes") != std::string::npos) {
+                // test files that have duplicates only have one duplicate
+                num_dupes = 1;
+            }
         }
 
 #if FMM_GXB_COMPLEX
@@ -389,6 +394,9 @@ public:
             {"dcsc", dcsc},
             {"dcsr", dcsr},
     };
+
+    // number of duplicate elements in the original mtx file
+    int num_dupes = 0;
 };
 
 TEST_P(GraphBLASMatrixTest, SmallMatrices) {
@@ -407,7 +415,7 @@ TEST_P(GraphBLASMatrixTest, SmallMatrices) {
     for (const auto& [label, mat] : sparse_mats) {
         EXPECT_EQ(header.nrows, nrows(mat));
         EXPECT_EQ(header.ncols, ncols(mat));
-        EXPECT_EQ(header.nnz, nnz(mat));
+        EXPECT_EQ(header.nnz, nnz(mat) + num_dupes);
         EXPECT_TRUE(is_equal(full, mat));
 
         // compare to non-GraphBLAS array
@@ -445,9 +453,11 @@ INSTANTIATE_TEST_SUITE_P(
                 , "kepner_gilbert_graph.mtx"
                 , "vector_array.mtx"
                 , "vector_coordinate.mtx"
+                , "vector_coordinate_dupes.mtx"
                 , "eye3_pattern.mtx"
                 , "eye3_complex.mtx"
                 , "vector_coordinate_complex.mtx"
+                , "vector_coordinate_complex_dupes.mtx"
         ));
 
 // Test %%GraphBLAS type <ctype>
@@ -530,6 +540,8 @@ TEST(GraphBLASMatrixTest, Vector) {
             "vector_array.mtx"
             , "vector_coordinate.mtx"
             , "vector_coordinate_complex.mtx"
+            , "vector_coordinate_dupes.mtx"
+            , "vector_coordinate_complex_dupes.mtx"
     };
     for (auto param : filenames) {
         std::string load_path = kTestMatrixDir + param;

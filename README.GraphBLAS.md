@@ -35,6 +35,8 @@ fast_matrix_market::read_matrix_market_graphblas(f, &A);
 
 User types are not supported at this time. If you have a use case for user types stored in Matrix Market please get in touch.
 
+**Duplicate values** are summed using `GrB_PLUS_*`.
+
 **Note:** if `A` is a `GrB_Vector` then the Matrix Market file must be either a `vector` or a
 1-by-N row or M-by-1 column matrix. Any other matrix will cause an exception to be thrown.
 
