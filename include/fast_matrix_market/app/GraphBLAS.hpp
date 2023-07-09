@@ -177,7 +177,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GrB_BOOL; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const bool* vals, GrB_Index nvals) {
-            return GrB_Matrix_build_BOOL(mat, rows, cols, vals, nvals, nullptr);
+            return GrB_Matrix_build_BOOL(mat, rows, cols, vals, nvals, GrB_PLUS_BOOL);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, bool x) {
@@ -194,7 +194,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const bool* vals, GrB_Index nvals) {
-            return GrB_Vector_build_BOOL(vec, indices, vals, nvals, nullptr);
+            return GrB_Vector_build_BOOL(vec, indices, vals, nvals, GrB_PLUS_BOOL);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, bool *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -205,7 +205,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GrB_INT8; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const int8_t* vals, GrB_Index nvals) {
-            return GrB_Matrix_build_INT8(mat, rows, cols, vals, nvals, nullptr);
+            return GrB_Matrix_build_INT8(mat, rows, cols, vals, nvals, GrB_PLUS_INT8);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, int8_t x) {
@@ -222,7 +222,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const int8_t* vals, GrB_Index nvals) {
-            return GrB_Vector_build_INT8(vec, indices, vals, nvals, nullptr);
+            return GrB_Vector_build_INT8(vec, indices, vals, nvals, GrB_PLUS_INT8);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, int8_t *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -233,7 +233,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GrB_INT16; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const int16_t* vals, GrB_Index nvals) {
-            return GrB_Matrix_build_INT16(mat, rows, cols, vals, nvals, nullptr);
+            return GrB_Matrix_build_INT16(mat, rows, cols, vals, nvals, GrB_PLUS_INT16);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, int16_t x) {
@@ -250,7 +250,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const int16_t* vals, GrB_Index nvals) {
-            return GrB_Vector_build_INT16(vec, indices, vals, nvals, nullptr);
+            return GrB_Vector_build_INT16(vec, indices, vals, nvals, GrB_PLUS_INT16);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, int16_t *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -261,7 +261,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GrB_INT32; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const int32_t* vals, GrB_Index nvals) {
-            return GrB_Matrix_build_INT32(mat, rows, cols, vals, nvals, nullptr);
+            return GrB_Matrix_build_INT32(mat, rows, cols, vals, nvals, GrB_PLUS_INT32);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, int32_t x) {
@@ -278,7 +278,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const int32_t* vals, GrB_Index nvals) {
-            return GrB_Vector_build_INT32(vec, indices, vals, nvals, nullptr);
+            return GrB_Vector_build_INT32(vec, indices, vals, nvals, GrB_PLUS_INT32);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, int32_t *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -289,7 +289,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GrB_INT64; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const int64_t* vals, GrB_Index nvals) {
-            return GrB_Matrix_build_INT64(mat, rows, cols, vals, nvals, nullptr);
+            return GrB_Matrix_build_INT64(mat, rows, cols, vals, nvals, GrB_PLUS_INT64);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, int64_t x) {
@@ -306,7 +306,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const int64_t* vals, GrB_Index nvals) {
-            return GrB_Vector_build_INT64(vec, indices, vals, nvals, nullptr);
+            return GrB_Vector_build_INT64(vec, indices, vals, nvals, GrB_PLUS_INT64);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, int64_t *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -317,7 +317,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GrB_UINT8; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const uint8_t* vals, GrB_Index nvals) {
-            return GrB_Matrix_build_UINT8(mat, rows, cols, vals, nvals, nullptr);
+            return GrB_Matrix_build_UINT8(mat, rows, cols, vals, nvals, GrB_PLUS_UINT8);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, uint8_t x) {
@@ -334,7 +334,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const uint8_t* vals, GrB_Index nvals) {
-            return GrB_Vector_build_UINT8(vec, indices, vals, nvals, nullptr);
+            return GrB_Vector_build_UINT8(vec, indices, vals, nvals, GrB_PLUS_UINT8);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, uint8_t *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -345,7 +345,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GrB_UINT16; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const uint16_t* vals, GrB_Index nvals) {
-            return GrB_Matrix_build_UINT16(mat, rows, cols, vals, nvals, nullptr);
+            return GrB_Matrix_build_UINT16(mat, rows, cols, vals, nvals, GrB_PLUS_UINT16);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, uint16_t x) {
@@ -362,7 +362,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const uint16_t* vals, GrB_Index nvals) {
-            return GrB_Vector_build_UINT16(vec, indices, vals, nvals, nullptr);
+            return GrB_Vector_build_UINT16(vec, indices, vals, nvals, GrB_PLUS_UINT16);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, uint16_t *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -373,7 +373,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GrB_UINT32; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const uint32_t* vals, GrB_Index nvals) {
-            return GrB_Matrix_build_UINT32(mat, rows, cols, vals, nvals, nullptr);
+            return GrB_Matrix_build_UINT32(mat, rows, cols, vals, nvals, GrB_PLUS_UINT32);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, uint32_t x) {
@@ -390,7 +390,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const uint32_t* vals, GrB_Index nvals) {
-            return GrB_Vector_build_UINT32(vec, indices, vals, nvals, nullptr);
+            return GrB_Vector_build_UINT32(vec, indices, vals, nvals, GrB_PLUS_UINT32);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, uint32_t *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -401,7 +401,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GrB_UINT64; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const uint64_t* vals, GrB_Index nvals) {
-            return GrB_Matrix_build_UINT64(mat, rows, cols, vals, nvals, nullptr);
+            return GrB_Matrix_build_UINT64(mat, rows, cols, vals, nvals, GrB_PLUS_UINT64);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, uint64_t x) {
@@ -418,7 +418,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const uint64_t* vals, GrB_Index nvals) {
-            return GrB_Vector_build_UINT64(vec, indices, vals, nvals, nullptr);
+            return GrB_Vector_build_UINT64(vec, indices, vals, nvals, GrB_PLUS_UINT64);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, uint64_t *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -429,7 +429,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GrB_FP32; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const float* vals, GrB_Index nvals) {
-            return GrB_Matrix_build_FP32(mat, rows, cols, vals, nvals, nullptr);
+            return GrB_Matrix_build_FP32(mat, rows, cols, vals, nvals, GrB_PLUS_FP32);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, float x) {
@@ -446,7 +446,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const float* vals, GrB_Index nvals) {
-            return GrB_Vector_build_FP32(vec, indices, vals, nvals, nullptr);
+            return GrB_Vector_build_FP32(vec, indices, vals, nvals, GrB_PLUS_FP32);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, float *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -457,7 +457,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GrB_FP64; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const double* vals, GrB_Index nvals) {
-            return GrB_Matrix_build_FP64(mat, rows, cols, vals, nvals, nullptr);
+            return GrB_Matrix_build_FP64(mat, rows, cols, vals, nvals, GrB_PLUS_FP64);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, double x) {
@@ -474,7 +474,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const double* vals, GrB_Index nvals) {
-            return GrB_Vector_build_FP64(vec, indices, vals, nvals, nullptr);
+            return GrB_Vector_build_FP64(vec, indices, vals, nvals, GrB_PLUS_FP64);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, double *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -486,7 +486,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GxB_FC32; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const std::complex<float>* vals, GrB_Index nvals) {
-            return GxB_Matrix_build_FC32(mat, rows, cols, vals, nvals, nullptr);
+            return GxB_Matrix_build_FC32(mat, rows, cols, vals, nvals, GxB_PLUS_FC32);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, const std::complex<float>& x) {
@@ -503,7 +503,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const std::complex<float>* vals, GrB_Index nvals) {
-            return GxB_Vector_build_FC32(vec, indices, vals, nvals, nullptr);
+            return GxB_Vector_build_FC32(vec, indices, vals, nvals, GxB_PLUS_FC32);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, std::complex<float> *X, GrB_Index *nvals, const GrB_Vector& A) {
@@ -514,7 +514,7 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GxB_FC64; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const std::complex<double>* vals, GrB_Index nvals) {
-            return GxB_Matrix_build_FC64(mat, rows, cols, vals, nvals, nullptr);
+            return GxB_Matrix_build_FC64(mat, rows, cols, vals, nvals, GxB_PLUS_FC64);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, const std::complex<double>& x) {
@@ -531,7 +531,7 @@ namespace fast_matrix_market {
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const std::complex<double>* vals, GrB_Index nvals) {
-            return GxB_Vector_build_FC64(vec, indices, vals, nvals, nullptr);
+            return GxB_Vector_build_FC64(vec, indices, vals, nvals, GxB_PLUS_FC64);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, std::complex<double> *X, GrB_Index *nvals, const GrB_Vector& A) {
