@@ -53,7 +53,7 @@ Generate a 100-by-100 matrix with 1000 randomized elements.
 void generate_random_tuple([[maybe_unused]] int64_t coo_index, int64_t &row, int64_t &col, double& value) {
     // The RNG is cheap to use but expensive to create and not thread safe.
     // Use thread_local to create one instance per thread.
-    static thread_local std::mt19937 generator;
+    static thread_local std::mt19937 generator{std::random_device{}()};
     // distribution objects are effectively optimized away
     std::uniform_int_distribution<int64_t> index_distribution(0, 99);
     std::uniform_real_distribution<double> value_distribution(0, 1);
