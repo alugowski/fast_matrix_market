@@ -448,16 +448,20 @@ INSTANTIATE_TEST_SUITE_P(
         GraphBLASMatrixTest,
         GraphBLASMatrixTest,
         ::testing::Values("eye3.mtx"
-                , "row_3by4.mtx"
-                , "2col_array.mtx"
-                , "kepner_gilbert_graph.mtx"
-                , "vector_array.mtx"
-                , "vector_coordinate.mtx"
-                , "vector_coordinate_dupes.mtx"
-                , "eye3_pattern.mtx"
-                , "eye3_complex.mtx"
-                , "vector_coordinate_complex.mtx"
-                , "vector_coordinate_complex_dupes.mtx"
+            , "row_3by4.mtx"
+            , "2col_array.mtx"
+            , "kepner_gilbert_graph.mtx"
+            , "vector_array.mtx"
+            , "vector_coordinate.mtx"
+            , "vector_coordinate_dupes.mtx"
+            , "eye3_pattern.mtx"
+            , "eye3_complex.mtx"
+            , "vector_coordinate_complex.mtx"
+            , "vector_coordinate_complex_dupes.mtx"
+            , "symmetry_array/array_skew-symmetric.mtx"
+            , "symmetry_array/array_skew-symmetric_general.mtx"
+            , "symmetry_array/array_symmetric.mtx"
+            , "symmetry_array/array_symmetric_general.mtx"
         ));
 
 // Test %%GraphBLAS type <ctype>

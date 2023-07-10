@@ -1014,21 +1014,66 @@ namespace fast_matrix_market {
         GrB_Index kount;
     };
 
-#if 0
+#if FMM_GXB_ITERATORS
     /**
      * Write a GraphBLAS matrix to an array MatrixMarket body by using a column GrB_Iterator.
+     *
+     * IMPORTANT! The matrix must be GxB_BY_COL, else GraphBLAS throws GrB_NOT_IMPLEMENTED.
      */
     template <typename T>
     void write_body_graphblas_array_iterator(std::ostream &os,
                                              matrix_market_header &header,
                                              const GrB_Matrix& mat,
                                              const write_options& options) {
-        throw fmm_error("GraphBLAS throws GrB_NOT_IMPLEMENTED.");
         line_formatter<GrB_Index, T> lf(header, options);
         auto formatter = GrB_Matrix_Iterator_formatter<decltype(lf), T, gblas_col_iter_impl>(lf, mat);
         write_body(os, formatter, options);
     }
 #endif
+
+    /**
+     * Write a GraphBLAS matrix to an array MatrixMarket body by using GrB_Matrix_extractTuples.
+     *
+     * Yes this is very inefficient, tripling storage requirements. But at the moment it appears to be
+     * the best possible given available API methods.
+     */
+    template <typename T>
+    void write_body_graphblas_array_via_triplet(std::ostream &os,
+                                                matrix_market_header &header,
+                                                const GrB_Matrix& mat,
+                                                const write_options& options) {
+        std::unique_ptr<T[]> sorted_vals; // Cannot use vector due to bool specialization
+        {
+            auto vals = std::make_unique<T[]>(header.nnz); // Cannot use vector due to bool specialization
+            std::vector<std::size_t> perm(header.nnz);
+            {
+                std::vector<GrB_Index> rows(header.nnz);
+                std::vector<GrB_Index> cols(header.nnz);
+
+                GrB_Index nvals = header.nnz;
+                ok(GraphBLAS_typed<T>::GrB_Matrix_extractTuples(rows.data(), cols.data(), vals.get(), &nvals, mat));
+
+                // Find sort permutation
+                std::iota(perm.begin(), perm.end(), 0);
+                std::sort(perm.begin(), perm.end(),
+                          [&](std::size_t i, std::size_t j) {
+                              if (cols[i] != cols[j])
+                                  return cols[i] < cols[j];
+                              if (rows[i] != rows[j])
+                                  return rows[i] < rows[j];
+
+                              return false;
+                          });
+            }
+            // Apply permutation
+            sorted_vals = std::make_unique<T[]>(header.nnz);;
+            std::transform(perm.begin(), perm.end(), sorted_vals.get(), [&](auto i) { return vals[i]; });
+        }
+
+        line_formatter<GrB_Index, T> lf(header, options);
+        auto formatter = array_formatter(lf, sorted_vals.get(), col_major, header.nrows, header.ncols);
+        write_body(os, formatter, options);
+    }
 
     /**
      * Write a GraphBLAS matrix to a coordinate MatrixMarket body by using GrB_Iterator.
@@ -1065,19 +1110,27 @@ namespace fast_matrix_market {
                               matrix_market_header &header,
                               const GrB_Matrix& mat,
                               const write_options& options) {
-        if (header.format != coordinate) {
-            throw fmm_error("FMM bug: Only coordinate format implemented.");
-        }
 
-#if FMM_GXB_ITERATORS
         if (header.format == coordinate) {
+#if FMM_GXB_ITERATORS
             write_body_graphblas_iterator<T>(os, header, mat, options);
-        } // else {
-//            write_body_graphblas_array_iterator<T>(os, header, mat, options);
-//        }
 #else
-        write_body_graphblas_triplet<T>(os, header, mat, options);
+            write_body_graphblas_triplet<T>(os, header, mat, options);
 #endif
+        } else {
+#if FMM_GXB_ITERATORS
+            int32_t format;
+            ok(GxB_Matrix_Option_get_INT32(mat, GxB_FORMAT, &format));
+
+            if (format == GxB_BY_COL) {
+                // MatrixMarket array is column-major, so iterator direction matches
+                write_body_graphblas_array_iterator<T>(os, header, mat, options);
+            } else
+#endif
+            {
+                write_body_graphblas_array_via_triplet<T>(os, header, mat, options);
+            }
+        }
     }
 
     /**
@@ -1162,14 +1215,12 @@ namespace fast_matrix_market {
         if (header.field != pattern) {
             header.field = get_field(type);
         }
-        header.format = coordinate;
-#if FMM_GXB_ITERATORS
-        // GraphBLAS throws GrB_NOT_IMPLEMENTED.
-//        if (header.nnz == header.nrows * header.ncols) {
-//            // Full matrix. Only efficient way to write arrays is using a column iterator, which requires a GraphBLAS extension.
-//            header.format = array;
-//        }
-#endif
+        if (header.field != pattern && header.nnz == header.nrows * header.ncols) {
+            // Full matrix.
+            header.format = array;
+        } else {
+            header.format = coordinate;
+        }
 
         write_header(os, header, options);
 
