@@ -5,7 +5,7 @@
 
 A fast and full-featured Matrix Market I/O library for C++ and [Python](python).
 
-Ready-to-use bindings for [GraphBLAS](README.GraphBLAS.md), [Eigen](README.Eigen.md), [CXSparse](README.CXSparse.md), [Blaze](README.Blaze.md), [Armadillo](README.Armadillo.md), [SciPy](python/README.md), `std::vector`.  
+Ready-to-use bindings for [GraphBLAS](README.GraphBLAS.md), [Eigen](README.Eigen.md), [CXSparse](README.CXSparse.md), [Blaze](README.Blaze.md), [Armadillo](README.Armadillo.md), [SciPy](python/README.md), `std::vector`-like.  
 Easy to integrate with any datastructure.
 
 [Matrix Market](https://math.nist.gov/MatrixMarket/formats.html) is a simple, human-readable, and widely used sparse matrix file format that looks like this:
@@ -58,7 +58,7 @@ Then simply run all the cells in the [benchmark_plots/plot.ipynb](benchmark_plot
 
   * Support all C++ types.
     * `float`, `double`, `long double`, `std::complex<>`, integer types, `bool`.
-    * Arbitrary types. [Example using `std::string`.](tests/user_type_test.cpp)
+    * Arbitrary types. `std::string` comes bundled. See [implementation](include/fast_matrix_market/app/user_type_string.hpp), [example usage](tests/user_type_test.cpp)
 
   * Automatic `std::complex` up-cast. For example, `real` files can be read into `std::complex<double>` arrays.
 

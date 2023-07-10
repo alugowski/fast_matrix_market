@@ -153,7 +153,7 @@ namespace fast_matrix_market {
         header.nnz = mat.nonZeros();
 
         header.object = matrix;
-        if (header.field != pattern) {
+        if (header.field != pattern && options.fill_header_field_type) {
             header.field = get_field_type((const typename SparseType::Scalar*)nullptr);
         }
         header.format = coordinate;
@@ -178,7 +178,9 @@ namespace fast_matrix_market {
         header.nnz = mat.rows() * mat.cols();
 
         header.object = matrix;
-        header.field = get_field_type((const typename DenseType::Scalar*)nullptr);
+        if (options.fill_header_field_type) {
+            header.field = get_field_type((const typename DenseType::Scalar *) nullptr);
+        }
         header.format = array;
 
         write_header(os, header, options);

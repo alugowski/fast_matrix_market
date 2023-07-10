@@ -49,7 +49,7 @@ namespace fast_matrix_market {
         header.object = matrix;
         if (cs->x == nullptr) {
             header.field = pattern;
-        } else {
+        } else if (options.fill_header_field_type) {
             header.field = get_field_type(cs->x);
         }
         header.format = coordinate;
