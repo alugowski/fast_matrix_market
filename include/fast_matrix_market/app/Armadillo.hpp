@@ -88,7 +88,7 @@ namespace fast_matrix_market {
         header.nnz = m.n_nonzero;
 
         header.object = matrix;
-        if (header.field != pattern) {
+        if (header.field != pattern && options.fill_header_field_type) {
             header.field = get_field_type((const VT *) nullptr);
         }
         header.format = coordinate;

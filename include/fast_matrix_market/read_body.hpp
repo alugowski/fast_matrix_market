@@ -546,7 +546,7 @@ namespace fast_matrix_market {
                                  HANDLER& handler,
                                  typename HANDLER::value_type pattern_value,
                                  const read_options& options = {}) {
-        if (header.field == complex && !is_complex<typename HANDLER::value_type>::value) {
+        if (header.field == complex && !can_read_complex<typename HANDLER::value_type>::value) {
             // the file is complex but the values are not
             throw complex_incompatible("Matrix Market file has complex fields but passed data structure cannot handle complex values.");
         }

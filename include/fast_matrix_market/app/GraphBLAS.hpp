@@ -1159,7 +1159,7 @@ namespace fast_matrix_market {
         }
 
         header.object = matrix;
-        if (header.field != pattern) {
+        if (header.field != pattern && options.fill_header_field_type) {
             header.field = get_field(type);
         }
         header.format = coordinate;
@@ -1386,7 +1386,7 @@ namespace fast_matrix_market {
         }
 
         header.object = vector;
-        if (header.field != pattern) {
+        if (header.field != pattern && options.fill_header_field_type) {
             header.field = get_field(type);
         }
         header.format = coordinate;

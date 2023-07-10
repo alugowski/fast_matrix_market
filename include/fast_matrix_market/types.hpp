@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <complex>
 #include <map>
 #include <string>
 
@@ -143,5 +144,22 @@ namespace fast_matrix_market {
          * Whether to always write a comment line even if comment is empty.
          */
         bool always_comment = false;
+
+        /**
+         * Whether to determine header field type based on the supplied datastructure.
+         *
+         * If true then set header.field using `get_field_type()`. The only exception is
+         * if field == pattern then it is left unchanged.
+         *
+         * Possible reasons to set to false:
+         *  - Using a custom type, such as std::string, where `get_field_type()` would return the wrong type
+         *  - Writing integer structures as real
+         */
+        bool fill_header_field_type = true;
     };
+
+    template<class T> struct is_complex : std::false_type {};
+    template<class T> struct is_complex<std::complex<T>> : std::true_type {};
+
+    template<class T> struct can_read_complex : is_complex<T> {};
 }

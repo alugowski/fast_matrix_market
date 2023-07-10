@@ -348,7 +348,7 @@ namespace fast_matrix_market {
         header.nnz = (int64_t)indices.size();
 
         header.object = vector;
-        if (header.field != pattern) {
+        if (header.field != pattern && options.fill_header_field_type) {
             header.field = get_field_type((const VT*)nullptr);
         }
         header.format = coordinate;
@@ -381,7 +381,9 @@ namespace fast_matrix_market {
         header.nnz = vector_length;
 
         header.object = vector;
-        header.field = get_field_type((const VT *) nullptr);
+        if (options.fill_header_field_type) {
+            header.field = get_field_type((const VT *) nullptr);
+        }
         header.format = array;
 
         write_header(os, header, options);

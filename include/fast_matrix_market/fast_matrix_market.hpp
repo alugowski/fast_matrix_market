@@ -8,7 +8,6 @@
 #pragma once
 
 #include <algorithm>
-#include <complex>
 #include <future>
 #include <iostream>
 #include <map>
@@ -17,6 +16,9 @@
 #include <utility>
 
 #include "types.hpp"
+
+// Support std::string as a user type
+#include "app/user_type_string.hpp"
 
 namespace fast_matrix_market {
 
@@ -28,9 +30,6 @@ namespace fast_matrix_market {
 
     constexpr std::string_view kSpace = " ";
     constexpr std::string_view kNewline = "\n";
-
-    template<class T> struct is_complex : std::false_type {};
-    template<class T> struct is_complex<std::complex<T>> : std::true_type {};
 
     /**
      *
