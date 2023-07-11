@@ -45,6 +45,42 @@ _field_to_dtype = {
     "long-pattern": "longdouble",
 }
 
+# Optional: Register with threadpoolctl
+try:
+    # noinspection PyUnresolvedReferences
+    import threadpoolctl
+
+    class FMMThreadPoolCtlController(threadpoolctl.LibController):
+        user_api = "fast_matrix_market"
+        internal_api = "fast_matrix_market"
+
+        filename_prefixes = ("_fmm_core",)
+
+        # noinspection PyMethodMayBeStatic
+        def get_num_threads(self):
+            global PARALLELISM
+            return PARALLELISM
+
+        # noinspection PyMethodMayBeStatic
+        def set_num_threads(self, num_threads):
+            global PARALLELISM
+            PARALLELISM = num_threads
+
+        # noinspection PyMethodMayBeStatic
+        def get_version(self):
+            return __version__
+
+        def set_additional_attributes(self):
+            pass
+
+    threadpoolctl.register(FMMThreadPoolCtlController)
+except ImportError:
+    # threadpoolctl not installed
+    pass
+except AttributeError as e:
+    # older version of threadpoolctl
+    pass
+
 
 class _TextToBytesWrapper(io.BufferedReader):
     """
