@@ -3,7 +3,13 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 import unittest
+
 import fast_matrix_market as fmm
+
+try:
+    import threadpoolctl
+except ImportError:
+    threadpoolctl = None
 
 
 class TestModule(unittest.TestCase):
@@ -12,6 +18,12 @@ class TestModule(unittest.TestCase):
 
     def test_doc(self):
         self.assertTrue(fmm.__doc__)
+
+    @unittest.skipIf(not threadpoolctl or not hasattr(threadpoolctl, "register"),
+                     reason="no threadpoolctl or version too old")
+    def test_threadpoolctl(self):
+        with threadpoolctl.threadpool_limits(limits=2, user_api='fast_matrix_market'):
+            self.assertEqual(fmm.PARALLELISM, 2)
 
 
 if __name__ == '__main__':
