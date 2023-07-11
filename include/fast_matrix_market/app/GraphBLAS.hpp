@@ -4,6 +4,9 @@
 
 #pragma once
 
+// for std::iota
+#include <numeric>
+
 #include "../fast_matrix_market.hpp"
 
 extern "C" {
@@ -52,7 +55,7 @@ extern "C" {
 #define FMM_GXB_PACK_UNPACK 1
 #endif
 
-// Switch to allow using pack/unpack methods
+// Switch to allow using GxB_Matrix_type_name methods
 #ifndef FMM_GXB_TYPE_NAME
 #define FMM_GXB_TYPE_NAME 1
 #endif
