@@ -1035,6 +1035,29 @@ namespace fast_matrix_market {
 #endif
 
     /**
+     * Write a GraphBLAS matrix to an array MatrixMarket body by extracting only the values with GrB_Matrix_extractTuples.
+     * Since we know the ordering of the values (GxB_BY_ROW) we can write them directly using FMM machinery.
+     *
+     * This is not as good as direct GraphBLAS iteration because it makes a copy of the values, but it's better than
+     * extracting the values *and* the indices. Also iteration "against the grain" is not implemented in GraphBLAS.
+     *
+     * IMPORTANT! The matrix is assumed to be GxB_BY_ROW, else the written data will be wrong.
+     */
+    template <typename T>
+    void write_body_graphblas_array_row_via_extract(std::ostream &os,
+                                                    matrix_market_header &header,
+                                                    const GrB_Matrix& mat,
+                                                    const write_options& options) {
+        std::unique_ptr<T[]> vals = std::make_unique<T[]>(header.nnz); // Cannot use vector due to bool specialization
+        GrB_Index nvals = header.nnz;
+        ok(GraphBLAS_typed<T>::GrB_Matrix_extractTuples(nullptr, nullptr, vals.get(), &nvals, mat));
+
+        line_formatter<GrB_Index, T> lf(header, options);
+        auto formatter = array_formatter(lf, vals.get(), row_major, header.nrows, header.ncols);
+        write_body(os, formatter, options);
+    }
+
+    /**
      * Write a GraphBLAS matrix to an array MatrixMarket body by using GrB_Matrix_extractTuples.
      *
      * Yes this is very inefficient, tripling storage requirements. But at the moment it appears to be
@@ -1128,11 +1151,15 @@ namespace fast_matrix_market {
             if (format == GxB_BY_COL) {
                 // MatrixMarket array is column-major, so iterator direction matches
                 write_body_graphblas_array_iterator<T>(os, header, mat, options);
-            } else
-#endif
-            {
+            } else if (format == GxB_BY_ROW){
+                write_body_graphblas_array_row_via_extract<T>(os, header, mat, options);
+            } else {
+                // shouldn't happen
                 write_body_graphblas_array_via_triplet<T>(os, header, mat, options);
             }
+#else
+            write_body_graphblas_array_via_triplet<T>(os, header, mat, options);
+#endif
         }
     }
 
