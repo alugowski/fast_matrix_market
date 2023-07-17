@@ -9,10 +9,10 @@ Supports sparse coo/triplet matrices, sparse scipy matrices, and numpy array den
 import io
 import os
 
-from . import _core  # type: ignore
+from . import _fmm_core  # type: ignore
 
-__version__ = _core.__version__
-header = _core.header
+__version__ = _fmm_core.__version__
+header = _fmm_core.header
 
 __all__ = [
     "read_header", "write_header",
@@ -91,7 +91,7 @@ class _TextToBytesWrapper(io.BufferedReader):
 def _read_body_array(cursor, long_type):
     import numpy as np
     vals = np.zeros(cursor.header.shape, dtype=_field_to_dtype.get(("long-" if long_type else "")+cursor.header.field))
-    _core.read_body_array(cursor, vals)
+    _fmm_core.read_body_array(cursor, vals)
     return vals
 
 
@@ -107,7 +107,7 @@ def _read_body_coo(cursor, long_type, generalize_symmetry=True):
     j = np.zeros(cursor.header.nnz, dtype=index_dtype)
     data = np.zeros(cursor.header.nnz, dtype=_field_to_dtype.get(("long-" if long_type else "")+cursor.header.field))
 
-    _core.read_body_coo(cursor, i, j, data)
+    _fmm_core.read_body_coo(cursor, i, j, data)
 
     if generalize_symmetry and cursor.header.symmetry != "general":
         off_diagonal_mask = (i != j)
@@ -153,13 +153,13 @@ def _get_read_cursor(source, parallelism=None):
             source = bz2.BZ2File(path, 'rb')
             ret_stream_to_close = source
         else:
-            return _core.open_read_file(path, parallelism), ret_stream_to_close
+            return _fmm_core.open_read_file(path, parallelism), ret_stream_to_close
 
     # Stream object.
     if hasattr(source, "read"):
         if isinstance(source, io.TextIOBase):
             source = _TextToBytesWrapper(source)
-        return _core.open_read_stream(source, parallelism), ret_stream_to_close
+        return _fmm_core.open_read_stream(source, parallelism), ret_stream_to_close
     else:
         raise TypeError("Unknown source type")
 
@@ -183,7 +183,7 @@ def _get_write_cursor(target, h=None, comment=None, parallelism=None, symmetry="
     try:
         target = os.fspath(target)
         # It's a file path
-        return _core.open_write_file(str(target), h, parallelism, precision)
+        return _fmm_core.open_write_file(str(target), h, parallelism, precision)
     except TypeError:
         pass
 
@@ -191,7 +191,7 @@ def _get_write_cursor(target, h=None, comment=None, parallelism=None, symmetry="
         # Stream object.
         if isinstance(target, io.TextIOBase):
             raise TypeError("target stream must be open in binary mode")
-        return _core.open_write_stream(target, h, parallelism, precision)
+        return _fmm_core.open_write_stream(target, h, parallelism, precision)
     else:
         raise TypeError("Unknown source object")
 
@@ -274,7 +274,7 @@ def write_header(target, h: header):
     :param target: filename or open file-like object.
     :param h: header to write
     """
-    _core.write_header_only(_get_write_cursor(target, h, parallelism=1))
+    _fmm_core.write_header_only(_get_write_cursor(target, h, parallelism=1))
 
 
 def read_array(source, parallelism=None, long_type=False):
@@ -305,7 +305,7 @@ def write_array(target, a, comment=None, parallelism=None):
     import numpy as np
     a = np.asarray(a)
     cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
-    _core.write_body_array(cursor, a)
+    _fmm_core.write_body_array(cursor, a)
 
 
 def read_coo(source, parallelism=None, long_type=False, generalize_symmetry=True):
@@ -343,7 +343,7 @@ def write_coo(target, a, shape, comment=None, parallelism=None):
     data, (row, col) = a
 
     cursor = _get_write_cursor(target, comment=comment, parallelism=parallelism)
-    _core.write_body_coo(cursor, shape, row, col, data)
+    _fmm_core.write_body_coo(cursor, shape, row, col, data)
 
 
 def read_array_or_coo(source, parallelism=None, long_type=False, generalize_symmetry=True):
@@ -446,7 +446,7 @@ def mmwrite(target, a, comment=None, field=None, precision=None, symmetry="AUTO"
     if isinstance(a, np.ndarray):
         # Write dense numpy arrays
         a = _apply_field(a, field, no_pattern=True)
-        _core.write_body_array(cursor, a)
+        _fmm_core.write_body_array(cursor, a)
         return
 
     # handle both scipy.sparse.*_matrix and scipy.sparse.*_array
@@ -504,9 +504,9 @@ def mmwrite(target, a, comment=None, field=None, precision=None, symmetry="AUTO"
         if is_compressed:
             # CSC and CSR can be written directly
             is_csr = any([isinstance(a, t) for t in csr_types])
-            _core.write_body_csc(cursor, a.shape, a.indptr, a.indices, data, is_csr)
+            _fmm_core.write_body_csc(cursor, a.shape, a.indptr, a.indices, data, is_csr)
         else:
-            _core.write_body_coo(cursor, a.shape, a.row, a.col, data)
+            _fmm_core.write_body_coo(cursor, a.shape, a.row, a.col, data)
         return
 
     raise ValueError("unknown matrix type: %s" % type(a))
