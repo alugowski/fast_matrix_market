@@ -3,7 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/fast_matrix_market.svg)](https://pypi.org/project/fast-matrix-market/)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/fast_matrix_market.svg)](https://anaconda.org/conda-forge/fast_matrix_market)
 
-A fast and full-featured Matrix Market I/O library for C++ and [Python](python).
+A fast and full-featured Matrix Market I/O library for C++ and [Python](python). Third party bindings for R in [fastMatMR](https://github.com/HaoZeke/fastMatMR).
 
 Ready-to-use bindings for [GraphBLAS](README.GraphBLAS.md), [Eigen](README.Eigen.md), [CXSparse](README.CXSparse.md), [Blaze](README.Blaze.md), [Armadillo](README.Armadillo.md), [SciPy](python/README.md), `std::vector`-like.  
 Easy to integrate with any datastructure.
