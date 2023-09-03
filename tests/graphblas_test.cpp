@@ -119,8 +119,8 @@ GrB_Index size(const GrB_Vector& m) {
 bool element_equals(const GrB_Matrix& lhs, const GrB_Matrix& rhs, GrB_Index row, GrB_Index col) {
     // every tested type can be converted to std::complex<double>
     std::complex<double> l, r;
-    auto l_ret = GxB_Matrix_extractElement_FC64(&l, lhs, row, col);
-    auto r_ret = GxB_Matrix_extractElement_FC64(&r, rhs, row, col);
+    auto l_ret = GxB_Matrix_extractElement_FC64(reinterpret_cast<GxB_FC64_t*>(&l), lhs, row, col);
+    auto r_ret = GxB_Matrix_extractElement_FC64(reinterpret_cast<GxB_FC64_t*>(&r), rhs, row, col);
     if (l_ret != r_ret) {
         return false;
     }
@@ -139,8 +139,8 @@ bool element_equals(const GrB_Matrix& lhs, const GrB_Matrix& rhs, GrB_Index row,
 bool element_equals(const GrB_Vector& lhs, const GrB_Vector& rhs, GrB_Index row) {
     // every tested type can be converted to std::complex<double>
     std::complex<double> l, r;
-    auto l_ret = GxB_Vector_extractElement_FC64(&l, lhs, row);
-    auto r_ret = GxB_Vector_extractElement_FC64(&r, rhs, row);
+    auto l_ret = GxB_Vector_extractElement_FC64(reinterpret_cast<GxB_FC64_t*>(&l), lhs, row);
+    auto r_ret = GxB_Vector_extractElement_FC64(reinterpret_cast<GxB_FC64_t*>(&r), rhs, row);
     if (l_ret != r_ret) {
         return false;
     }
@@ -160,7 +160,7 @@ bool element_equals(const array_matrix<std::complex<double>>& lhs, const GrB_Mat
     // every tested type can be converted to std::complex<double>
     std::complex<double> l, r;
     l = lhs((int64_t)row, (int64_t)col);
-    auto r_ret = GxB_Matrix_extractElement_FC64(&r, rhs, row, col);
+    auto r_ret = GxB_Matrix_extractElement_FC64(reinterpret_cast<GxB_FC64_t*>(&r), rhs, row, col);
 
     if (r_ret == GrB_NO_VALUE && l.real() == 0) {
         return true;
@@ -256,7 +256,7 @@ bool element_equals(const array_matrix<std::complex<double>>& lhs, const GrB_Vec
     // every tested type can be converted to std::complex<double>
     std::complex<double> l, r;
     l = lhs((int64_t)row, (int64_t)0);
-    auto r_ret = GxB_Vector_extractElement_FC64(&r, rhs, row);
+    auto r_ret = GxB_Vector_extractElement_FC64(reinterpret_cast<GxB_FC64_t*>(&r), rhs, row);
 
     if (r_ret == GrB_NO_VALUE && l.real() == 0) {
         return true;

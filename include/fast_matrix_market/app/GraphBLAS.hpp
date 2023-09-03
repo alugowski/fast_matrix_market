@@ -489,56 +489,56 @@ namespace fast_matrix_market {
         static GrB_Type type() { return GxB_FC32; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const std::complex<float>* vals, GrB_Index nvals) {
-            return GxB_Matrix_build_FC32(mat, rows, cols, vals, nvals, GxB_PLUS_FC32);
+            return GxB_Matrix_build_FC32(mat, rows, cols, reinterpret_cast<const GxB_FC32_t *>(vals), nvals, GxB_PLUS_FC32);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, const std::complex<float>& x) {
-            return GxB_Scalar_setElement_FC32(scalar, x);
+            return GxB_Scalar_setElement_FC32(scalar, reinterpret_cast<const GxB_FC32_t &>(x));
         }
 
         static GrB_Info GrB_Matrix_extractTuples(GrB_Index *I, GrB_Index *J, std::complex<float> *X, GrB_Index *nvals, const GrB_Matrix& A) {
-            return GxB_Matrix_extractTuples_FC32(I, J, X, nvals, A);
+            return GxB_Matrix_extractTuples_FC32(I, J, reinterpret_cast<GxB_FC32_t *>(X), nvals, A);
         }
 
 #if FMM_GXB_ITERATORS
         static std::complex<float> GxB_Iterator_get(GxB_Iterator iterator) {
-            return GxB_Iterator_get_FC32(iterator);
+            return reinterpret_cast<std::complex<float>&>(GxB_Iterator_get_FC32(iterator));
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const std::complex<float>* vals, GrB_Index nvals) {
-            return GxB_Vector_build_FC32(vec, indices, vals, nvals, GxB_PLUS_FC32);
+            return GxB_Vector_build_FC32(vec, indices, reinterpret_cast<const GxB_FC32_t*>(vals), nvals, GxB_PLUS_FC32);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, std::complex<float> *X, GrB_Index *nvals, const GrB_Vector& A) {
-            return GxB_Vector_extractTuples_FC32(I, X, nvals, A);
+            return GxB_Vector_extractTuples_FC32(I, reinterpret_cast<GxB_FC32_t*>(X), nvals, A);
         }
     };
     template <> struct GraphBLAS_typed<std::complex<double>> {
         static GrB_Type type() { return GxB_FC64; }
 
         static GrB_Info build_matrix(GrB_Matrix mat, const GrB_Index* rows, const GrB_Index* cols, const std::complex<double>* vals, GrB_Index nvals) {
-            return GxB_Matrix_build_FC64(mat, rows, cols, vals, nvals, GxB_PLUS_FC64);
+            return GxB_Matrix_build_FC64(mat, rows, cols, reinterpret_cast<const GxB_FC64_t*>(vals), nvals, GxB_PLUS_FC64);
         }
 
         static GrB_Info set_element(GrB_Scalar scalar, const std::complex<double>& x) {
-            return GxB_Scalar_setElement_FC64(scalar, x);
+            return GxB_Scalar_setElement_FC64(scalar, reinterpret_cast<const GxB_FC64_t&>(x));
         }
 
         static GrB_Info GrB_Matrix_extractTuples(GrB_Index *I, GrB_Index *J, std::complex<double> *X, GrB_Index *nvals, const GrB_Matrix& A) {
-            return GxB_Matrix_extractTuples_FC64(I, J, X, nvals, A);
+            return GxB_Matrix_extractTuples_FC64(I, J, reinterpret_cast<GxB_FC64_t*>(X), nvals, A);
         }
 
 #if FMM_GXB_ITERATORS
         static std::complex<double> GxB_Iterator_get(GxB_Iterator iterator) {
-            return GxB_Iterator_get_FC64(iterator);
+            return reinterpret_cast<std::complex<double>&>(GxB_Iterator_get_FC64(iterator));
         }
 #endif
         static GrB_Info build_vector(GrB_Vector vec, const GrB_Index* indices, const std::complex<double>* vals, GrB_Index nvals) {
-            return GxB_Vector_build_FC64(vec, indices, vals, nvals, GxB_PLUS_FC64);
+            return GxB_Vector_build_FC64(vec, indices, reinterpret_cast<const GxB_FC64_t*>(vals), nvals, GxB_PLUS_FC64);
         }
 
         static GrB_Info GrB_Vector_extractTuples(GrB_Index *I, std::complex<double> *X, GrB_Index *nvals, const GrB_Vector& A) {
-            return GxB_Vector_extractTuples_FC64(I, X, nvals, A);
+            return GxB_Vector_extractTuples_FC64(I, reinterpret_cast<GxB_FC64_t*>(X), nvals, A);
         }
     };
 #endif
