@@ -2,11 +2,6 @@ name: wheels
 
 on:
   workflow_dispatch:
-# Note: if enabling this more broadly ensure upload_all run permissions make sense.
-#  pull_request:
-#  push:
-#    branches:
-#      - main
   release:
     types:
       - published
@@ -49,54 +44,48 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Loosely based on scikit-learn's config:
+        # Originally based on scikit-learn's config:
         # https://github.com/scikit-learn/scikit-learn/blob/main/.github/workflows/wheels.yml
         include:
           - os: windows-latest
-            python-version: "3.7"
             platform_id: win_amd64
+
           - os: ubuntu-latest
-            python-version: "3.7"
             platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
           - os: ubuntu-latest
-            python-version: "3.7"
             platform_id: manylinux_aarch64
-            manylinux_image: manylinux2014
+
           - os: macos-latest
-            python-version: "3.7"
             platform_id: macosx_x86_64
-            # Switch to cross-compiling macOS ARM wheels on the Intel runner instead.
-#          - os: macos-latest
-#            python-version: "3.8"      # macOS ARM support starts with Python 3.8
-#            platform_id: macosx_arm64
+          - os: macos-latest
+            platform_id: macosx_arm64
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: pypa/cibuildwheel@v2.15.0
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Build Wheels
+          package-dir: python
+          output-dir: wheelhouse
         env:
+
           CIBW_BUILD_VERBOSITY: 3
-#          CIBW_BUILD: "cp*"
-          CIBW_ARCHS_MACOS: "x86_64 arm64"
+
           # No 32-bit builds. See https://cibuildwheel.readthedocs.io/en/stable/options/#archs
           # Note: if trying 32-bit builds, add CIBW_BEFORE_TEST: "pip install --only-binary :all: numpy scipy"
           CIBW_SKIP: "*-win32 *_i686"
+
+          # Allow pre-release numpy to test on newest Python
+          CIBW_BEFORE_TEST: pip install --pre numpy
+
           # make cibuildwheel install test dependencies from pyproject.toml
           CIBW_TEST_EXTRAS: "test"
+
           # run tests in the {package}/tests dir which is python/tests
           CIBW_TEST_COMMAND: "pytest {package}/tests"
-          # Skip testing on PyPy and musllinux because SciPy fails to install there.
-          # Also skip macOS ARM tests on Intel runner.
-          CIBW_TEST_SKIP: "pp* *musllinux* *-macosx_arm64"
-        run: |
-          python -m pip install cibuildwheel
-          python -m cibuildwheel --output-dir wheelhouse python
-        shell: bash
+
+          # Skip testing on PyPy and musllinux versions that SciPy does not ship wheels for.
+          CIBW_TEST_SKIP: "pp* cp37*musllinux* cp38*musllinux*"
 
       - uses: actions/upload-artifact@v3
         with:
