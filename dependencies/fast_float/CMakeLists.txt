@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.9...3.25)
 project(fast_float VERSION 3.9.0 LANGUAGES CXX)
 
 add_library(fast_float INTERFACE)
