@@ -101,7 +101,18 @@ header(shape=(3, 3), nnz=3, comment="3-by-3 identity matrix", object="matrix", f
 {'shape': (3, 3), 'nnz': 3, 'comment': '3-by-3 identity matrix', 'object': 'matrix', 'format': 'coordinate', 'field': 'real', 'symmetry': 'general'}
 ```
 
-**Note:** SciPy is only a runtime dependency for the `mmread` and `mmwrite` methods. All others depend only on NumPy.
+#### Controlling parallelism
+
+All methods other than `read_header` and `mminfo` accept a `parallelism` parameter that controls the number of threads used. Default is to use the same number of threads as cores on the system.
+```python
+mat = fmm.mmread("matrix.mtx", parallelism=2)  # will use 2 threads
+```
+
+Alternatively, use [threadpoolctl](https://pypi.org/project/threadpoolctl/):
+```python
+with threadpoolctl.threadpool_limits(limits=2, user_api='fast_matrix_market'):
+    mat = fmm.mmread("matrix.mtx")  # will use 2 threads
+```
 
 # Quick way to try
 
