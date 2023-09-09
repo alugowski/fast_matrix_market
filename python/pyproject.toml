@@ -34,7 +34,7 @@ homepage = "https://github.com/alugowski/fast_matrix_market"
 repository = "https://github.com/alugowski/fast_matrix_market"
 
 [project.optional-dependencies]
-test = ["pytest", "scipy", "threadpoolctl>=3.2.0"]
+test = ["pytest", "scipy", "threadpoolctl"]
 
 [tool.scikit-build]
 wheel.expand-macos-universal-tags = true
