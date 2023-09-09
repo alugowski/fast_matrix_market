@@ -74,11 +74,8 @@ try:
             pass
 
     threadpoolctl.register(FMMThreadPoolCtlController)
-except ImportError:
-    # threadpoolctl not installed
-    pass
-except AttributeError as e:
-    # older version of threadpoolctl
+except (ImportError, AttributeError):
+    # threadpoolctl not installed, or an older version
     pass
 
 
