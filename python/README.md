@@ -103,14 +103,14 @@ header(shape=(3, 3), nnz=3, comment="3-by-3 identity matrix", object="matrix", f
 
 #### Controlling parallelism
 
-All methods other than `read_header` and `mminfo` accept a `parallelism` parameter that controls the number of threads used. Default is to use the same number of threads as cores on the system.
+All methods other than `read_header` and `mminfo` accept a `parallelism` parameter that controls the number of threads used. Default parallelism is equal to the core count of the system.
 ```python
 mat = fmm.mmread("matrix.mtx", parallelism=2)  # will use 2 threads
 ```
 
 Alternatively, use [threadpoolctl](https://pypi.org/project/threadpoolctl/):
 ```python
-with threadpoolctl.threadpool_limits(limits=2, user_api='fast_matrix_market'):
+with threadpoolctl.threadpool_limits(limits=2):
     mat = fmm.mmread("matrix.mtx")  # will use 2 threads
 ```
 

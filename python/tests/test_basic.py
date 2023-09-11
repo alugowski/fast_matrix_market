@@ -24,6 +24,8 @@ class TestModule(unittest.TestCase):
     def test_threadpoolctl(self):
         with threadpoolctl.threadpool_limits(limits=2, user_api='fast_matrix_market'):
             self.assertEqual(fmm.PARALLELISM, 2)
+        with threadpoolctl.threadpool_limits(limits=4):
+            self.assertEqual(fmm.PARALLELISM, 4)
 
 
 if __name__ == '__main__':
