@@ -15,7 +15,7 @@ jobs:
         python-version: ['3.7', '3.11', 'pypy-3.9']
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - uses: actions/setup-python@v4
       with:
@@ -103,7 +103,7 @@ jobs:
     name: Tests on 32-bit Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: build + test
         run: |
