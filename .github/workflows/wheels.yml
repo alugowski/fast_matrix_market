@@ -39,29 +39,38 @@ jobs:
 
 
   build_wheels:
-    name: Wheels on ${{ matrix.platform_id }} - ${{ matrix.os }}
+    name: Wheels on ${{ matrix.os }} - ${{ matrix.cibw_archs }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        # Originally based on scikit-learn's config:
+        # Originally based on scikit-learn's config, but has diverged since:
         # https://github.com/scikit-learn/scikit-learn/blob/main/.github/workflows/wheels.yml
         include:
           - os: windows-latest
-            platform_id: win_amd64
+            cibw_archs: "AMD64"
 
           - os: ubuntu-latest
-            platform_id: manylinux_x86_64
+            cibw_archs: "x86_64"
           - os: ubuntu-latest
-            platform_id: manylinux_aarch64
+            cibw_archs: "aarch64"
+            # numpy wheels not available for aarch64 PyPy or musllinux
+            cibw_skip: "pp* *musl*"
 
           - os: macos-latest
-            platform_id: macosx_x86_64
+            cibw_archs: "x86_64"
           - os: macos-latest
-            platform_id: macosx_arm64
+            cibw_archs: "arm64"
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup QEMU
+        # for building non-x86 Linux wheels on x86 runner
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: all
 
       - uses: pypa/cibuildwheel@v2.15.0
         with:
@@ -71,21 +80,24 @@ jobs:
 
           CIBW_BUILD_VERBOSITY: 3
 
-          # No 32-bit builds. See https://cibuildwheel.readthedocs.io/en/stable/options/#archs
-          # Note: if trying 32-bit builds, add CIBW_BEFORE_TEST: "pip install --only-binary :all: numpy scipy"
-          CIBW_SKIP: "*-win32 *_i686"
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
 
-          # Allow pre-release numpy to test on newest Python
-          CIBW_BEFORE_TEST: pip install --pre numpy
+          CIBW_SKIP: ${{ matrix.cibw_skip }}
+
+          # Allow pre-release to test on newest Python that may only have beta or RC numpy packages available.
+          # --only-binary and ' || true' to best-effort numpy and scipy installation.
+          # Some platforms do not have binary wheels for either package, some only for numpy.
+          # Notably PyPy: no scipy wheels, and numpy wheels for only some versions.
+          CIBW_BEFORE_TEST: pip install --pre --only-binary ":all:" numpy && pip install --pre --only-binary ":all:" scipy || true
 
           # make cibuildwheel install test dependencies from pyproject.toml
-          CIBW_TEST_EXTRAS: "test"
+          CIBW_TEST_EXTRAS: "testmin"
 
           # run tests in the {package}/tests dir which is python/tests
           CIBW_TEST_COMMAND: "pytest {package}/tests"
 
-          # Skip testing on PyPy and musllinux versions that SciPy does not ship wheels for.
-          CIBW_TEST_SKIP: "pp* cp37*musllinux* cp38*musllinux*"
+          # Skip macOS ARM tests on Intel runner.
+          CIBW_TEST_SKIP: "*-macosx_arm64"
 
       - uses: actions/upload-artifact@v3
         with:
@@ -111,10 +123,10 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           # PyPI does not allow replacing a file. Without this flag the entire action fails if even a single duplicate exists.
-          skip_existing: true
+          skip-existing: true
           verbose: true
           # Real PyPI:
           password: ${{ secrets.PYPI_API_TOKEN }}
           # Test PyPI:
 #          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-#          repository_url: https://test.pypi.org/legacy/
+#          repository-url: https://test.pypi.org/legacy/

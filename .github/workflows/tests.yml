@@ -90,12 +90,12 @@ jobs:
 
       - name: Install NumPy
         continue-on-error: true
-        # --only-binary disables compiling the package from source if a binary wheel is not available
+        # --only-binary disables compiling the package from source if a binary wheel is not available, such as some versions of PyPy
         run: pip install --only-binary ":all:" numpy
 
       - name: Install SciPy
         continue-on-error: true
-        # --only-binary disables compiling the package from source if a binary wheel is not available, such as scipy on PyPy
+        # --only-binary disables compiling the package from source if a binary wheel is not available, such as PyPy
         run: pip install --only-binary ":all:" scipy
 
       - name: Python Test
