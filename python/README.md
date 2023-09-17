@@ -3,7 +3,7 @@
 
 Fast and full-featured Matrix Market file I/O package for Python.
 
-Fastest way to read and write any Matrix Market `.mtx` file into a SciPy sparse matrix, sparse coordinate (triplet) arrays, or dense ndarray.
+Fastest way to read and write any Matrix Market `.mtx` file into a SciPy sparse matrix, sparse coordinate (triplet) `ndarray`s, or a dense `ndarray`.
 
 Implemented as a Python binding of the C++ [fast_matrix_market](https://github.com/alugowski/fast_matrix_market) library.
 
@@ -14,9 +14,31 @@ pip install fast_matrix_market
 conda install fast_matrix_market
 ```
 
-# Compared to scipy.io.mmread()
+# Compared to SciPy 1.12
 
-The `fast_matrix_market.mmread()` and `mmwrite()` methods are direct replacements for their respective SciPy versions.
+As of version 1.12, `scipy.io.mmread` and `scipy.io.mmread` are based on fast_matrix_market. If those methods suit your needs then there is no need to use this package.
+
+The following are extra features supported by the stand-alone FMM:
+
+* **Directly write CSC/CSR matrices**  with no COO intermediary.
+
+* **Vector files**  
+  Read 1D vector files. `scipy.io.mmread()` throws a `ValueError`.
+
+* **longdouble**  
+  Read and write `longdouble`/`longcomplex` values for more floating-point precision on platforms that support it (e.g. 80-bit floats).
+
+  Just pass `long_type=True` argument to any read method to use `longdouble` arrays. SciPy can write `longdouble` matrices but reads use `double` precision.
+
+  **Note:** Many platforms do not offer any precision greater than `double` even if the `longdouble` type exists.
+  On those platforms `longdouble == double` so check your NumPy for support. As of writing only Linux tends to have `longdouble > double`.
+  **Deprecation Warning:** this type is going away in future versions of NumPy and SciPy.
+
+FMM also ships wheels for PyPy and for some older Python versions only supported by older versions of SciPy.
+
+# Compared to classic scipy.io.mmread (version <1.12)
+
+The `fast_matrix_market.mmread()` and `mmwrite()` methods are direct replacements for `scipy.io.mmread` and `mmwrite`.
 Compared to SciPy v1.10.0:
 
 * **Significant performance boost**
@@ -30,18 +52,7 @@ Compared to SciPy v1.10.0:
 
   `scipy.io.mmread()` crashes on large matrices (dimensions > 2<sup>31</sup>) because it uses 32-bit indices on most platforms.
 
-* **Directly write CSC/CSR matrices**  with no COO intermediary.
-
-* **longdouble**  
-  Read and write `longdouble`/`longcomplex` values for more floating-point precision on platforms that support it (e.g. 80-bit floats).
-
-  Just pass `long_type=True` argument to any read method to use `longdouble` arrays. SciPy can write `longdouble` matrices but reads use `double` precision.
-
-  **Note:** Many platforms do not offer any precision greater than `double` even if the `longdouble` type exists.
-  On those platforms `longdouble == double` so check your Numpy for support. As of writing only Linux tends to have `longdouble > double`.
-
-* **Vector files**  
-  Read 1D vector files. `scipy.io.mmread()` throws a `ValueError`.
+* See comparison with SciPy 1.12.
 
 ### Differences
 

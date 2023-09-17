@@ -3,10 +3,21 @@
 [![PyPI version](https://badge.fury.io/py/fast_matrix_market.svg)](https://pypi.org/project/fast-matrix-market/)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/fast_matrix_market.svg)](https://anaconda.org/conda-forge/fast_matrix_market)
 
-A fast and full-featured Matrix Market I/O library for C++ and [Python](python). Third party bindings for R in [fastMatMR](https://github.com/HaoZeke/fastMatMR).
+Fast and full-featured Matrix Market I/O.
 
-Ready-to-use bindings for [GraphBLAS](README.GraphBLAS.md), [Eigen](README.Eigen.md), [CXSparse](README.CXSparse.md), [Blaze](README.Blaze.md), [Armadillo](README.Armadillo.md), [SciPy](python/README.md), `std::vector`-like.  
-Easy to integrate with any datastructure.
+**C++**: 
+Ready-to-use bindings for
+[GraphBLAS](README.GraphBLAS.md),
+[Eigen](README.Eigen.md),
+[CXSparse](README.CXSparse.md),
+[Blaze](README.Blaze.md),
+[Armadillo](README.Armadillo.md),
+and `std::vector`-like types.
+Easy to integrate with any datastructure.  
+**Python**:
+[Python bindings](python). Included as `scipy.io.mmread` and `mmwrite` in SciPy 1.12.  
+**R**:
+Third party bindings for R in [fastMatMR](https://github.com/HaoZeke/fastMatMR).  
 
 [Matrix Market](https://math.nist.gov/MatrixMarket/formats.html) is a simple, human-readable, and widely used sparse matrix file format that looks like this:
 ```
