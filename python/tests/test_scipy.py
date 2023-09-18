@@ -8,27 +8,30 @@ from pathlib import Path
 import tempfile
 import unittest
 
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 try:
-    import scipy.io
-    HAVE_SCIPY = True
+    import scipy
+    import scipy.io  # for Python 3.7
+    import scipy.sparse  # for Python 3.7
 except ImportError:
-    HAVE_SCIPY = False
+    scipy = None
+
+try:
+    import bz2
+except ImportError:
+    bz2 = None
 
 import fast_matrix_market as fmm
 
 matrices = Path("matrices")
 cpp_matrices = matrices / ".." / ".." / ".." / "tests" / "matrices"
 
-try:
-    import bz2
-    HAVE_BZ2 = True
-except ImportError:
-    HAVE_BZ2 = False
 
-
-@unittest.skipIf(not HAVE_SCIPY, "SciPy not installed")
+@unittest.skipIf(scipy is None, "SciPy not installed")
 class TestSciPy(unittest.TestCase):
     """
     Test compatibility with SciPy
@@ -75,7 +78,7 @@ class TestSciPy(unittest.TestCase):
 
     def test_mminfo(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
-            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+            if str(mtx).endswith(".bz2") and bz2 is None:
                 continue
 
             with self.subTest(msg=mtx.stem):
@@ -99,7 +102,7 @@ class TestSciPy(unittest.TestCase):
 
     def test_read(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
-            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+            if str(mtx).endswith(".bz2") and bz2 is None:
                 continue
 
             with self.subTest(msg=mtx.stem):
@@ -113,7 +116,7 @@ class TestSciPy(unittest.TestCase):
 
     def test_read_array_or_coo(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
-            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+            if str(mtx).endswith(".bz2") and bz2 is None:
                 continue
 
             with self.subTest(msg=mtx.stem):

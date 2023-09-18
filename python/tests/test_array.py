@@ -5,27 +5,30 @@
 from io import BytesIO, StringIO
 from pathlib import Path
 import tempfile
-
-import numpy as np
 import unittest
 
 try:
-    import scipy
-    HAVE_SCIPY = True
+    import numpy as np
 except ImportError:
-    HAVE_SCIPY = False
+    np = None
+
+try:
+    import scipy
+    import scipy.io  # for Python 3.7
+except ImportError:
+    scipy = None
+
+try:
+    import bz2
+except ImportError:
+    bz2 = None
 
 import fast_matrix_market as fmm
 
 matrices = Path("matrices")
 
-try:
-    import bz2
-    HAVE_BZ2 = True
-except ImportError:
-    HAVE_BZ2 = False
 
-
+@unittest.skipIf(np is None, reason="no numpy")
 class TestArray(unittest.TestCase):
     def assertMatrixEqual(self, lhs, rhs, types=True):
         """
@@ -45,7 +48,7 @@ class TestArray(unittest.TestCase):
 
     def test_read(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
-            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+            if str(mtx).endswith(".bz2") and bz2 is None:
                 continue
             mtx_header = fmm.read_header(mtx)
             if mtx_header.format != "array":
@@ -53,7 +56,7 @@ class TestArray(unittest.TestCase):
 
             with self.subTest(msg=mtx.stem):
                 m_fmm = fmm.read_array(mtx)
-                if not HAVE_SCIPY:
+                if scipy is None:
                     continue
 
                 m = scipy.io.mmread(mtx)
@@ -61,7 +64,7 @@ class TestArray(unittest.TestCase):
 
     def test_write(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
-            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+            if str(mtx).endswith(".bz2") and bz2 is None:
                 continue
             mtx_header = fmm.read_header(mtx)
             if mtx_header.format != "array":
@@ -121,13 +124,8 @@ class TestArray(unittest.TestCase):
                 a = fmm.read_array(f)
             self.assertMatrixEqual(a, mtx)
 
+    @unittest.skipIf(bz2 is None, reason="no bz2 module")
     def test_bz2(self):
-        try:
-            import bz2
-        except ImportError:
-            self.skipTest(reason="no bz2 module")
-            return
-
         mtx = np.array([[11.1, 0, 0], [0, 22.2, 0], [0, 0, 33.3]], dtype="float64")
 
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -46,13 +46,11 @@ jobs:
     - name: Build
       env:
         CMAKE_BUILD_PARALLEL_LEVEL: 2
-      run: |
-        cmake --build build --config Debug
+      run: cmake --build build --config Debug
 
     - name: Test
-      run: |
-        cd build
-        ctest -C Debug --output-on-failure --verbose
+      working-directory: build
+      run: ctest -C Debug --output-on-failure --verbose
 
     - name: Upload Coverage to Codecov
       if: ${{ contains(matrix.os, 'ubuntu') }}
@@ -77,33 +75,38 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Python Build and Install
-        if: ${{ !contains(matrix.python-version, 'pypy') }}
+
+      - name: Python Build
           # On some platforms pip uses a temporary build directory but only copies the python/ directory there.
           # This breaks the relative symbolic links to the C++ library. Workaround is to pass the checkout directory
           # as an environment variable so CMakeLists.txt can read it and know where to import the C++ library from.
         run: |
-          export FMM_PYTHON_DIR="$(pwd)" && pip install python/.[test] -v && pip install pytest-subtests
+          export FMM_PYTHON_DIR="$(pwd)" && pip install python/.[testmin] -v && pip install pytest-subtests
         shell: bash
 
-      - name: Python Build and Install (PyPy)
-        if: contains(matrix.python-version, 'pypy')
-          # SciPy does not ship PyPy wheels, so to avoid building scipy from source each time instead only
-          # install numpy and skip the tests that require scipy.
-        run: |
-          export FMM_PYTHON_DIR="$(pwd)" && pip install python/. -v && pip install numpy pytest pytest-subtests
-        shell: bash
+      - name: Python Test Minimums
+        working-directory: python/tests
+        run: pytest
+
+      - name: Install NumPy
+        continue-on-error: true
+        # --only-binary disables compiling the package from source if a binary wheel is not available
+        run: pip install --only-binary ":all:" numpy
+
+      - name: Install SciPy
+        continue-on-error: true
+        # --only-binary disables compiling the package from source if a binary wheel is not available, such as scipy on PyPy
+        run: pip install --only-binary ":all:" scipy
 
       - name: Python Test
-        run: |
-          cd python/tests
-          pytest
+        working-directory: python/tests
+        run: pytest
 
       - name: Python Test with Coverage
         if: contains(matrix.os, 'ubuntu')
+        working-directory: python/tests
         run: |
           pip install pytest-cov
-          cd python/tests
           pytest --cov=fast_matrix_market --cov-report term --cov-report=xml
 
       - name: Upload Coverage to Codecov

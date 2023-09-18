@@ -4,26 +4,32 @@
 
 from io import BytesIO, StringIO
 from pathlib import Path
-import numpy as np
 import unittest
 
 try:
-    import scipy
-    HAVE_SCIPY = True
+    import numpy as np
 except ImportError:
-    HAVE_SCIPY = False
+    np = None
+
+try:
+    import scipy
+    import scipy.io  # for Python 3.7
+    import scipy.sparse  # for Python 3.7
+except ImportError:
+    scipy = None
+
+try:
+    import bz2
+except ImportError:
+    bz2 = None
 
 import fast_matrix_market as fmm
 
 matrices = Path("matrices")
-
-try:
-    import bz2
-    HAVE_BZ2 = True
-except ImportError:
-    HAVE_BZ2 = False
+cpp_matrices = matrices / ".." / ".." / ".." / "tests" / "matrices"
 
 
+@unittest.skipIf(np is None, reason="no numpy")
 class TestTriplet(unittest.TestCase):
     def assertMatrixEqual(self, lhs, rhs, types=True):
         """
@@ -49,7 +55,7 @@ class TestTriplet(unittest.TestCase):
 
     def test_read(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
-            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+            if str(mtx).endswith(".bz2") and bz2 is None:
                 continue
             mtx_header = fmm.read_header(mtx)
             if mtx_header.format != "coordinate":
@@ -57,7 +63,7 @@ class TestTriplet(unittest.TestCase):
 
             with self.subTest(msg=mtx.stem):
                 triplet, shape = fmm.read_coo(mtx)
-                if not HAVE_SCIPY:
+                if scipy is None:
                     continue
 
                 m = scipy.io.mmread(mtx)
@@ -66,7 +72,7 @@ class TestTriplet(unittest.TestCase):
 
     def test_write(self):
         for mtx in sorted(list(matrices.glob("*.mtx*"))):
-            if str(mtx).endswith(".bz2") and not HAVE_BZ2:
+            if str(mtx).endswith(".bz2") and bz2 is None:
                 continue
             mtx_header = fmm.read_header(mtx)
             if mtx_header.format != "coordinate":
@@ -83,7 +89,7 @@ class TestTriplet(unittest.TestCase):
 
                 self.assertEqual(shape, shape2)
 
-                if not HAVE_SCIPY:
+                if scipy is None:
                     continue
 
                 fmm_scipy = scipy.sparse.coo_matrix(triplet, shape=shape)
@@ -101,12 +107,17 @@ class TestTriplet(unittest.TestCase):
 
         lists_fmm_triplet, lists_fmm_shape = fmm.read_coo(StringIO(fmms))
 
-        if not HAVE_SCIPY:
+        if scipy is None:
             return
 
         lists = scipy.sparse.coo_matrix((data, (i, j)), shape=(3, 3))
         lists_fmm = scipy.sparse.coo_matrix(lists_fmm_triplet, shape=lists_fmm_shape)
         self.assertMatrixEqual(lists, lists_fmm, types=False)
+
+    @unittest.skipIf(not cpp_matrices.exists(), "Matrices from C++ code not available.")
+    def test_index_overflow(self):
+        with self.assertRaises(OverflowError):
+            fmm.read_coo(cpp_matrices / "overflow" / "overflow_index_gt_int64.mtx")
 
 
 if __name__ == '__main__':
