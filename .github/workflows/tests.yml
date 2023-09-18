@@ -6,15 +6,27 @@ on:
 
 jobs:
   cpptests:
-    name: C++ Tests on ${{ matrix.os }}
+    name: C++ Tests on ${{ matrix.os }} ${{ matrix.description }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: windows-latest
+          - os: ubuntu-latest
+          - os: ubuntu-latest
+            gccver: "13"
+            description: "GCC 13"
+          - os: macos-latest
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Set up GCC
+      uses: egor-tensin/setup-gcc@v1
+      if: ${{ matrix.gccver != '' }}
+      with:
+        version: ${{ matrix.gccver }}
 
     - name: Install Integrations (Ubuntu)
       if: contains(matrix.os, 'ubuntu')
@@ -39,7 +51,6 @@ jobs:
       run: brew install suite-sparse
 
     - name: Configure
-      if: ${{ !contains(matrix.python-version, 'pypy') }}
       run: |
         cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DFAST_MATRIX_MARKET_TEST=ON -DFAST_MATRIX_MARKET_TEST_COVERAGE=ON ${{ env.FMM_CMAKE_FLAGS }}
 

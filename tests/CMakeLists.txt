@@ -28,14 +28,19 @@ set(MATRIX_DIR "${CMAKE_CURRENT_LIST_DIR}/matrices/")
 message("Test Matrix directory: ${MATRIX_DIR}")
 add_definitions(-DTEST_MATRIX_DIR="${MATRIX_DIR}")
 
+include(GoogleTest)
+
 add_executable(chunking_test chunking_test.cpp)
 target_link_libraries(chunking_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+gtest_discover_tests(chunking_test)
 
 add_executable(field_conv_test field_conv_test.cpp)
 target_link_libraries(field_conv_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+gtest_discover_tests(field_conv_test)
 
 add_executable(basic_test basic_test.cpp)
 target_link_libraries(basic_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+gtest_discover_tests(basic_test)
 
 add_executable(disabled_features_test disabled_features_test.cpp)
 target_link_libraries(disabled_features_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
@@ -43,28 +48,35 @@ target_compile_definitions(disabled_features_test PUBLIC FMM_NO_VECTOR)
 
 add_executable(user_type_test user_type_test.cpp)
 target_link_libraries(user_type_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+gtest_discover_tests(user_type_test)
 
 add_executable(array_test array_test.cpp)
 target_link_libraries(array_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+gtest_discover_tests(array_test)
 
 add_executable(csc_test csc_test.cpp)
 target_link_libraries(csc_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+gtest_discover_tests(csc_test)
 
 add_executable(triplet_test triplet_test.cpp)
 target_link_libraries(triplet_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+gtest_discover_tests(triplet_test)
 
 add_executable(cxsparse_test cxsparse_test.cpp fake_cxsparse/cs.hpp)
 target_link_libraries(cxsparse_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
-
-include(GoogleTest)
-gtest_discover_tests(chunking_test)
-gtest_discover_tests(field_conv_test)
-gtest_discover_tests(basic_test)
-gtest_discover_tests(user_type_test)
-gtest_discover_tests(array_test)
-gtest_discover_tests(triplet_test)
-gtest_discover_tests(csc_test)
 gtest_discover_tests(cxsparse_test)
+
+if ("cxx_std_23" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    include(stdfloat_tests.cmake)
+
+    if (have_stdfloat)
+        message("Including test for C++23 fixed-width floating point types")
+        add_executable(cpp23_test cpp23_test.cpp)
+        target_link_libraries(cpp23_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+        target_compile_features(cpp23_test PUBLIC cxx_std_23)
+        gtest_discover_tests(cpp23_test)
+    endif()
+endif()
 
 
 option(FAST_MATRIX_MARKET_TEST_EXTERNAL_APPS "Enable tests for bindings (e.g. Blaze, Eigen, etc.)" ON)
