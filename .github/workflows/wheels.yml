@@ -68,7 +68,7 @@ jobs:
       - name: Setup QEMU
         # for building non-x86 Linux wheels on x86 runner
         if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
