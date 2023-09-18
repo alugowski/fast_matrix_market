@@ -70,6 +70,7 @@ Then simply run all the cells in the [benchmark_plots/plot.ipynb](benchmark_plot
   * Support all C++ types.
     * `float`, `double`, `long double`, `std::complex<>`, integer types, `bool`.
     * Arbitrary types. `std::string` comes bundled. See [implementation](include/fast_matrix_market/app/user_type_string.hpp), [example usage](tests/user_type_test.cpp)
+    * C++23 fixed width floating point types like `std::float32_t`.
 
   * Automatic `std::complex` up-cast. For example, `real` files can be read into `std::complex<double>` arrays.
 
