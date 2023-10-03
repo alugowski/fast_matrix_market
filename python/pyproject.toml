@@ -11,6 +11,7 @@ readme = "README.md"
 authors = [
     { name = "Adam Lugowski"},
 ]
+license-files = ["LICENSE.txt"]
 requires-python = ">=3.7"
 
 classifiers = [
