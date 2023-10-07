@@ -61,6 +61,8 @@ jobs:
             cibw_archs: "x86_64"
           - os: macos-latest
             cibw_archs: "arm64"
+            # Skip macOS ARM tests on Intel runner.
+            cibw_test_skip: "*-macosx_arm64"
 
     steps:
       - uses: actions/checkout@v4
@@ -81,8 +83,8 @@ jobs:
           CIBW_BUILD_VERBOSITY: 3
 
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
-
           CIBW_SKIP: ${{ matrix.cibw_skip }}
+          CIBW_TEST_SKIP: ${{ matrix.cibw_test_skip }}
 
           # Allow pre-release to test on newest Python that may only have beta or RC numpy packages available.
           # --only-binary and ' || true' to best-effort numpy and scipy installation.
@@ -95,9 +97,6 @@ jobs:
 
           # run tests in the {package}/tests dir which is python/tests
           CIBW_TEST_COMMAND: "pytest {package}/tests"
-
-          # Skip macOS ARM tests on Intel runner.
-          CIBW_TEST_SKIP: "*-macosx_arm64"
 
       - uses: actions/upload-artifact@v3
         with:
