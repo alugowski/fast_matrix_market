@@ -23,7 +23,7 @@ namespace fast_matrix_market {
     void read_matrix_market_eigen(std::istream &instream,
                                   matrix_market_header &header,
                                   SparseType& mat,
-                                  const read_options& options = {},
+                                  read_options options = {},
                                   typename SparseType::Scalar default_pattern_value = 1) {
 
         typedef typename SparseType::Scalar Scalar;
@@ -32,6 +32,12 @@ namespace fast_matrix_market {
 
         read_header(instream, header);
         mat.resize(header.nrows, header.ncols);
+
+        // Sanitize symmetry generalization settings
+        if (options.generalize_symmetry && options.generalize_symmetry_app) {
+            // setFromTriplets() drops zero elements
+            options.generalize_coordinate_diagnonal_values = read_options::ExtraZeroElement;
+        }
 
         // read into tuples
         std::vector<Triplet> elements;

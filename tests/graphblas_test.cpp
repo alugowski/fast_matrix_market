@@ -534,6 +534,20 @@ TEST(GraphBLASMatrixTest, TypeComment) {
    }
 }
 
+TEST(GraphBLASMatrixTest, Symmetric) {
+    GrB_Matrix sym, expected;
+
+    {
+        std::ifstream f(kTestMatrixDir + "symmetry/coordinate_symmetric_row.mtx");
+        fast_matrix_market::read_matrix_market_graphblas(f, &sym);
+    }
+    {
+        std::ifstream f(kTestMatrixDir + "symmetry/coordinate_symmetric_row_general.mtx");
+        fast_matrix_market::read_matrix_market_graphblas(f, &expected);
+    }
+    EXPECT_TRUE(is_equal(expected, sym));
+}
+
 
 /////////////////////////////////////////////////////////
 ///// Vectors

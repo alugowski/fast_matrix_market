@@ -151,3 +151,18 @@ INSTANTIATE_TEST_SUITE_P(
                           , Param{Param::Load_FMM_Vec, "vector_coordinate.mtx"}
                           , Param{Param::Load_FMM, "eye3_pattern.mtx"}
                           ));
+
+
+TEST(EigenTest, Symmetric) {
+    SpRowMajor sym, expected;
+
+    {
+        std::ifstream f(kTestMatrixDir + "symmetry/coordinate_symmetric_row.mtx");
+        fast_matrix_market::read_matrix_market_eigen(f, sym);
+    }
+    {
+        std::ifstream f(kTestMatrixDir + "symmetry/coordinate_symmetric_row_general.mtx");
+        fast_matrix_market::read_matrix_market_eigen(f, expected);
+    }
+    EXPECT_TRUE(expected.isApprox(sym, 1e-6));
+}
