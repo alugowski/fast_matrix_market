@@ -39,9 +39,9 @@ jobs:
       run: |
         mkdir -p grb
         cd grb
-        wget --quiet https://anaconda.org/conda-forge/graphblas/7.4.4/download/linux-64/graphblas-7.4.4-hcb278e6_0.conda
-        unzip graphblas-7.4.4-hcb278e6_0.conda
-        tar xvf pkg-graphblas-7.4.4-hcb278e6_0.tar.zst
+        wget --quiet https://anaconda.org/conda-forge/graphblas/8.2.1/download/linux-64/graphblas-8.2.1-h59595ed_0.conda
+        unzip graphblas-8.2.1-h59595ed_0.conda
+        tar xvf pkg-graphblas-8.2.1-h59595ed_0.tar.zst
         cd ..
         echo "FMM_CMAKE_FLAGS=-DCMAKE_MODULE_PATH=${{ github.workspace }}/grb/lib/cmake/SuiteSparse -DGraphBLAS_ROOT=${{ github.workspace }}/grb/" >> $GITHUB_ENV
 
