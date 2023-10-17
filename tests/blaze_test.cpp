@@ -187,6 +187,22 @@ TYPED_TEST(BlazeMatrixTest, SmallMatrices) {
     }
 }
 
+
+TEST(BlazeMatrixTest, Symmetric) {
+    blaze::CompressedMatrix<double, blaze::rowMajor> sym, expected;
+
+    {
+        std::ifstream f(kTestMatrixDir + "symmetry/coordinate_symmetric_row.mtx");
+        fast_matrix_market::read_matrix_market_blaze(f, sym);
+    }
+    {
+        std::ifstream f(kTestMatrixDir + "symmetry/coordinate_symmetric_row_general.mtx");
+        fast_matrix_market::read_matrix_market_blaze(f, expected);
+    }
+    EXPECT_TRUE(is_equal(sym, expected));
+}
+
+
 /////////////////////////////////////////////////////////
 ///// Vectors
 /////////////////////////////////////////////////////////

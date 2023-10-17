@@ -117,3 +117,18 @@ TYPED_TEST(ArmadilloTest, SmallMatrices) {
         }
     }
 }
+
+TEST(ArmadilloTest, Symmetric) {
+    arma::SpMat<double> sym, expected;
+
+    {
+        std::ifstream f(kTestMatrixDir + "symmetry/coordinate_symmetric_row.mtx");
+        fast_matrix_market::read_matrix_market_arma(f, sym);
+    }
+    {
+        std::ifstream f(kTestMatrixDir + "symmetry/coordinate_symmetric_row_general.mtx");
+        fast_matrix_market::read_matrix_market_arma(f, expected);
+    }
+    EXPECT_EQ(expected.n_nonzero, sym.n_nonzero);
+    EXPECT_TRUE(arma::approx_equal(expected, sym, "absdiff", 1e-6));
+}

@@ -14,6 +14,7 @@
 #include <string>
 #include <sstream>
 #include <utility>
+#include <vector>
 
 #include "types.hpp"
 
@@ -116,6 +117,10 @@ namespace fast_matrix_market {
      * MSVC does not like std::negate<bool>
      */
     inline bool negate(const bool o) {
+        return !o;
+    }
+
+    inline bool negate(const std::vector<bool>::reference o) {
         return !o;
     }
 

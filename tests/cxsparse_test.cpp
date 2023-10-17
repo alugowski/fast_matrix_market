@@ -80,7 +80,7 @@ TEST_P(CSCTest, ReadSmall) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-        CSCTest,
+        CXSparse,
         CSCTest,
         ::testing::Values("eye3.mtx"
                           , "row_3by4.mtx"
@@ -89,3 +89,10 @@ INSTANTIATE_TEST_SUITE_P(
                           , "vector_coordinate.mtx"
                           , "eye3_pattern.mtx"
         ));
+
+TEST(CXSparse, Symmetric) {
+    cs_dl *sym = read_mtx(kTestMatrixDir + "symmetry/coordinate_symmetric_row.mtx");
+    cs_dl *expected = read_mtx(kTestMatrixDir + "symmetry/coordinate_symmetric_row_general.mtx");
+    EXPECT_EQ(6, sym->nzmax);
+    EXPECT_EQ(5, expected->nzmax);
+}

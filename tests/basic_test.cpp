@@ -516,6 +516,7 @@ struct symmetry_problem {
     std::string symmetric;
     std::string general;
     std::string general_dup;
+    std::string general_zero;
 
     bool operator<(const symmetry_problem& rhs) const {
         return symmetric < rhs.symmetric;
@@ -547,6 +548,7 @@ public:
             p.symmetric = kSymmetrySubdir + std::regex_replace(filename, std::regex("_general"), "");
             p.general = kSymmetrySubdir + filename;
             p.general_dup = kSymmetrySubdir + std::regex_replace(filename, std::regex("_general"), "_general_dup");
+            p.general_zero = kSymmetrySubdir + std::regex_replace(filename, std::regex("_general"), "_general_zero");
             ret.push_back(p);
         }
 
@@ -578,25 +580,33 @@ public:
 
 using SymMat = triplet_matrix<int64_t, std::complex<double>>;
 TEST_P(SymmetrySuite, SmallTripletCoordinate) {
-    SymMat symmetric, sym_zero, sym_dup, general_zero, general_dup;
+    SymMat symmetric, sym_zero, sym_dup, sym_app, general_zero, general_dup, general_app;
 
     fast_matrix_market::read_options ro_no_gen{};
     ro_no_gen.generalize_symmetry = false;
 
     fast_matrix_market::read_options ro_gen_zero{};
     ro_gen_zero.generalize_symmetry = true;
+    ro_gen_zero.generalize_symmetry_app = false;
     ro_gen_zero.generalize_coordinate_diagnonal_values = fast_matrix_market::read_options::ExtraZeroElement;
 
     fast_matrix_market::read_options ro_gen_dup{};
     ro_gen_dup.generalize_symmetry = true;
+    ro_gen_dup.generalize_symmetry_app = false;
     ro_gen_dup.generalize_coordinate_diagnonal_values = fast_matrix_market::read_options::DuplicateElement;
+
+    fast_matrix_market::read_options ro_gen_app{};
+    ro_gen_app.generalize_symmetry = true;
+    ro_gen_app.generalize_symmetry_app = true;
 
     symmetry_problem p = GetParam();
     read_triplet_file(p.symmetric, symmetric, ro_no_gen);
     read_triplet_file(p.symmetric, sym_zero, ro_gen_zero);
     read_triplet_file(p.symmetric, sym_dup, ro_gen_dup);
-    read_triplet_file(p.general, general_zero, ro_no_gen);
+    read_triplet_file(p.symmetric, sym_app, ro_gen_app);
+    read_triplet_file(p.general_zero, general_zero, ro_no_gen);
     read_triplet_file(p.general_dup, general_dup, ro_no_gen);
+    read_triplet_file(p.general, general_app, ro_no_gen);
 
     EXPECT_EQ(symmetric.nrows, sym_zero.nrows);
     EXPECT_EQ(symmetric.ncols, sym_zero.ncols);
@@ -604,6 +614,7 @@ TEST_P(SymmetrySuite, SmallTripletCoordinate) {
     EXPECT_EQ(sym_dup.vals.size(), sym_zero.vals.size());
     EXPECT_EQ(sym_zero, general_zero);
     EXPECT_EQ(sym_dup, general_dup);
+    EXPECT_EQ(sym_app, general_app);
 }
 
 class SymmetryTripletArraySuite : public SymmetrySuite {};

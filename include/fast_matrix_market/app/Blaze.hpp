@@ -26,16 +26,16 @@ namespace fast_matrix_market {
         read_header(instream, header);
         mat.clear();
         mat.resize(header.nrows, header.ncols);
-        size_t storage_nnz = get_storage_nnz(header, options);
-        mat.reserve(storage_nnz);
 
         // Read into triplets
-        std::vector<IT> rows(storage_nnz);
-        std::vector<IT> cols(storage_nnz);
-        std::vector<VT> vals(storage_nnz);
+        std::vector<IT> rows;
+        std::vector<IT> cols;
+        std::vector<VT> vals;
 
-        auto handler = triplet_parse_handler(rows.begin(), cols.begin(), vals.begin());
-        read_matrix_market_body(instream, header, handler, default_pattern_value, options);
+        read_matrix_market_body_triplet(instream, header, rows, cols, vals, default_pattern_value, options);
+
+        size_t storage_nnz = vals.size();
+        mat.reserve(storage_nnz);
 
         // Set the values into the matrix from the triplets.
         // The matrix needs to be constructed row-by-row (if row-major) or column-by-column (if col-major), in order.

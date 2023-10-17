@@ -30,7 +30,7 @@ jobs:
 
     - name: Install Integrations (Ubuntu)
       if: contains(matrix.os, 'ubuntu')
-      run: sudo apt-get install -y libarmadillo-dev
+      run: sudo apt-get update && sudo apt-get install -y libarmadillo-dev
 
     - name: Install GraphBLAS (ubuntu)
       if: contains(matrix.os, 'ubuntu')

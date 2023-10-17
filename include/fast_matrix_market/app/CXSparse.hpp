@@ -14,10 +14,16 @@ namespace fast_matrix_market {
     void read_matrix_market_cxsparse(std::istream &instream,
                                     CS **cs,
                                     ALLOC spalloc,
-                                    const read_options& options = {}) {
+                                    read_options options = {}) {
 
         matrix_market_header header;
         read_header(instream, header);
+
+        // Sanitize symmetry generalization settings
+        if (options.generalize_symmetry && options.generalize_symmetry_app) {
+            // cs_compress drops zero elements
+            options.generalize_coordinate_diagnonal_values = read_options::ExtraZeroElement;
+        }
 
         // allocate
         *cs = spalloc(header.nrows, header.ncols, get_storage_nnz(header, options),

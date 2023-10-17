@@ -550,12 +550,18 @@ namespace fast_matrix_market {
     void read_body_graphblas_coordinate(std::istream &instream,
                                         matrix_market_header &header,
                                         GrB_Matrix mat,
-                                        const read_options& options) {
+                                        read_options options) {
         size_t storage_nnz = get_storage_nnz(header, options);
 
         // Read into triplets
         std::vector<GrB_Index> rows(storage_nnz);
         std::vector<GrB_Index> cols(storage_nnz);
+
+        // Sanitize symmetry generalization settings
+        if (options.generalize_symmetry && options.generalize_symmetry_app) {
+            // Matrix construction drops zero elements
+            options.generalize_coordinate_diagnonal_values = read_options::ExtraZeroElement;
+        }
 
 #if FMM_GXB_BUILD_SCALAR
         if (header.field == pattern) {

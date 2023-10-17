@@ -89,6 +89,13 @@ namespace fast_matrix_market {
         bool generalize_symmetry = true;
 
         /**
+         * If true, perform symmetry generalization in the application binding as a post-processing step.
+         * If supported by the binding this method can avoid extra diagonal elements.
+         * If false or unsupported, diagonals are handled according to `generalize_coordinate_diagnonal_values`.
+         */
+        bool generalize_symmetry_app = true;
+
+        /**
          * Generalize Symmetry:
          * How to handle a value on the diagonal of a symmetric coordinate matrix.
          *  - DuplicateElement: Duplicate the diagonal element
