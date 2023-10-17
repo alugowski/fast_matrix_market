@@ -19,6 +19,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  # For PyPI Trusted Publisher
+  id-token: write
+
 jobs:
   build_sdist:
     name: Build SDist
@@ -126,6 +130,7 @@ jobs:
 
       # Upload to PyPI
       - uses: pypa/gh-action-pypi-publish@release/v1
+        name: Upload to PyPI
         if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_dest == 'PyPI')
         with:
           # PyPI does not allow replacing a file. Without this flag the entire action fails if even a single duplicate exists.
@@ -135,10 +140,10 @@ jobs:
 
       # Upload to Test PyPI
       - uses: pypa/gh-action-pypi-publish@release/v1
+        name: Upload to Test PyPI
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_dest == 'Test PyPI'
         with:
           # PyPI does not allow replacing a file. Without this flag the entire action fails if even a single duplicate exists.
           skip-existing: true
           verbose: true
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           repository-url: https://test.pypi.org/legacy/
