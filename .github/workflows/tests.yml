@@ -14,6 +14,8 @@ jobs:
         include:
           - os: windows-latest
           - os: ubuntu-latest
+            gccver: "9"
+            description: "GCC 9"
           - os: ubuntu-latest
             gccver: "13"
             description: "GCC 13"
@@ -22,11 +24,18 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up GCC
+    - name: Setup GCC
       uses: egor-tensin/setup-gcc@v1
       if: ${{ matrix.gccver != '' }}
       with:
         version: ${{ matrix.gccver }}
+
+    # build on minimum CMake version specified in CMakeLists.txt
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1
+      if: contains(matrix.os, 'ubuntu')
+      with:
+        cmake-version: '3.14'
 
     - name: Install Integrations (Ubuntu)
       if: contains(matrix.os, 'ubuntu')

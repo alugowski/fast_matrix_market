@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19...3.25) # needed for CheckSourceCompiles
+cmake_minimum_required(VERSION 3.14...3.26)
 
 # Read the version from fast_matrix_market.hpp
 set(VERSION_HEADER_FILE include/fast_matrix_market/fast_matrix_market.hpp)
