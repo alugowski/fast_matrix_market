@@ -11,7 +11,7 @@ find_package(GraphBLAS QUIET MODULE)
 
 # See if GraphBLAS is installed system-wide already
 if (NOT GraphBLAS_FOUND)
-    check_source_compiles(CXX "
+    check_cxx_source_compiles("
     #include <GraphBLAS.h>
     int main(void) { return 0; }
     " GRAPHBLAS_H_AVAILABLE)
