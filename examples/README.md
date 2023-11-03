@@ -17,6 +17,20 @@ cmake --build cmake-build-debug/
 cmake-build-debug/simple1
 ```
 
-### simple1.cpp
+### simple1
 
 Defines simple sparse and dense matrices built on `std::vector`, writes and reads both using `fast_matrix_market` triplet and array methods.
+
+### generate_matrix_market
+
+Generates a random Matrix Market file that has a file size approximately equal to a user-specified target.
+
+Demonstrates FMM's generator functionality.
+
+### sort_matrix_market
+
+Sorts the elements of a Matrix Market file, first by row then by column.
+
+Demonstrates FMM's ability to read values into `std::string`, useful here because the sorted values are never changed by a parse/format cycle, no matter what their type is.
+
+This may be a useful pre-processing utility for cases where the same matrix is loaded multiple times. Some loads can be significantly faster if the elements in the Matrix Market file are already sorted.
