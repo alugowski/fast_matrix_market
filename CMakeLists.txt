@@ -23,6 +23,11 @@ target_include_directories(
 
 target_compile_features(fast_matrix_market INTERFACE cxx_std_17)
 
+# Some older compilers (eg. Clang, GCC <9) require extra link flags for C++11 threads
+find_package(Threads)
+target_link_libraries(fast_matrix_market INTERFACE Threads::Threads)
+
+# CMake options to enable/disable dependencies
 option(FMM_USE_FAST_FLOAT "Enable fast_float float/double parser" ON)
 option(FMM_USE_DRAGONBOX "Enable dragonbox float/double formatter for shortest representation" ON)
 option(FMM_USE_RYU "Enable Ryu float/double formatter with precision support" ON)
