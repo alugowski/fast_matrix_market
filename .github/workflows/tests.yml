@@ -13,12 +13,26 @@ jobs:
       matrix:
         include:
           - os: windows-latest
+
+          - os: ubuntu-20.04
+            llvm-version: "8"
+            description: "LLVM 8"
+
+          - os: ubuntu-20.04
+            gcc-version: "8"
+            description: "GCC 8"
+
           - os: ubuntu-latest
-            gccver: "9"
+            gcc-version: "9"
+            # test minimum CMake version specified in CMakeLists.txt
+            cmake-version: '3.14'
             description: "GCC 9"
+
           - os: ubuntu-latest
-            gccver: "13"
+            gcc-version: "13"
+            cmake-version: '3.14'
             description: "GCC 13"
+
           - os: macos-latest
 
     steps:
@@ -26,16 +40,22 @@ jobs:
 
     - name: Setup GCC
       uses: egor-tensin/setup-gcc@v1
-      if: ${{ matrix.gccver != '' }}
+      if: ${{ matrix.gcc-version != '' }}
       with:
-        version: ${{ matrix.gccver }}
+        version: ${{ matrix.gcc-version }}
 
-    # build on minimum CMake version specified in CMakeLists.txt
+    - name: Setup LLVM and Clang
+      uses: KyleMayes/install-llvm-action@v1
+      if: ${{ matrix.llvm-version != '' }}
+      with:
+        version: ${{ matrix.llvm-version }}
+        env: true
+
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1
-      if: contains(matrix.os, 'ubuntu')
+      if: ${{ matrix.cmake-version != '' }}
       with:
-        cmake-version: '3.14'
+        cmake-version: ${{ matrix.cmake-version }}
 
     # test that the examples build
     - name: Build examples

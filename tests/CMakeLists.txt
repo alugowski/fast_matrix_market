@@ -40,7 +40,10 @@ gtest_discover_tests(field_conv_test)
 
 add_executable(basic_test basic_test.cpp)
 target_link_libraries(basic_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
-gtest_discover_tests(basic_test)
+if (NOT ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9))
+    # GCC 8 has an interaction with GTest
+    gtest_discover_tests(basic_test)
+endif ()
 
 add_executable(disabled_features_test disabled_features_test.cpp)
 target_link_libraries(disabled_features_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
