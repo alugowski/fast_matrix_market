@@ -1,11 +1,18 @@
 # FetchContent requires cmake >=3.11
 cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -pedantic")
-elseif (MSVC)
-    # MSVC needs this flag if using lots of templates
-    add_compile_options("/bigobj")
+if (WIN32)
+    # Need bigobj because some tests use lots of templates
+    if (MSVC)
+        add_compile_options("/bigobj")
+    elseif(MINGW)
+        # Also add -Os to reduce maximum filesize
+        add_compile_options("-Wa,-mbig-obj" "-Os")
+    endif()
+else()
+    if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options("-g" "-Wall" "-Wextra" "-pedantic")
+    endif()
 endif()
 
 # Code Coverage
@@ -94,15 +101,20 @@ if (FAST_MATRIX_MARKET_TEST_EXTERNAL_APPS)
     gtest_discover_tests(eigen_test)
 
     # Blaze
-    set(BLAZE_BLAS_MODE OFF CACHE BOOL "" FORCE)  # No BLAS dependencies
-    set(USE_LAPACK OFF CACHE BOOL "" FORCE)  # No LAPACK (and transitively, BLAS) dependencies
-    include(../cmake/Blaze.cmake)
-    FetchContent_GetProperties(blaze SOURCE_DIR BLAZE_INCLUDE_DIR)
-    add_executable(blaze_test blaze_test.cpp)
-    target_link_libraries(blaze_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
-    target_include_directories(blaze_test PUBLIC ${BLAZE_INCLUDE_DIR})
+    if(MINGW)
+        # Blaze platform detection doesn't like the MinGW installed in tests.yml
+        message("Skipping Blaze test on MinGW")
+    else()
+        set(BLAZE_BLAS_MODE OFF CACHE BOOL "" FORCE)  # No BLAS dependencies
+        set(USE_LAPACK OFF CACHE BOOL "" FORCE)  # No LAPACK (and transitively, BLAS) dependencies
+        include(../cmake/Blaze.cmake)
+        FetchContent_GetProperties(blaze SOURCE_DIR BLAZE_INCLUDE_DIR)
+        add_executable(blaze_test blaze_test.cpp)
+        target_link_libraries(blaze_test GTest::gtest_main fast_matrix_market::fast_matrix_market)
+        target_include_directories(blaze_test PUBLIC ${BLAZE_INCLUDE_DIR})
 
-    gtest_discover_tests(blaze_test)
+        gtest_discover_tests(blaze_test)
+    endif()
 
     # GraphBLAS
     option(FAST_MATRIX_MARKET_TEST_GRAPHBLAS "Enable tests for GraphBLAS. Requires GraphBLAS installed on system such that find_package will find it." ON)

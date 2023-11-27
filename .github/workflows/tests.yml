@@ -14,6 +14,11 @@ jobs:
         include:
           - os: windows-latest
 
+          - os: windows-latest
+            mingw-version: "13.2.0"
+            description: "MinGW 13"
+            cmake-flags: '-G "MinGW Makefiles"'
+
           - os: ubuntu-20.04
             llvm-version: "8"
             description: "LLVM 8"
@@ -44,6 +49,12 @@ jobs:
       with:
         version: ${{ matrix.gcc-version }}
 
+    - name: Setup MinGW (Windows)
+      if: contains(matrix.os, 'windows') && matrix.mingw-version != ''
+      run: |
+        choco install mingw --version ${{ matrix.mingw-version }}
+        Add-Content $env:GITHUB_PATH "C:\ProgramData\mingw64\mingw64\bin"
+
     - name: Setup LLVM and Clang
       uses: KyleMayes/install-llvm-action@v1
       if: ${{ matrix.llvm-version != '' }}
@@ -61,7 +72,7 @@ jobs:
     - name: Build examples
       working-directory: examples
       run: |
-        cmake -S . -B cmake-build-debug/ -D CMAKE_BUILD_TYPE=Debug
+        cmake -S . -B cmake-build-debug/ -D CMAKE_BUILD_TYPE=Debug ${{ matrix.cmake-flags }}
         cmake --build cmake-build-debug/
 
     - name: Install Integrations (Ubuntu)
@@ -88,7 +99,7 @@ jobs:
 
     - name: Configure
       run: |
-        cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DFAST_MATRIX_MARKET_TEST=ON -DFAST_MATRIX_MARKET_TEST_COVERAGE=ON ${{ env.FMM_CMAKE_FLAGS }}
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DFAST_MATRIX_MARKET_TEST=ON -DFAST_MATRIX_MARKET_TEST_COVERAGE=ON ${{ env.FMM_CMAKE_FLAGS }} ${{ matrix.cmake-flags }}
 
     - name: Build
       env:
