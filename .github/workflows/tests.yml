@@ -52,7 +52,7 @@ jobs:
     - name: Setup MinGW (Windows)
       if: contains(matrix.os, 'windows') && matrix.mingw-version != ''
       run: |
-        choco install mingw --version ${{ matrix.mingw-version }}
+        choco install --no-progress mingw --version ${{ matrix.mingw-version }}
         Add-Content $env:GITHUB_PATH "C:\ProgramData\mingw64\mingw64\bin"
 
     - name: Setup LLVM and Clang
