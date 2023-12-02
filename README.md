@@ -2,6 +2,7 @@
 [![codecov](https://codecov.io/gh/alugowski/fast_matrix_market/branch/main/graph/badge.svg?token=s1G9zG4sDS)](https://codecov.io/gh/alugowski/fast_matrix_market)
 [![PyPI version](https://badge.fury.io/py/fast_matrix_market.svg)](https://pypi.org/project/fast-matrix-market/)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/fast_matrix_market.svg)](https://anaconda.org/conda-forge/fast_matrix_market)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10223767.svg)](https://doi.org/10.5281/zenodo.10223767)
 
 Fast and full-featured Matrix Market I/O.
 
