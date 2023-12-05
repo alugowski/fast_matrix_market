@@ -5,6 +5,6 @@ authors:
     given-names: Adam
     orcid: https://orcid.org/0009-0004-0922-4067
 title: "fast_matrix_market: Fast and Full-Featured Matrix Market I/O Library"
-date-released: 2023-11-30
+date-released: 2023-01-12
 doi: 10.5281/zenodo.10223767
 url: "https://github.com/alugowski/fast_matrix_market"
