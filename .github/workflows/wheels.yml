@@ -46,8 +46,9 @@ jobs:
       - name: Check metadata
         run: pipx run twine check python/dist/*
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: sdist
           path: python/dist/*.tar.gz
 
 
@@ -111,8 +112,9 @@ jobs:
           # run tests in the {package}/tests dir which is python/tests
           CIBW_TEST_COMMAND: "pytest {package}/tests"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: wheels-${{ matrix.os }}-${{ matrix.cibw_archs }}
           path: wheelhouse/*.whl
 
 
@@ -123,10 +125,12 @@ jobs:
     if: (github.event_name == 'release' && github.event.action == 'published') || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_dest != 'No Upload')
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
-          path: dist
+          path: dist_artifacts
+
+      - name: Flatten artifacts to dist/
+        run: mkdir dist && find dist_artifacts -type f -exec mv {} dist \;
 
       # Upload to PyPI
       - uses: pypa/gh-action-pypi-publish@release/v1
