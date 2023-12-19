@@ -127,10 +127,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: dist_artifacts
-
-      - name: Flatten artifacts to dist/
-        run: mkdir dist && find dist_artifacts -type f -exec mv {} dist \;
+          path: dist
+          merge-multiple: true
 
       # Upload to PyPI
       - uses: pypa/gh-action-pypi-publish@release/v1
