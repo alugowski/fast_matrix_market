@@ -132,6 +132,8 @@ class TestSciPy(unittest.TestCase):
 
                 self.assertMatrixEqual(m, m_fmm)
 
+    @unittest.skipIf(scipy is None or not scipy.__version__.startswith("1.11"),
+                     "SciPy 1.12 ships FMM so this no longer crashes.")
     def test_scipy_crashes(self):
         for mtx in sorted(list((matrices / "scipy_crashes").glob("*.mtx*"))):
             with self.subTest(msg=mtx.stem):
