@@ -112,7 +112,7 @@ jobs:
 
     - name: Upload Coverage to Codecov
       if: ${{ contains(matrix.os, 'ubuntu') }}
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         gcov: true
         gcov_include: include/*   # C++ coverage
@@ -169,7 +169,7 @@ jobs:
 
       - name: Upload Coverage to Codecov
         if: contains(matrix.os, 'ubuntu')
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           directory: python/tests
 
