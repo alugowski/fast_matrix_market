@@ -16,5 +16,5 @@ parsers:
     partials_as_hits: true
 ignore:
   - "tests"
-  - "include/fast_matrix_market/3rdparty"
+  - "include/fast_matrix_market/thirdparty"
   - "dependencies"
