@@ -22,7 +22,7 @@ jobs:
           - os: ubuntu-20.04
             llvm-version: "8"
             description: "LLVM 8"
-            gcov_executable: "llvm-cov gcov"
+            # gcov_executable: "llvm-cov gcov"
 
           - os: ubuntu-20.04
             gcc-version: "8"
@@ -41,7 +41,7 @@ jobs:
             description: "GCC 13"
 
           - os: macos-latest
-            gcov_executable: "xcrun llvm-cov gcov"
+            # gcov_executable: "xcrun llvm-cov gcov"
 
     steps:
     - uses: actions/checkout@v4
