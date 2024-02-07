@@ -118,17 +118,10 @@ jobs:
       working-directory: build
       run: |
         pip install gcovr
-        gcovr --delete --root ../../ --print-summary --xml-pretty --xml coverage.xml . --gcov-executable '${{ matrix.gcov_executable }}'
-
-    - name: Create code coverage report (Windows)
-      if: runner.os == 'Windows'
-      working-directory: build
-      run: |
-        choco install opencppcoverage
-        OpenCppCoverage.exe --export_type cobertura:coverage.xml --cover_children -- ctest -C Debug
+        gcovr --delete --root ../../ --print-summary --xml-pretty --xml coverage.xml . --gcov-executable '${{ matrix.gcov_executable }}'  --gcov-ignore-parse-errors=negative_hits.warn_once_per_file
 
     - name: Upload Coverage to Codecov
-      if: matrix.gcov_executable != '' || runner.os == 'Windows'
+      if: matrix.gcov_executable != ''
       uses: codecov/codecov-action@v4
       with:
           fail_ci_if_error: true
