@@ -22,6 +22,7 @@ jobs:
           - os: ubuntu-20.04
             llvm-version: "8"
             description: "LLVM 8"
+            gcov_executable: "llvm-cov gcov"
 
           - os: ubuntu-20.04
             gcc-version: "8"
@@ -32,6 +33,7 @@ jobs:
             # test minimum CMake version specified in CMakeLists.txt
             cmake-version: '3.14'
             description: "GCC 9"
+            gcov_executable: "gcov"
 
           - os: ubuntu-latest
             gcc-version: "13"
@@ -39,6 +41,7 @@ jobs:
             description: "GCC 13"
 
           - os: macos-latest
+            gcov_executable: "llvm-cov gcov"
 
     steps:
     - uses: actions/checkout@v4
@@ -110,12 +113,27 @@ jobs:
       working-directory: build
       run: ctest -C Debug --output-on-failure --verbose
 
+    - name: Create code coverage report (gcov)
+      if: matrix.gcov_executable != ''
+      working-directory: build
+      run: |
+        pip install gcovr
+        gcovr --delete --root ../../ --print-summary --xml-pretty --xml coverage.xml . --gcov-executable '${{ matrix.gcov_executable }}'
+
+    - name: Create code coverage report (Windows)
+      if: runner.os == 'Windows'
+      working-directory: build
+      run: |
+        choco install opencppcoverage
+        OpenCppCoverage.exe --export_type cobertura:coverage.xml --cover_children -- ctest -C Debug
+
     - name: Upload Coverage to Codecov
-      if: ${{ contains(matrix.os, 'ubuntu') }}
+      if: matrix.gcov_executable != '' || runner.os == 'Windows'
       uses: codecov/codecov-action@v4
       with:
-        gcov: true
-        gcov_include: include/*   # C++ coverage
+          fail_ci_if_error: true
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   pythontests:
     name: Python ${{ matrix.python-version }} Tests on ${{ matrix.os }}
@@ -171,6 +189,9 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         uses: codecov/codecov-action@v4
         with:
+          fail_ci_if_error: true
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
           directory: python/tests
 
   #################################################################################
