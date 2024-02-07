@@ -14,7 +14,6 @@ parsers:
       loop: no
   cobertura:
     partials_as_hits: true
-    handle_missing_conditons: true
 ignore:
   - "tests"
   - "include/fast_matrix_market/3rdparty"
