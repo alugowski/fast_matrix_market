@@ -1,6 +1,18 @@
 # FetchContent requires cmake >=3.11
 cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 
+# Code Coverage
+option(FAST_MATRIX_MARKET_TEST_COVERAGE "Code-coverage" OFF)
+if(FAST_MATRIX_MARKET_TEST_COVERAGE)
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options("-O0" "--coverage")
+        add_link_options("-lgcov" "--coverage")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+        add_compile_options("-O0" "--coverage")
+        add_link_options("--coverage")
+    endif()
+endif()
+
 if (WIN32)
     # Need bigobj because some tests use lots of templates
     if (MSVC)
@@ -12,18 +24,6 @@ if (WIN32)
 else()
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         add_compile_options("-g" "-Wall" "-Wextra" "-pedantic")
-    endif()
-endif()
-
-# Code Coverage
-option(FAST_MATRIX_MARKET_TEST_COVERAGE "Code-coverage" OFF)
-if(FAST_MATRIX_MARKET_TEST_COVERAGE)
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        add_compile_options("-O0" "--coverage")
-        add_link_options("-lgcov" "--coverage")
-    elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-        add_compile_options("-O0" "--coverage")
-        add_link_options("--coverage")
     endif()
 endif()
 
