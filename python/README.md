@@ -16,7 +16,7 @@ conda install fast_matrix_market
 
 # Compared to SciPy 1.12
 
-As of version 1.12, `scipy.io.mmread` and `scipy.io.mmread` are based on fast_matrix_market. If those methods suit your needs then there is no need to use this package.
+As of version 1.12, `scipy.io.mmread` and `scipy.io.mmwrite` are based on fast_matrix_market. If those methods suit your needs then there is no need to use this package.
 
 The following are extra features supported by the stand-alone FMM:
 
