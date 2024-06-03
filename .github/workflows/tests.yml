@@ -59,7 +59,7 @@ jobs:
         Add-Content $env:GITHUB_PATH "C:\ProgramData\mingw64\mingw64\bin"
 
     - name: Setup LLVM and Clang
-      uses: KyleMayes/install-llvm-action@v1
+      uses: KyleMayes/install-llvm-action@v2
       if: ${{ matrix.llvm-version != '' }}
       with:
         version: ${{ matrix.llvm-version }}
