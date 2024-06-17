@@ -88,7 +88,7 @@ jobs:
         with:
           platforms: all
 
-      - uses: pypa/cibuildwheel@v2.16
+      - uses: pypa/cibuildwheel@v2.19
         with:
           package-dir: python
           output-dir: wheelhouse
