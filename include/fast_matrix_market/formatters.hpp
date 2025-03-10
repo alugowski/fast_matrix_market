@@ -280,11 +280,13 @@ namespace fast_matrix_market {
         };
 
         chunk next_chunk(const write_options& options) {
-            auto num_columns = (int64_t)(((double)options.chunk_size_values / nnz_per_column) + 1);
-
-            num_columns = std::min(num_columns, (int64_t)(ptr_end - ptr_iter));
-            PTR_ITER ptr_chunk_end = ptr_iter + num_columns;
-
+            PTR_ITER ptr_chunk_end = ptr_end;
+            // we split data into chunks only if nnz_per_column is greater than 0
+            if (nnz_per_column > 0.) {
+                auto num_columns = (int64_t) (((double) options.chunk_size_values / nnz_per_column) + 1);
+                num_columns = std::min(num_columns, (int64_t) (ptr_end - ptr_iter));
+                ptr_chunk_end = ptr_iter + num_columns;
+            }
             chunk c(line_formatter,
                     ptr_begin, ptr_iter, ptr_chunk_end,
                     ind_begin,
