@@ -17,9 +17,6 @@
  */
 template <typename IT, typename VT>
 void construct_csc(csc_matrix<IT, VT>& ret, triplet_matrix<IT, VT>& triplet, int num_elements, int ncols = 1000) {
-    if (num_elements < ncols) {
-        ncols = num_elements;
-    }
     ret.nrows = num_elements;
     ret.ncols = ncols;
 
@@ -83,8 +80,8 @@ class CSCTest : public ::testing::Test {
 public:
     using Mat = csc_matrix<int64_t, T>;
 
-    void load(int nnz, int chunk_size, int p) {
-        construct_csc(mat, triplet, nnz);
+    void load(int nnz, int chunk_size, int p, int ncols) {
+        construct_csc(mat, triplet, nnz, ncols);
 
         roptions.chunk_size_bytes = chunk_size;
         woptions.chunk_size_values = chunk_size;
@@ -108,9 +105,16 @@ TYPED_TEST(CSCTest, Generated) {
     for (int nnz : {0, 10, 1000}) {
         for (int chunk_size : {1, 15, 203, 1 << 10, 1 << 20}) {
             for (int p : {1, 4}) {
-                this->load(nnz, chunk_size, p);
+                // test on a csc matrix with ncols = nnz
+                this->load(nnz, chunk_size, p, nnz);
 
                 auto b = read_mtx<ReadMat>(write_mtx(this->mat, this->woptions), this->roptions);
+                EXPECT_EQ(this->triplet, b);
+
+                // test on a csc matrix with a fixed number of columns = 500
+                this->load(nnz, chunk_size, p, 500);
+
+                b = read_mtx<ReadMat>(write_mtx(this->mat, this->woptions), this->roptions);
                 EXPECT_EQ(this->triplet, b);
             }
         }
