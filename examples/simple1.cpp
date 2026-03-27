@@ -54,7 +54,7 @@ int main() {
         // construct an instance of fast_matrix_market::matrix_market_header.
         // This is how you would manipulate the comment field: header.comment = std::string("comment");
         // You may also set header.field = fast_matrix_market::pattern to write a pattern file (only indices, no values).
-        // Non-pattern field types (integer, real, complex) are deduced from the template type and cannot be overriden.
+        // Non-pattern field types (integer, real, complex) are deduced from the template type and cannot be overridden.
 
         fast_matrix_market::write_matrix_market_triplet(
                 oss,

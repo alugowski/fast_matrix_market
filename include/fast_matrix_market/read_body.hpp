@@ -149,7 +149,7 @@ namespace fast_matrix_market {
             }
         } else {
             if (!test_flag(HANDLER::flags, kAppending)) {
-                switch (options.generalize_coordinate_diagnonal_values) {
+                switch (options.generalize_coordinate_diagonal_values) {
                     case read_options::ExtraZeroElement:
                         handler.handle(row, col, get_zero<typename HANDLER::value_type>());
                         break;

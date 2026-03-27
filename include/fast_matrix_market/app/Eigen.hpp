@@ -36,7 +36,7 @@ namespace fast_matrix_market {
         // Sanitize symmetry generalization settings
         if (options.generalize_symmetry && options.generalize_symmetry_app) {
             // setFromTriplets() drops zero elements
-            options.generalize_coordinate_diagnonal_values = read_options::ExtraZeroElement;
+            options.generalize_coordinate_diagonal_values = read_options::ExtraZeroElement;
         }
 
         // read into tuples

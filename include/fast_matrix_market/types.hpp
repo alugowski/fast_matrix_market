@@ -92,7 +92,7 @@ namespace fast_matrix_market {
         /**
          * If true, perform symmetry generalization in the application binding as a post-processing step.
          * If supported by the binding this method can avoid extra diagonal elements.
-         * If false or unsupported, diagonals are handled according to `generalize_coordinate_diagnonal_values`.
+         * If false or unsupported, diagonals are handled according to `generalize_coordinate_diagonal_values`.
          */
         bool generalize_symmetry_app = true;
 
@@ -108,7 +108,7 @@ namespace fast_matrix_market {
          *  This value is ignored if the parse handler has the kAppending flag set. In that case only a single
          *  diagonal element is emitted.
          */
-        enum {ExtraZeroElement, DuplicateElement} generalize_coordinate_diagnonal_values = ExtraZeroElement;
+        enum {ExtraZeroElement, DuplicateElement} generalize_coordinate_diagonal_values = ExtraZeroElement;
 
         /**
          * Whether parallel implementation is allowed.

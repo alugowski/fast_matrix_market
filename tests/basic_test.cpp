@@ -588,12 +588,12 @@ TEST_P(SymmetrySuite, SmallTripletCoordinate) {
     fast_matrix_market::read_options ro_gen_zero{};
     ro_gen_zero.generalize_symmetry = true;
     ro_gen_zero.generalize_symmetry_app = false;
-    ro_gen_zero.generalize_coordinate_diagnonal_values = fast_matrix_market::read_options::ExtraZeroElement;
+    ro_gen_zero.generalize_coordinate_diagonal_values = fast_matrix_market::read_options::ExtraZeroElement;
 
     fast_matrix_market::read_options ro_gen_dup{};
     ro_gen_dup.generalize_symmetry = true;
     ro_gen_dup.generalize_symmetry_app = false;
-    ro_gen_dup.generalize_coordinate_diagnonal_values = fast_matrix_market::read_options::DuplicateElement;
+    ro_gen_dup.generalize_coordinate_diagonal_values = fast_matrix_market::read_options::DuplicateElement;
 
     fast_matrix_market::read_options ro_gen_app{};
     ro_gen_app.generalize_symmetry = true;
